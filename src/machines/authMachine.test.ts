@@ -20,7 +20,6 @@ vi.mock(import("../utils/historyUtils"), async () => {
 
 const api = "http://localhost:3001";
 const ada = buildUser({ id: "user1" });
-const asJson = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 beforeEach(() => {
   vi.stubGlobal("localStorage", createMemoryStorage());
@@ -40,10 +39,10 @@ describe("LOGIN", () => {
     history.replace("/signin");
     const service = startService(authMachine);
 
-    service.send({ type: "LOGIN", username: "ada", password: "s3cret" } as never);
+    service.send({ type: "LOGIN", username: "ada", password: "s3cret" });
 
-    await expect.poll(() => service.state.value).toBe("authorized");
-    expect(service.state.context).toEqual({ user: asJson(ada), message: undefined });
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+    expect(service.getSnapshot().context).toEqual({ user: ada, message: undefined });
     expect(credentials).toHaveBeenCalledWith(
       expect.objectContaining({ username: "ada", password: "s3cret" })
     );
@@ -56,8 +55,10 @@ describe("LOGIN", () => {
 
     service.send("LOGIN");
 
-    await expect.poll(() => service.state.context.message).toBe("Username or password is invalid");
-    expect(service.state.value).toBe("unauthorized");
+    await expect
+      .poll(() => service.getSnapshot().context.message)
+      .toBe("Username or password is invalid");
+    expect(service.getSnapshot().value).toBe("unauthorized");
   });
 });
 
@@ -72,10 +73,10 @@ describe("SIGNUP", () => {
     );
     const service = startService(authMachine);
 
-    service.send({ type: "SIGNUP", username: "ada", password: "s3cret" } as never);
+    service.send({ type: "SIGNUP", username: "ada", password: "s3cret" });
 
     await expect.poll(() => history.location.pathname).toBe("/signin");
-    expect(service.state.value).toBe("unauthorized");
+    expect(service.getSnapshot().value).toBe("unauthorized");
     expect(payload).toHaveBeenCalledWith({ username: "ada", password: "s3cret" });
   });
 
@@ -85,7 +86,7 @@ describe("SIGNUP", () => {
 
     service.send("SIGNUP");
 
-    await expect.poll(() => service.state.context.message).toMatch(/422/);
+    await expect.poll(() => service.getSnapshot().context.message).toMatch(/422/);
   });
 });
 
@@ -94,7 +95,7 @@ describe("when authorized", () => {
     server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
     const service = startService(authMachine);
     service.send("LOGIN");
-    await expect.poll(() => service.state.value).toBe("authorized");
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
     return service;
   }
 
@@ -102,7 +103,7 @@ describe("when authorized", () => {
     const updated = vi.fn();
     server.use(
       http.patch(`${api}/users/:id`, async ({ request, params }) => {
-        updated({ id: params.id, body: await request.json() });
+        updated({ id: params["id"], body: await request.json() });
         return new HttpResponse(null, { status: 204 });
       }),
       http.get(`${api}/checkAuth`, () =>
@@ -113,8 +114,8 @@ describe("when authorized", () => {
 
     service.send({ type: "UPDATE", id: "user1", firstName: "Augusta" });
 
-    await expect.poll(() => service.state.context.user?.firstName).toBe("Augusta");
-    expect(service.state.value).toBe("authorized");
+    await expect.poll(() => service.getSnapshot().context.user?.firstName).toBe("Augusta");
+    expect(service.getSnapshot().value).toBe("authorized");
     expect(updated).toHaveBeenCalledWith({
       id: "user1",
       body: { id: "user1", firstName: "Augusta" },
@@ -127,8 +128,8 @@ describe("when authorized", () => {
 
     service.send({ type: "UPDATE", id: "user1" });
 
-    await expect.poll(() => service.state.value).toBe("unauthorized");
-    expect(service.state.context.message).toMatch(/500/);
+    await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
+    expect(service.getSnapshot().context.message).toMatch(/500/);
   });
 
   test("a failed REFRESH signs the user out", async () => {
@@ -137,8 +138,8 @@ describe("when authorized", () => {
 
     service.send("REFRESH");
 
-    await expect.poll(() => service.state.value).toBe("unauthorized");
-    expect(service.state.context.user).toBeUndefined();
+    await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
+    expect(service.getSnapshot().context.user).toBeUndefined();
   });
 
   test("LOGOUT ends the session and clears the saved auth state", async () => {
@@ -154,7 +155,7 @@ describe("when authorized", () => {
 
     service.send("LOGOUT");
 
-    await expect.poll(() => service.state.value).toBe("unauthorized");
+    await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     expect(loggedOut).toHaveBeenCalledOnce();
     expect(localStorage.getItem("authState")).toBeNull();
   });
@@ -165,8 +166,8 @@ describe("when authorized", () => {
 
     service.send("LOGOUT");
 
-    await expect.poll(() => service.state.context.message).toMatch(/500/);
-    expect(service.state.value).toBe("unauthorized");
+    await expect.poll(() => service.getSnapshot().context.message).toMatch(/500/);
+    expect(service.getSnapshot().value).toBe("unauthorized");
   });
 });
 
@@ -216,8 +217,8 @@ describe("identity provider sign-in", () => {
 
     service.send(providerEvents.AUTH0);
 
-    await expect.poll(() => service.state.value).toBe("authorized");
-    expect(service.state.context.user).toEqual({
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+    expect(service.getSnapshot().context.user).toEqual({
       id: "auth0|1",
       email: "ada@example.com",
       firstName: "ada",
@@ -231,8 +232,8 @@ describe("identity provider sign-in", () => {
 
     service.send(providerEvents.OKTA);
 
-    await expect.poll(() => service.state.value).toBe("authorized");
-    expect(service.state.context.user).toEqual({
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+    expect(service.getSnapshot().context.user).toEqual({
       id: "okta-1",
       email: "ada@example.com",
       firstName: "Ada",
@@ -247,8 +248,8 @@ describe("identity provider sign-in", () => {
 
     service.send(providerEvents.GOOGLE);
 
-    await expect.poll(() => service.state.value).toBe("authorized");
-    expect(service.state.context.user).toEqual({
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+    expect(service.getSnapshot().context.user).toEqual({
       id: "google-1",
       email: "ada@example.com",
       firstName: "Ada",
@@ -263,7 +264,7 @@ describe("identity provider sign-in", () => {
 
     service.send(providerEvents.COGNITO);
 
-    await expect.poll(() => service.state.value).toBe("authorized");
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
     expect(localStorage.getItem("authAccessToken")).toBe("cognito-token");
   });
 
@@ -272,8 +273,11 @@ describe("identity provider sign-in", () => {
 
     service.send(providerEvents.COGNITO);
 
-    await expect.poll(() => service.state.value).toBe("authorized");
-    expect(service.state.context.user).toEqual({ id: "cognito-1", email: "ada@example.com" });
+    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+    expect(service.getSnapshot().context.user).toEqual({
+      id: "cognito-1",
+      email: "ada@example.com",
+    });
   });
 
   test("a provider sign-in throws without a configured token name", () => {
@@ -292,7 +296,7 @@ describe("identity provider sign-in", () => {
 
       service.send("LOGOUT");
 
-      await expect.poll(() => service.state.value).toBe("unauthorized");
+      await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     }
   );
 });
@@ -320,7 +324,12 @@ describe("authService", () => {
     authService.send("LOGIN");
 
     await expect
-      .poll(() => JSON.parse(localStorage.getItem("authState") ?? "{}").value)
+      .poll(() => {
+        const stored: unknown = JSON.parse(localStorage.getItem("authState") ?? "{}");
+        return typeof stored === "object" && stored !== null && "value" in stored
+          ? stored.value
+          : undefined;
+      })
       .toBe("authorized");
   });
 
@@ -328,8 +337,8 @@ describe("authService", () => {
     server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
     const previous = startService(authMachine);
     previous.send("LOGIN");
-    await expect.poll(() => previous.state.value).toBe("authorized");
-    localStorage.setItem("authState", JSON.stringify(previous.state));
+    await expect.poll(() => previous.getSnapshot().value).toBe("authorized");
+    localStorage.setItem("authState", JSON.stringify(previous.getSnapshot()));
     vi.resetModules();
 
     const { authService } = await import("./authMachine");
@@ -337,7 +346,7 @@ describe("authService", () => {
       authService.stop();
     });
 
-    expect(authService.state.value).toBe("authorized");
-    expect(authService.state.context.user).toEqual(asJson(ada));
+    expect(authService.getSnapshot().value).toBe("authorized");
+    expect(authService.getSnapshot().context.user).toEqual(ada);
   });
 });

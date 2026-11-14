@@ -1,4 +1,4 @@
-import { Machine, assign } from "xstate";
+import { createMachine, assign } from "xstate";
 
 export interface SnackbarSchema {
   states: {
@@ -15,11 +15,11 @@ export enum Severities {
   error = "error",
 }
 export interface SnackbarContext {
-  severity?: Severities;
-  message?: string;
+  severity?: Severities | undefined;
+  message?: string | undefined;
 }
 
-export const snackbarMachine = Machine<SnackbarContext, SnackbarSchema, SnackbarEvents>(
+export const snackbarMachine = createMachine<SnackbarContext, SnackbarEvents>(
   {
     id: "snackbar",
     initial: "invisible",
@@ -43,7 +43,7 @@ export const snackbarMachine = Machine<SnackbarContext, SnackbarSchema, Snackbar
   },
   {
     actions: {
-      setSnackbar: assign<SnackbarContext, SnackbarEvents>((ctx, event) => ({
+      setSnackbar: assign<SnackbarContext, SnackbarEvents>((_ctx, event) => ({
         severity: event.severity,
         message: event.message,
       })),

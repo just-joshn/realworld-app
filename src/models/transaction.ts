@@ -1,5 +1,5 @@
-import { DefaultPrivacyLevel } from "./user";
-import { Like, Comment } from ".";
+import type { DefaultPrivacyLevel } from "./user";
+import type { Like, Comment } from ".";
 
 export enum TransactionStatus {
   pending = "pending",
@@ -77,7 +77,7 @@ type TransactionQueryBase = {
   dateRangeEnd?: string;
   amountMin?: number;
   amountMax?: number;
-  status?: TransactionStatus;
+  status?: TransactionStatus | undefined;
   limit?: number;
   page?: number;
 };

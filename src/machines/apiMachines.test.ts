@@ -3,7 +3,12 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, test, vi } from "vitest";
 import { server } from "../../test/msw";
 import { startService } from "../../test/machines";
-import { buildBankAccount } from "../../test/factories";
+import {
+  buildBankAccount,
+  buildUser,
+  buildTransactionResponseItem,
+  buildPaymentNotification,
+} from "../../test/factories";
 import { bankAccountsMachine } from "./bankAccountsMachine";
 import { contactsTransactionsMachine } from "./contactsTransactionsMachine";
 import { notificationsMachine } from "./notificationsMachine";
@@ -20,7 +25,15 @@ function respondWithResults(method: "get" | "patch", path: string) {
     http[method](`${api}${path}`, ({ request }) => {
       const url = new URL(request.url);
       received({ path: url.pathname, params: Object.fromEntries(url.searchParams) });
-      return HttpResponse.json({ results: [{ id: "result1" }], pageData: { page: 1 } });
+      const results = path.startsWith("/users")
+        ? [buildUser({ id: "result1" })]
+        : path.startsWith("/notifications")
+          ? [{ ...buildPaymentNotification({ id: "result1" }), userFullName: "Ada Lovelace" }]
+          : [buildTransactionResponseItem({ id: "result1" })];
+      return HttpResponse.json({
+        results,
+        pageData: { page: 1, limit: 10, hasNextPages: false, totalPages: 1 },
+      });
     })
   );
   return received;
@@ -49,7 +62,7 @@ describe.for([
 
     service.send("FETCH");
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(received).toHaveBeenCalledExactlyOnceWith({ path, params: {} });
   });
 
@@ -57,7 +70,7 @@ describe.for([
     const received = respondWithResults("get", path);
     const service = startService(machine);
 
-    service.send({ type: "FETCH", page: 2, limit: 10 } as never);
+    service.send({ type: "FETCH", page: 2, limit: 10 });
 
     await expect.poll(() => received.mock.calls.length).toBe(1);
     expect(received).toHaveBeenCalledWith({ path, params: { page: "2", limit: "10" } });
@@ -71,7 +84,9 @@ describe("usersMachine", () => {
 
     service.send("FETCH");
 
-    await expect.poll(() => service.state.context.results).toEqual([{ id: "result1" }]);
+    await expect
+      .poll(() => service.getSnapshot().context.results)
+      .toEqual([expect.objectContaining({ id: "result1" })]);
     expect(received).toHaveBeenCalledWith({ path: "/users", params: {} });
   });
 
@@ -79,7 +94,7 @@ describe("usersMachine", () => {
     const received = respondWithResults("get", "/users/search");
     const service = startService(usersMachine);
 
-    service.send({ type: "FETCH", q: "ada" } as never);
+    service.send({ type: "FETCH", q: "ada" });
 
     await expect.poll(() => received.mock.calls.length).toBe(1);
     expect(received).toHaveBeenCalledWith({ path: "/users/search", params: { q: "ada" } });
@@ -93,7 +108,7 @@ describe("notificationsMachine", () => {
 
     service.send("FETCH");
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(received).toHaveBeenCalledWith({ path: "/notifications", params: {} });
   });
 
@@ -101,7 +116,7 @@ describe("notificationsMachine", () => {
     const received = respondWithResults("get", "/notifications");
     const service = startService(notificationsMachine);
 
-    service.send({ type: "FETCH", page: 1 } as never);
+    service.send({ type: "FETCH", page: 1 });
 
     await expect.poll(() => received.mock.calls.length).toBe(1);
     expect(received).toHaveBeenCalledWith({ path: "/notifications", params: { page: "1" } });
@@ -111,16 +126,16 @@ describe("notificationsMachine", () => {
     const updated = vi.fn();
     server.use(
       http.patch(`${api}/notifications/:id`, async ({ request, params }) => {
-        updated({ id: params.id, body: await request.json() });
+        updated({ id: params["id"], body: await request.json() });
         return new HttpResponse(null, { status: 204 });
       })
     );
     const reloaded = respondWithResults("get", "/notifications");
     const service = startService(notificationsMachine);
 
-    service.send({ type: "UPDATE", id: "notif1", isRead: true } as never);
+    service.send({ type: "UPDATE", id: "notif1", isRead: true });
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(updated).toHaveBeenCalledExactlyOnceWith({
       id: "notif1",
       body: { id: "notif1", isRead: true },
@@ -148,8 +163,8 @@ describe("bankAccountsMachine", () => {
 
     service.send("FETCH");
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
-    expect(service.state.context.results).toEqual([
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
+    expect(service.getSnapshot().context.results).toEqual([
       expect.objectContaining({ id: "bank1", bankName: "First Bank" }),
     ]);
   });
@@ -170,9 +185,9 @@ describe("bankAccountsMachine", () => {
       bankName: "First Bank",
       accountNumber: "123456789",
       routingNumber: "987654321",
-    } as never);
+    });
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(variables).toHaveBeenCalledExactlyOnceWith({
       bankName: "First Bank",
       accountNumber: "123456789",
@@ -191,9 +206,9 @@ describe("bankAccountsMachine", () => {
     );
     const service = startService(bankAccountsMachine);
 
-    service.send({ type: "DELETE", id: "bank1" } as never);
+    service.send({ type: "DELETE", id: "bank1" });
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(variables).toHaveBeenCalledExactlyOnceWith({ id: "bank1" });
   });
 });

@@ -1,4 +1,4 @@
-import { Machine } from "xstate";
+import { createMachine } from "xstate";
 
 export interface UserOnboardingMachineSchema {
   states: {
@@ -14,9 +14,8 @@ export type UserOnboardingMachineEvents = { type: "PREV" } | { type: "NEXT" };
 
 export type UserOnboardingMachineContext = Record<string, never>;
 
-export const userOnboardingMachine = Machine<
+export const userOnboardingMachine = createMachine<
   UserOnboardingMachineContext,
-  UserOnboardingMachineSchema,
   UserOnboardingMachineEvents
 >({
   id: "userOnboarding",

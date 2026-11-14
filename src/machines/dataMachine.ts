@@ -1,6 +1,6 @@
-import { Machine, assign } from "xstate";
+import { createMachine, assign } from "xstate";
 import { concat } from "lodash/fp";
-import { TransactionPagination } from "../models";
+import type { TransactionPagination } from "../models";
 
 export interface DataSchema {
   states: {
@@ -30,16 +30,29 @@ export type DataEvents<T = unknown> = (
   | SuccessEvent<T>
   | FailureEvent
   | { type: `done.invoke.${string}`; data: { results: T[]; pageData?: TransactionPagination } }
-) & { id?: string; transactionId?: string; entity?: string };
+) & {
+  id?: string | undefined;
+  transactionId?: string | undefined;
+  entity?: string;
+  page?: number;
+  limit?: number;
+  q?: string;
+  isRead?: boolean;
+  bankName?: string;
+  accountNumber?: string;
+  routingNumber?: string;
+  content?: string;
+  requestStatus?: string;
+};
 
 export interface DataContext<T = unknown> {
-  pageData?: object;
+  pageData?: object | undefined;
   results: T[];
-  message?: string;
+  message?: string | undefined;
 }
 
 export const dataMachine = <T = unknown>(machineId: string) =>
-  Machine<DataContext<T>, DataSchema, DataEvents<T>>(
+  createMachine<DataContext<T>, DataEvents<T>>(
     {
       id: machineId,
       initial: "idle",
@@ -121,26 +134,26 @@ export const dataMachine = <T = unknown>(machineId: string) =>
     },
     {
       actions: {
-        setResults: assign<DataContext<T>, DataEvents<T>>((ctx, event) => {
+        setResults: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => {
           if (!("data" in event)) throw new Error("Expected data service result");
           return {
             results:
-              event.data && event.data.pageData && event.data.pageData.page > 1
-                ? concat(ctx.results, event.data.results)
+              event.data.pageData && event.data.pageData.page > 1
+                ? concat(_ctx.results, event.data.results)
                 : event.data.results,
           };
         }),
-        setPageData: assign<DataContext<T>, DataEvents<T>>((ctx, event) => {
+        setPageData: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => {
           if (!("data" in event)) throw new Error("Expected data service result");
           return { pageData: event.data.pageData };
         }),
 
-        setMessage: assign<DataContext<T>, DataEvents<T>>((ctx, event) => ({
+        setMessage: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => ({
           message: "message" in event ? event.message : undefined,
         })),
       },
       guards: {
-        hasData: (ctx: DataContext<T>) => !!ctx.results && ctx.results.length > 0,
+        hasData: (_ctx: DataContext<T>) => _ctx.results.length > 0,
       },
     }
   );

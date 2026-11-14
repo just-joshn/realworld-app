@@ -1,9 +1,7 @@
-import {
+import type {
   Transaction,
   User,
-  TransactionRequestStatus,
   NotificationType,
-  PaymentNotificationStatus,
   TransactionResponseItem,
   TransactionQueryPayload,
   TransactionDateRangePayload,
@@ -12,6 +10,7 @@ import {
   CommentNotification,
   ValuePiece,
 } from "../models";
+import { TransactionRequestStatus, PaymentNotificationStatus } from "../models";
 import { faker } from "@faker-js/faker";
 import { dinero, toDecimal, add, subtract, isPositive, toSnapshot, USD } from "dinero.js";
 import {
@@ -69,15 +68,15 @@ export const formatAmountSlider = (amount: number) =>
 
 export const payAppDifference = curry((sender: User, transaction: Transaction) =>
   subtract(
-    dinero({ amount: get("balance", sender) as number, currency: USD }),
-    dinero({ amount: get("amount", transaction) as number, currency: USD })
+    dinero({ amount: get("balance", sender), currency: USD }),
+    dinero({ amount: get("amount", transaction), currency: USD })
   )
 );
 
 export const payAppAddition = curry((sender: User, transaction: Transaction) =>
   add(
-    dinero({ amount: get("balance", sender) as number, currency: USD }),
-    dinero({ amount: get("amount", transaction) as number, currency: USD })
+    dinero({ amount: get("balance", sender), currency: USD }),
+    dinero({ amount: get("amount", transaction), currency: USD })
   )
 );
 
@@ -129,7 +128,9 @@ export const currentUserLikesTransaction = (
 export const hasDateQueryFields = (query: TransactionQueryPayload | TransactionDateRangePayload) =>
   has("dateRangeStart", query) && has("dateRangeEnd", query);
 
-export const getDateQueryFields = (query: TransactionDateRangePayload) =>
+type FilterInput<T> = { [Key in keyof T]?: T[Key] | string | undefined };
+
+export const getDateQueryFields = (query: FilterInput<TransactionDateRangePayload>) =>
   pick(["dateRangeStart", "dateRangeEnd"], query);
 
 export const omitDateQueryFields = (query: TransactionQueryPayload) =>
@@ -139,7 +140,7 @@ export const hasAmountQueryFields = (
   query: TransactionQueryPayload | TransactionAmountRangePayload
 ) => has("amountMin", query) && has("amountMax", query);
 
-export const getAmountQueryFields = (query: TransactionAmountRangePayload) =>
+export const getAmountQueryFields = (query: FilterInput<TransactionAmountRangePayload>) =>
   pick(["amountMin", "amountMax"], query);
 
 export const omitAmountQueryFields = (query: TransactionQueryPayload) =>
@@ -153,13 +154,13 @@ export const omitPaginationQueryFields = (query: TransactionQueryPayload) =>
   omit(["page", "limit"], query);
 
 export const getQueryWithoutDateFields = (query: TransactionQueryPayload) =>
-  query && hasDateQueryFields(query) ? omitDateQueryFields(query) : query;
+  hasDateQueryFields(query) ? omitDateQueryFields(query) : query;
 
 export const getQueryWithoutAmountFields = (query: TransactionQueryPayload) =>
-  query && hasAmountQueryFields(query) ? omitAmountQueryFields(query) : query;
+  hasAmountQueryFields(query) ? omitAmountQueryFields(query) : query;
 
 export const getQueryWithoutFilterFields = (query: TransactionQueryPayload) =>
-  flow(omitAmountQueryFields, omitDateQueryFields, omitPaginationQueryFields)(query);
+  omitPaginationQueryFields(omitDateQueryFields(omitAmountQueryFields(query)));
 
 export const padAmountWithZeros = (number: number) => Math.ceil(number * 1000);
 
@@ -206,7 +207,7 @@ export function isoStringToLocalMidnightEnd(isoString: string) {
 }
 
 export function isoStringToLocalDateFull(isoString: string): Date {
-  const { year, month, day, hour, minute, second, ms = 0 } = getDateParts(isoString);
+  const { year, month, day, hour, minute, second, ms } = getDateParts(isoString);
   return new Date(year, month, day, hour, minute, second, ms);
 }
 
