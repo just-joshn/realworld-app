@@ -1,15 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Router, withRouter } from "react-router-dom";
-import {
-  createTheme,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider,
-  adaptV4Theme,
-} from "@mui/material";
+import { createTheme, ThemeProvider, StyledEngineProvider, adaptV4Theme } from "@mui/material";
 
-// @ts-ignore
 import { OktaAuth, toRelativeUrl } from "@okta/okta-auth-js";
 import { Security } from "@okta/okta-react";
 import { history } from "./utils/historyUtils";
@@ -25,7 +18,11 @@ const theme = createTheme(
   })
 );
 
-const root = createRoot(document.getElementById("root")!);
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Missing root element");
+}
+const root = createRoot(rootElement);
 
 if (process.env.VITE_OKTA) {
   const oktaAuth = new OktaAuth({

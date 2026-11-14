@@ -1,30 +1,19 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useActor } from "@xstate/react";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
+import { InterpreterFrom } from "xstate";
 import { Link as RouterLink, useRouteMatch } from "react-router-dom";
 import { Grid, Button, Paper, Typography } from "@mui/material";
 
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
-import { DataContext, DataEvents, DataSchema } from "../machines/dataMachine";
+import { authMachine } from "../machines/authMachine";
+import { dataMachine } from "../machines/dataMachine";
+import { BankAccount, BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
 import BankAccountList from "../components/BankAccountList";
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
-  bankAccountsService: Interpreter<
-    DataContext,
-    DataSchema,
-    DataEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, DataEvents, BaseActionObject, ServiceMap>
-  >;
+  authService: InterpreterFrom<typeof authMachine>;
+  bankAccountsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
 }
 const PREFIX = "BankAccountsContainer";
 
@@ -49,11 +38,11 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
 
   const currentUser = authState?.context.user;
 
-  const createBankAccount = (payload: any) => {
+  const createBankAccount = (payload: BankAccountPayload) => {
     sendBankAccounts({ type: "CREATE", ...payload });
   };
 
-  const deleteBankAccount = (payload: any) => {
+  const deleteBankAccount = (payload: Pick<BankAccount, "id">) => {
     sendBankAccounts({ type: "DELETE", ...payload });
   };
 
@@ -70,6 +59,11 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
         <BankAccountForm userId={currentUser?.id} createBankAccount={createBankAccount} />
       </StyledPaper>
     );
+  }
+
+  const bankAccounts = bankAccountsState.context.results;
+  if (!bankAccounts) {
+    throw new Error("Missing bank account results");
   }
 
   return (
@@ -93,10 +87,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
           </Button>
         </Grid>
       </Grid>
-      <BankAccountList
-        bankAccounts={bankAccountsState?.context.results!}
-        deleteBankAccount={deleteBankAccount}
-      />
+      <BankAccountList bankAccounts={bankAccounts} deleteBankAccount={deleteBankAccount} />
     </StyledPaper>
   );
 };

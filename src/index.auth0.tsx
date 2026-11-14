@@ -1,14 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Router } from "react-router-dom";
-import {
-  createTheme,
-  ThemeProvider,
-  Theme,
-  StyledEngineProvider,
-  adaptV4Theme,
-} from "@mui/material";
-import { Auth0Provider } from "@auth0/auth0-react";
+import { createTheme, ThemeProvider, StyledEngineProvider, adaptV4Theme } from "@mui/material";
+import { Auth0Provider, AppState } from "@auth0/auth0-react";
 import AppAuth0 from "./containers/AppAuth0";
 import { history } from "./utils/historyUtils";
 
@@ -23,18 +17,27 @@ const theme = createTheme(
 );
 
 /* istanbul ignore next */
-const onRedirectCallback = (appState: any) => {
+const onRedirectCallback = (appState?: AppState) => {
   history.replace((appState && appState.returnTo) || window.location.pathname);
 };
 
-const root = createRoot(document.getElementById("root")!);
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Missing root element");
+}
+const root = createRoot(rootElement);
 
 /* istanbul ignore if */
 if (process.env.VITE_AUTH0) {
+  const domain = process.env.VITE_AUTH0_DOMAIN;
+  const clientId = process.env.VITE_AUTH0_CLIENTID;
+  if (!domain || !clientId) {
+    throw new Error("Missing VITE_AUTH0_DOMAIN or VITE_AUTH0_CLIENTID");
+  }
   root.render(
     <Auth0Provider
-      domain={process.env.VITE_AUTH0_DOMAIN!}
-      clientId={process.env.VITE_AUTH0_CLIENTID!}
+      domain={domain}
+      clientId={clientId}
       authorizationParams={{
         redirect_uri: window.location.origin,
         audience: process.env.VITE_AUTH0_AUDIENCE,

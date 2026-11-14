@@ -11,32 +11,21 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
+import { InterpreterFrom } from "xstate";
 import { isEmpty } from "lodash/fp";
 import { useActor, useMachine } from "@xstate/react";
 
 import { userOnboardingMachine } from "../machines/userOnboardingMachine";
+import { BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
-import { DataContext, DataEvents, DataSchema } from "../machines/dataMachine";
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
+import { dataMachine } from "../machines/dataMachine";
+import { authMachine } from "../machines/authMachine";
 import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
 import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
-  bankAccountsService: Interpreter<
-    DataContext,
-    DataSchema,
-    DataEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, DataEvents, BaseActionObject, ServiceMap>
-  >;
+  authService: InterpreterFrom<typeof authMachine>;
+  bankAccountsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
 }
 
 const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
@@ -64,10 +53,14 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
 
   const nextStep = () => sendUserOnboarding("NEXT");
 
-  const createBankAccountWithNextStep = (payload: any) => {
+  const createBankAccountWithNextStep = (payload: BankAccountPayload) => {
     sendBankAccounts({ type: "CREATE", ...payload });
     nextStep();
   };
+
+  if (userOnboardingState.matches("stepTwo") && !currentUser) {
+    throw new Error("Missing onboarding user");
+  }
 
   return (
     <Dialog data-test="user-onboarding-dialog" fullScreen={fullScreen} open={dialogIsOpen}>
@@ -90,9 +83,9 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
               </DialogContentText>
             </>
           )}
-          {userOnboardingState.matches("stepTwo") && (
+          {userOnboardingState.matches("stepTwo") && currentUser && (
             <BankAccountForm
-              userId={currentUser?.id!}
+              userId={currentUser.id}
               createBankAccount={createBankAccountWithNextStep}
               onboarding
             />

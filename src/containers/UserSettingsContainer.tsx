@@ -1,9 +1,10 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper, Typography, Grid } from "@mui/material";
+import { User, UserSettingsPayload } from "../models";
 import UserSettingsForm from "../components/UserSettingsForm";
-import { Interpreter } from "xstate";
-import { AuthMachineContext, AuthMachineEvents } from "../machines/authMachine";
+import { InterpreterFrom } from "xstate";
+import { authMachine } from "../machines/authMachine";
 import { useActor } from "@xstate/react";
 import PersonalSettingsIllustration from "../components/SvgUndrawPersonalSettingsKihd";
 
@@ -23,14 +24,15 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, any, AuthMachineEvents, any>;
+  authService: InterpreterFrom<typeof authMachine>;
 }
 
 const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
   const [authState, sendAuth] = useActor(authService);
 
   const currentUser = authState?.context?.user;
-  const updateUser = (payload: any) => sendAuth({ type: "UPDATE", ...payload });
+  const updateUser = (payload: UserSettingsPayload & Pick<User, "id">) =>
+    sendAuth({ type: "UPDATE", ...payload });
 
   return (
     <StyledPaper className={classes.paper}>

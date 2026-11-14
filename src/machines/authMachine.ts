@@ -3,34 +3,60 @@ import { omit } from "lodash/fp";
 import { httpClient } from "../utils/asyncUtils";
 import { history } from "../utils/historyUtils";
 import { User } from "../models";
+import { getAuthTokenName } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
 
 export interface AuthMachineSchema {
   states: {
-    unauthorized: {};
-    signup: {};
-    loading: {};
-    updating: {};
-    logout: {};
-    refreshing: {};
-    google: {};
-    authorized: {};
-    auth0: {};
-    cognito: {};
-    okta: {};
+    unauthorized: Record<string, never>;
+    signup: Record<string, never>;
+    loading: Record<string, never>;
+    updating: Record<string, never>;
+    logout: Record<string, never>;
+    refreshing: Record<string, never>;
+    google: Record<string, never>;
+    authorized: Record<string, never>;
+    auth0: Record<string, never>;
+    cognito: Record<string, never>;
+    okta: Record<string, never>;
   };
 }
 
 export type AuthMachineEvents =
   | { type: "LOGIN" }
   | { type: "LOGOUT" }
-  | { type: "UPDATE" }
+  | ({ type: "UPDATE" } & Partial<User>)
   | { type: "REFRESH" }
-  | { type: "AUTH0" }
-  | { type: "COGNITO" }
-  | { type: "OKTA" }
-  | { type: "GOOGLE" }
-  | { type: "SIGNUP" };
+  | ({ type: "AUTH0" } & {
+      user: { sub: string; email: string; nickname: string; picture: string };
+      token: string;
+    })
+  | ({ type: "COGNITO" } & { userSub: string; email: string; accessTokenJwtString: string })
+  | ({ type: "OKTA" } & {
+      user: {
+        sub: string;
+        email: string;
+        given_name: string;
+        family_name: string;
+        preferred_username: string;
+      };
+      token: string;
+    })
+  | ({ type: "GOOGLE" } & {
+      user: {
+        googleId: string;
+        email: string;
+        givenName: string;
+        familyName: string;
+        imageUrl: string;
+      };
+      token: string;
+    })
+  | { type: "SIGNUP" }
+  | {
+      type: `done.invoke.${string}` | `error.platform.${string}`;
+      data: { user?: User; message?: string };
+    };
 
 export interface AuthMachineContext {
   user?: User;
@@ -160,11 +186,12 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
             history.push("/");
             return data;
           })
-          .catch((error) => {
+          .catch(() => {
             throw new Error("Username or password is invalid");
           });
       },
-      getOktaUserProfile: /* istanbul ignore next */ (ctx, event: any) => {
+      getOktaUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+        if (event.type !== "OKTA") throw new Error("Expected OKTA event");
         // Map Okta User fields to our User Model
         const user = {
           id: event.user.sub,
@@ -175,15 +202,16 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         };
 
         // Set Access Token in Local Storage for API calls
-        localStorage.setItem(process.env.VITE_AUTH_TOKEN_NAME!, event.token);
+        localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
       },
-      getUserProfile: async (ctx, event) => {
+      getUserProfile: async () => {
         const resp = await httpClient.get(`http://localhost:${backendPort}/checkAuth`);
         return resp.data;
       },
-      getGoogleUserProfile: /* istanbul ignore next */ (ctx, event: any) => {
+      getGoogleUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+        if (event.type !== "GOOGLE") throw new Error("Expected GOOGLE event");
         // Map Google User fields to our User Model
         const user = {
           id: event.user.googleId,
@@ -194,11 +222,12 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         };
 
         // Set Google Access Token in Local Storage for API calls
-        localStorage.setItem(process.env.VITE_AUTH_TOKEN_NAME!, event.token);
+        localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
       },
-      getAuth0UserProfile: /* istanbul ignore next */ (ctx, event: any) => {
+      getAuth0UserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+        if (event.type !== "AUTH0") throw new Error("Expected AUTH0 event");
         // Map Auth0 User fields to our User Model
         const user = {
           id: event.user.sub,
@@ -208,11 +237,12 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         };
 
         // Set Auth0 Access Token in Local Storage for API calls
-        localStorage.setItem(process.env.VITE_AUTH_TOKEN_NAME!, event.token);
+        localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
       },
-      updateProfile: async (ctx, event: any) => {
+      updateProfile: async (ctx, event: AuthMachineEvents) => {
+        if (event.type !== "UPDATE") throw new Error("Expected UPDATE event");
         const payload = omit("type", event);
         const resp = await httpClient.patch(
           `http://localhost:${backendPort}/users/${payload.id}`,
@@ -220,11 +250,12 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         );
         return resp.data;
       },
-      performLogout: async (ctx, event) => {
+      performLogout: async () => {
         localStorage.removeItem("authState");
         return await httpClient.post(`http://localhost:${backendPort}/logout`);
       },
-      getCognitoUserProfile: /* istanbul ignore next */ (ctx, event: any) => {
+      getCognitoUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+        if (event.type !== "COGNITO") throw new Error("Expected COGNITO event");
         // Map Cognito User fields to our User Model
         const ourUser = {
           id: event.userSub,
@@ -232,43 +263,51 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         };
 
         // Set Access Token in Local Storage for API calls
-        localStorage.setItem(process.env.VITE_AUTH_TOKEN_NAME!, event.accessTokenJwtString);
+        localStorage.setItem(getAuthTokenName(), event.accessTokenJwtString);
 
         return Promise.resolve(ourUser);
       },
     },
     actions: {
-      redirectHomeAfterLogin: async (ctx, event) => {
+      redirectHomeAfterLogin: async () => {
         if (history.location.pathname === "/signin") {
           /* istanbul ignore next */
           window.location.pathname = "/";
         }
       },
-      resetUser: assign((ctx: any, event: any) => ({
+      resetUser: assign(() => ({
         user: undefined,
       })),
-      setUserProfile: assign((ctx: any, event: any) => ({
-        user: event.data.user,
-      })),
-      onSuccess: assign((ctx: any, event: any) => ({
-        user: event.data.user,
-        message: undefined,
-      })),
-      onError: assign((ctx: any, event: any) => ({
-        message: event.data.message,
-      })),
+      setUserProfile: assign<AuthMachineContext, AuthMachineEvents>((ctx, event) => {
+        if (!("data" in event)) throw new Error("Expected authentication service result");
+        return {
+          user: event.data.user,
+        };
+      }),
+      onSuccess: assign<AuthMachineContext, AuthMachineEvents>((ctx, event) => {
+        if (!("data" in event)) throw new Error("Expected authentication service result");
+        return {
+          user: event.data.user,
+          message: undefined,
+        };
+      }),
+      onError: assign<AuthMachineContext, AuthMachineEvents>((ctx, event) => {
+        if (!("data" in event)) throw new Error("Expected authentication service result");
+        return {
+          message: event.data.message,
+        };
+      }),
     },
   }
 );
 
-// @ts-ignore
-const stateDefinition = JSON.parse(localStorage.getItem("authState"));
+const storedState = localStorage.getItem("authState");
+const stateDefinition = storedState === null ? null : JSON.parse(storedState);
 
 let resolvedState;
 if (stateDefinition) {
-  const previousState = State.create(stateDefinition);
+  const previousState = State.create<AuthMachineContext, AuthMachineEvents>(stateDefinition);
 
-  // @ts-ignore
   resolvedState = authMachine.resolveState(previousState);
 }
 

@@ -1,22 +1,25 @@
-import { omit, flow, first, isEmpty } from "lodash/fp";
+import { TransactionResponseItem } from "../models";
+import { omit, flow } from "lodash/fp";
 import { dataMachine } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
 
-export const transactionDetailMachine = dataMachine("transactionData").withConfig({
+export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
+  "transactionData"
+).withConfig({
   services: {
-    fetchData: async (ctx, event: any) => {
+    fetchData: async (ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = !isEmpty(ctx.results) && first(ctx.results)["id"];
+      const contextTransactionId = ctx.results?.[0]?.id;
       const transactionId = contextTransactionId || payload.transactionId;
       const resp = await httpClient.get(
         `http://localhost:${backendPort}/transactions/${transactionId}`
       );
-      // @ts-ignore
+
       return { results: [resp.data.transaction] };
     },
-    createData: async (ctx, event: any) => {
-      let route = event.entity === "LIKE" ? "likes" : "comments";
+    createData: async (ctx, event) => {
+      const route = event.entity === "LIKE" ? "likes" : "comments";
       const payload = flow(omit("type"), omit("entity"))(event);
       const resp = await httpClient.post(
         `http://localhost:${backendPort}/${route}/${payload.transactionId}`,
@@ -24,9 +27,9 @@ export const transactionDetailMachine = dataMachine("transactionData").withConfi
       );
       return resp.data;
     },
-    updateData: async (ctx, event: any) => {
+    updateData: async (ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = !isEmpty(ctx.results) && first(ctx.results)["id"];
+      const contextTransactionId = ctx.results?.[0]?.id;
       const transactionId = contextTransactionId || payload.id;
       const resp = await httpClient.patch(
         `http://localhost:${backendPort}/transactions/${transactionId}`,

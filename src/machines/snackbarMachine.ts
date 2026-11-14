@@ -2,12 +2,12 @@ import { Machine, assign } from "xstate";
 
 export interface SnackbarSchema {
   states: {
-    invisible: {};
-    visible: {};
+    invisible: Record<string, never>;
+    visible: Record<string, never>;
   };
 }
 
-export type SnackbarEvents = { type: "SHOW" } | { type: "HIDE" };
+export type SnackbarEvents = ({ type: "SHOW" } | { type: "HIDE" }) & SnackbarContext;
 export enum Severities {
   success = "success",
   info = "info",
@@ -44,11 +44,11 @@ export const snackbarMachine = Machine<SnackbarContext, SnackbarSchema, Snackbar
   },
   {
     actions: {
-      setSnackbar: assign((ctx, event: any) => ({
+      setSnackbar: assign<SnackbarContext, SnackbarEvents>((ctx, event) => ({
         severity: event.severity,
         message: event.message,
       })),
-      resetSnackbar: assign((ctx, event: any) => ({
+      resetSnackbar: assign(() => ({
         severity: undefined,
         message: undefined,
       })),
