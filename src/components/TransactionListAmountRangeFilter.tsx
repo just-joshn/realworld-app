@@ -22,14 +22,13 @@ import {
 import { first, last } from "lodash/fp";
 
 export type TransactionListAmountRangeFilterProps = {
-  filterAmountRange: Function;
+  filterAmountRange: (payload: TransactionAmountRangePayload) => void;
   amountRangeFilters: TransactionAmountRangePayload;
-  resetAmountRange: Function;
+  resetAmountRange: () => void;
 };
 
 const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilterProps> = ({
   filterAmountRange,
-  amountRangeFilters,
   resetAmountRange,
 }) => {
   const theme = useTheme();
@@ -48,7 +47,7 @@ const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilte
     setAmountRangeAnchorEl(null);
   };
 
-  const handleAmountRangeChange = (_event: any, amountRange: number | number[]) => {
+  const handleAmountRangeChange = (_event: Event, amountRange: number | number[]) => {
     filterAmountRange({
       amountMin: padAmountWithZeros(first(amountRange as number[]) as number),
       amountMax: padAmountWithZeros(last(amountRange as number[]) as number),

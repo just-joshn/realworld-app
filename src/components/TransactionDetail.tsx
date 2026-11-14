@@ -93,9 +93,9 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 type TransactionProps = {
   transaction: TransactionResponseItem;
-  transactionLike: Function;
-  transactionComment: Function;
-  transactionUpdate: Function;
+  transactionLike: (id: string) => void;
+  transactionComment: React.ComponentProps<typeof CommentForm>["transactionComment"];
+  transactionUpdate: (payload: { id: string; requestStatus: TransactionRequestStatus }) => void;
   currentUser: User;
 };
 

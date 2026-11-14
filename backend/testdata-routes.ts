@@ -1,4 +1,4 @@
-///<reference path="types.ts" />
+import "./types";
 
 import express from "express";
 import { getAllForEntity, seedDatabase } from "./database";

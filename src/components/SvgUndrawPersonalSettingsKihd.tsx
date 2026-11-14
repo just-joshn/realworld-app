@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgUndrawPersonalSettingsKihd(props: any) {
+function SvgUndrawPersonalSettingsKihd(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       data-name="Layer 1"

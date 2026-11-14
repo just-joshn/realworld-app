@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 import { getLikesByTransactionId, createLikes } from "./database";
@@ -30,7 +31,7 @@ router.post(
   (req, res) => {
     const { transactionId } = req.params;
     /* istanbul ignore next */
-    createLikes(req.user?.id!, transactionId);
+    createLikes(required(req.user, "authenticated user").id, transactionId);
 
     res.sendStatus(200);
   }

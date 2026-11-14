@@ -24,7 +24,7 @@ const Root = styled("div")(({ theme }) => ({
 }));
 
 export interface UserListSearchFormProps {
-  userListSearch: Function;
+  userListSearch: (payload: { q: string }) => void;
 }
 
 const UserListSearchForm: React.FC<UserListSearchFormProps> = ({ userListSearch }) => {

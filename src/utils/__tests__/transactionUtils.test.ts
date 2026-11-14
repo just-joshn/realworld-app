@@ -42,7 +42,7 @@ describe("Transaction Utils", () => {
     let transaction;
 
     test("validates that a transaction is a request", () => {
-      for (let s in TransactionRequestStatus) {
+      for (const s in TransactionRequestStatus) {
         transaction = fakeTransaction(s as TransactionRequestStatus);
         expect(isRequestTransaction(transaction)).toBeTruthy();
       }

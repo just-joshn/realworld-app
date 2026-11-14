@@ -9,10 +9,9 @@ import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
 import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
-import { Amplify, ResourcesConfig } from "aws-amplify";
+import { Amplify } from "aws-amplify";
 import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 
-// @ts-ignore
 import awsConfig from "../aws-exports";
 const PREFIX = "AppCognito";
 
@@ -20,13 +19,13 @@ const classes = {
   root: `${PREFIX}-root`,
 };
 
-const Root = styled("div")(({ theme }) => ({
+const Root = styled("div")(() => ({
   [`&.${classes.root}`]: {
     display: "flex",
   },
 }));
 
-Amplify.configure(awsConfig as ResourcesConfig);
+Amplify.configure(awsConfig);
 
 const AppCognito: React.FC = /* istanbul ignore next */ () => {
   const [authState] = useActor(authService);
@@ -46,10 +45,13 @@ const AppCognito: React.FC = /* istanbul ignore next */ () => {
       fetchAuthSession().then((authSession) => {
         if (authSession && authSession.tokens && authSession.tokens.accessToken) {
           const { tokens, userSub } = authSession;
+          if (!tokens || !tokens.idToken || !userSub) {
+            throw new Error("Missing Cognito session tokens or user subject");
+          }
           authService.send("COGNITO", {
-            accessTokenJwtString: tokens!.accessToken.toString(),
-            userSub: userSub!,
-            email: tokens!.idToken!.payload.email,
+            accessTokenJwtString: tokens.accessToken.toString(),
+            userSub,
+            email: tokens.idToken.payload.email,
           });
         } else {
           void signInWithRedirect();

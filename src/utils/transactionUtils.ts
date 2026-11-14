@@ -191,7 +191,8 @@ export const formatAmountRangeValues = (amountRangeValues: number[]) =>
   /* istanbul ignore next */
   flow(map(padAmountWithZeros), map(formatAmountSlider), join(" - "))(amountRangeValues);
 
-export const getPaginatedItems = (page: number, limit: number, items: any) => {
+export const getPaginatedItems = <T>(page: number, limit: number, items: T[] | undefined) => {
+  if (!items) throw new Error("Paginated items are required");
   const offset = (page - 1) * limit;
   const pagedItems = drop(offset, items).slice(0, limit);
 

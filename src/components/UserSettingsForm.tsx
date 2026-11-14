@@ -12,7 +12,7 @@ const classes = {
   form: `${PREFIX}-form`,
 };
 
-const StyledFormik = styled(Formik)(({ theme }) => ({
+const StyledFormik = styled(Formik<UserSettingsPayload>)(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
     display: "flex",
@@ -43,7 +43,7 @@ const validationSchema = object({
 
 export interface UserSettingsProps {
   userProfile: User;
-  updateUser: Function;
+  updateUser: (payload: UserSettingsPayload & { id: User["id"] }) => void;
 }
 
 const UserSettingsForm: React.FC<UserSettingsProps> = ({ userProfile, updateUser }) => {

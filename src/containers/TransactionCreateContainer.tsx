@@ -1,32 +1,22 @@
 import React, { useEffect } from "react";
 import { useMachine, useActor } from "@xstate/react";
-import { User, TransactionPayload } from "../models";
+import { User } from "../models";
 import TransactionCreateStepOne from "../components/TransactionCreateStepOne";
-import TransactionCreateStepTwo from "../components/TransactionCreateStepTwo";
+import TransactionCreateStepTwo, {
+  TransactionCreateStepTwoProps,
+} from "../components/TransactionCreateStepTwo";
 import TransactionCreateStepThree from "../components/TransactionCreateStepThree";
 import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { usersMachine } from "../machines/usersMachine";
 import { debounce } from "lodash/fp";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
-import { SnackbarSchema, SnackbarContext, SnackbarEvents } from "../machines/snackbarMachine";
+import { InterpreterFrom } from "xstate";
+import { authMachine } from "../machines/authMachine";
+import { snackbarMachine, SnackbarContext } from "../machines/snackbarMachine";
 import { Stepper, Step, StepLabel } from "@mui/material";
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
-  snackbarService: Interpreter<
-    SnackbarContext,
-    SnackbarSchema,
-    SnackbarEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, SnackbarEvents, BaseActionObject, ServiceMap>
-  >;
+  authService: InterpreterFrom<typeof authMachine>;
+  snackbarService: InterpreterFrom<typeof snackbarMachine>;
 }
 
 const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarService }) => {
@@ -44,13 +34,15 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
 
   const sender = authState?.context?.user;
   const setReceiver = (receiver: User) => {
-    // @ts-ignore
+    if (!sender) return;
     sendCreateTransaction({ type: "SET_USERS", sender, receiver });
   };
-  const createTransaction = (payload: TransactionPayload) => {
+  const createTransaction: TransactionCreateStepTwoProps["createTransaction"] = (payload) => {
     sendCreateTransaction("CREATE", payload);
   };
-  const userListSearch = debounce(200, (payload: any) => sendUsers({ type: "FETCH", ...payload }));
+  const userListSearch = debounce(200, (payload: { q: string }) =>
+    sendUsers({ type: "FETCH", ...payload })
+  );
 
   const showSnackbar = (payload: SnackbarContext) => sendSnackbar({ type: "SHOW", ...payload });
 
@@ -63,6 +55,7 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     activeStep = 0;
   }
 
+  const users = usersState.context.results;
   return (
     <>
       <Stepper activeStep={activeStep}>
@@ -79,7 +72,7 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
       {createTransactionState.matches("stepOne") && (
         <TransactionCreateStepOne
           setReceiver={setReceiver}
-          users={usersState.context.results!}
+          users={users}
           userListSearch={userListSearch}
         />
       )}

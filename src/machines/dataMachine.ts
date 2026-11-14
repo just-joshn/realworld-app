@@ -1,42 +1,45 @@
 import { Machine, assign } from "xstate";
 import { concat } from "lodash/fp";
+import { TransactionPagination } from "../models";
 
 export interface DataSchema {
   states: {
-    idle: {};
-    loading: {};
-    updating: {};
-    creating: {};
-    deleting: {};
+    idle: Record<string, never>;
+    loading: Record<string, never>;
+    updating: Record<string, never>;
+    creating: Record<string, never>;
+    deleting: Record<string, never>;
     success: {
       states: {
-        unknown: {};
-        withData: {};
-        withoutData: {};
+        unknown: Record<string, never>;
+        withData: Record<string, never>;
+        withoutData: Record<string, never>;
       };
     };
-    failure: {};
+    failure: Record<string, never>;
   };
 }
 
-type SuccessEvent = { type: "SUCCESS"; results: any[]; pageData: object };
+type SuccessEvent<T> = { type: "SUCCESS"; results: T[]; pageData: object };
 type FailureEvent = { type: "FAILURE"; message: string };
-export type DataEvents =
+export type DataEvents<T = unknown> = (
   | { type: "FETCH" }
   | { type: "UPDATE" }
   | { type: "CREATE" }
   | { type: "DELETE" }
-  | SuccessEvent
-  | FailureEvent;
+  | SuccessEvent<T>
+  | FailureEvent
+  | { type: `done.invoke.${string}`; data: { results: T[]; pageData?: TransactionPagination } }
+) & { id?: string; transactionId?: string; entity?: string };
 
-export interface DataContext {
+export interface DataContext<T = unknown> {
   pageData?: object;
-  results?: any[];
+  results: T[];
   message?: string;
 }
 
-export const dataMachine = (machineId: string) =>
-  Machine<DataContext, DataSchema, DataEvents>(
+export const dataMachine = <T = unknown>(machineId: string) =>
+  Machine<DataContext<T>, DataSchema, DataEvents<T>>(
     {
       id: machineId,
       initial: "idle",
@@ -111,22 +114,28 @@ export const dataMachine = (machineId: string) =>
     },
     {
       actions: {
-        setResults: assign((ctx: DataContext, event: any) => ({
-          results:
-            event.data && event.data.pageData && event.data.pageData.page > 1
-              ? concat(ctx.results, event.data.results)
-              : event.data.results,
-        })),
-        setPageData: assign((ctx: DataContext, event: any) => ({
-          pageData: event.data.pageData,
-        })),
+        setResults: assign<DataContext<T>, DataEvents<T>>((ctx, event) => {
+          if (!("data" in event)) throw new Error("Expected data service result");
+          return {
+            results:
+              event.data && event.data.pageData && event.data.pageData.page > 1
+                ? concat(ctx.results, event.data.results)
+                : event.data.results,
+          };
+        }),
+        setPageData: assign<DataContext<T>, DataEvents<T>>((ctx, event) => {
+          if (!("data" in event)) throw new Error("Expected data service result");
+          return { pageData: event.data.pageData };
+        }),
 
-        setMessage: /* istanbul ignore next */ assign((ctx, event: any) => ({
-          message: event.message,
-        })),
+        setMessage: /* istanbul ignore next */ assign<DataContext<T>, DataEvents<T>>(
+          (ctx, event) => ({
+            message: "message" in event ? event.message : undefined,
+          })
+        ),
       },
       guards: {
-        hasData: (ctx: DataContext, event) => !!ctx.results && ctx.results.length > 0,
+        hasData: (ctx: DataContext<T>) => !!ctx.results && ctx.results.length > 0,
       },
     }
   );

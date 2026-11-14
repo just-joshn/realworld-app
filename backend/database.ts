@@ -1,4 +1,6 @@
 import path from "path";
+import { required } from "./required";
+import { chain } from "lodash";
 import bcrypt from "bcryptjs";
 import fs from "fs";
 import { v4 } from "uuid";
@@ -108,45 +110,44 @@ export const getAllPublicTransactions = () =>
 
 export const getAllForEntity = (entity: keyof DbSchema) => db.get(entity).value();
 
-export const getAllBy = (entity: keyof DbSchema, key: string, value: any) => {
-  const result = db
-    .get(entity)
-    // @ts-ignore
-    .filter({ [`${key}`]: value })
+export function getAllBy<K extends keyof DbSchema>(
+  entity: K,
+  key: string,
+  value: unknown
+): DbSchema[K];
+export function getAllBy(entity: keyof DbSchema, key: string, value: unknown) {
+  return chain(db.get(entity).value())
+    .filter({ [key]: value })
     .value();
+}
 
-  return result;
-};
-
-export const getBy = (entity: keyof DbSchema, key: string, value: any) => {
-  const result = db
-    .get(entity)
-    // @ts-ignore
-    .find({ [`${key}`]: value })
+export function getBy<K extends keyof DbSchema>(
+  entity: K,
+  key: string,
+  value: unknown
+): DbSchema[K][number];
+export function getBy(entity: keyof DbSchema, key: string, value: unknown) {
+  return chain(db.get(entity).value())
+    .find({ [key]: value })
     .value();
+}
 
-  return result;
-};
-
-export const getAllByObj = (entity: keyof DbSchema, query: object) => {
-  const result = db
-    .get(entity)
-    // @ts-ignore
-    .filter(query)
-    .value();
-
-  return result;
-};
+export function getAllByObj<K extends keyof DbSchema>(entity: K, query: object): DbSchema[K];
+export function getAllByObj(entity: keyof DbSchema, query: object) {
+  return chain(db.get(entity).value()).filter(query).value();
+}
 
 // Search
 export const cleanSearchQuery = (query: string) => query.replace(/[^a-zA-Z0-9]/g, "");
 
-export const setupSearch = curry((items: object[], options: {}, query: string) => {
-  const fuse = new Fuse(items, options);
-  return fuse.search(query);
-});
+export const setupSearch = curry(
+  (items: object[], options: Fuse.IFuseOptions<object>, query: string) => {
+    const fuse = new Fuse(items, options);
+    return fuse.search(query);
+  }
+);
 
-export const performSearch = (items: object[], options: {}, query: string) =>
+export const performSearch = (items: object[], options: Fuse.IFuseOptions<object>, query: string) =>
   flow(
     cleanSearchQuery,
     setupSearch(items, options),
@@ -170,25 +171,38 @@ export const removeUserFromResults = (userId: User["id"], results: User[]) =>
 // convenience methods
 
 // User
-export const getUserBy = (key: string, value: any) => getBy(USER_TABLE, key, value);
+export const getUserBy = (key: string, value: unknown) => getBy(USER_TABLE, key, value);
 export const getUserId = (user: User): string => user.id;
 export const getUserById = (id: string) => getUserBy("id", id);
 export const getUserByUsername = (username: string) => getUserBy("username", username);
 
-export const createUser = (userDetails: Partial<User>): User => {
-  const password = bcrypt.hashSync(userDetails.password!, 10);
+export const createUser = (
+  userDetails: Pick<
+    User,
+    | "password"
+    | "firstName"
+    | "lastName"
+    | "username"
+    | "email"
+    | "phoneNumber"
+    | "avatar"
+    | "defaultPrivacyLevel"
+  > &
+    Partial<User>
+): User => {
+  const password = bcrypt.hashSync(userDetails.password, 10);
   const user: User = {
     id: shortid(),
     uuid: v4(),
-    firstName: userDetails.firstName!,
-    lastName: userDetails.lastName!,
-    username: userDetails.username!,
+    firstName: userDetails.firstName,
+    lastName: userDetails.lastName,
+    username: userDetails.username,
     password,
-    email: userDetails.email!,
-    phoneNumber: userDetails.phoneNumber!,
-    balance: Number(userDetails.balance!) || 0,
-    avatar: userDetails.avatar!,
-    defaultPrivacyLevel: userDetails.defaultPrivacyLevel!,
+    email: userDetails.email,
+    phoneNumber: userDetails.phoneNumber,
+    balance: Number(userDetails.balance) || 0,
+    avatar: userDetails.avatar,
+    defaultPrivacyLevel: userDetails.defaultPrivacyLevel,
     createdAt: new Date(),
     modifiedAt: new Date(),
   };
@@ -208,9 +222,9 @@ export const updateUserById = (userId: string, edits: Partial<User>) => {
 };
 
 // Contact
-export const getContactBy = (key: string, value: any) => getBy(CONTACT_TABLE, key, value);
+export const getContactBy = (key: string, value: unknown) => getBy(CONTACT_TABLE, key, value);
 
-export const getContactsBy = (key: string, value: any) => getAllBy(CONTACT_TABLE, key, value);
+export const getContactsBy = (key: string, value: unknown) => getAllBy(CONTACT_TABLE, key, value);
 
 export const getContactsByUsername = (username: string) =>
   flow(getUserByUsername, getUserId, getContactsByUserId)(username);
@@ -248,11 +262,12 @@ export const createContactForUser = (userId: string, contactUserId: string) => {
 };
 
 // Bank Account
-export const getBankAccountBy = (key: string, value: any) => getBy(BANK_ACCOUNT_TABLE, key, value);
+export const getBankAccountBy = (key: string, value: unknown) =>
+  getBy(BANK_ACCOUNT_TABLE, key, value);
 
 export const getBankAccountById = (id: string) => getBankAccountBy("id", id);
 
-export const getBankAccountsBy = (key: string, value: any) =>
+export const getBankAccountsBy = (key: string, value: unknown) =>
   getAllBy(BANK_ACCOUNT_TABLE, key, value);
 
 export const createBankAccount = (bankaccount: BankAccount) => {
@@ -262,15 +277,18 @@ export const createBankAccount = (bankaccount: BankAccount) => {
   return getBankAccountBy("id", bankaccount.id);
 };
 
-export const createBankAccountForUser = (userId: string, accountDetails: Partial<BankAccount>) => {
+export const createBankAccountForUser = (
+  userId: string,
+  accountDetails: Pick<BankAccount, "bankName" | "accountNumber" | "routingNumber">
+) => {
   const accountId = shortid();
   const bankaccount: BankAccount = {
     id: accountId,
     uuid: v4(),
     userId,
-    bankName: accountDetails.bankName!,
-    accountNumber: accountDetails.accountNumber!,
-    routingNumber: accountDetails.routingNumber!,
+    bankName: accountDetails.bankName,
+    accountNumber: accountDetails.accountNumber,
+    routingNumber: accountDetails.routingNumber,
     isDeleted: false,
     createdAt: new Date(),
     modifiedAt: new Date(),
@@ -294,10 +312,10 @@ export const removeBankAccountById = (bankAccountId: string) => {
 // but some of the backend database functionality is already implemented here.
 
 /* istanbul ignore next */
-export const getBankTransferBy = (key: string, value: any) =>
+export const getBankTransferBy = (key: string, value: unknown) =>
   getBy(BANK_TRANSFER_TABLE, key, value);
 
-export const getBankTransfersBy = (key: string, value: any) =>
+export const getBankTransfersBy = (key: string, value: unknown) =>
   getAllBy(BANK_TRANSFER_TABLE, key, value);
 
 export const getBankTransfersByUserId = (userId: string) => getBankTransfersBy("userId", userId);
@@ -326,7 +344,8 @@ const saveBankTransfer = (bankTransfer: BankTransfer): BankTransfer => {
 
 // Transaction
 
-export const getTransactionBy = (key: string, value: any) => getBy(TRANSACTION_TABLE, key, value);
+export const getTransactionBy = (key: string, value: unknown) =>
+  getBy(TRANSACTION_TABLE, key, value);
 
 export const getTransactionById = (id: string) => getTransactionBy("id", id);
 
@@ -371,7 +390,7 @@ export const formatTransactionsForApiResponse = (
     transactions.map((transaction) => formatTransactionForApiResponse(transaction))
   );
 
-export const getAllTransactionsForUserByObj = curry((userId: string, query?: object) => {
+export const getAllTransactionsForUserByObj = curry((userId: string, query: object | undefined) => {
   const queryWithoutFilterFields = query && getQueryWithoutFilterFields(query);
 
   const queryFields = queryWithoutFilterFields || query;
@@ -392,15 +411,15 @@ export const getAllTransactionsForUserByObj = curry((userId: string, query?: obj
     const { amountMin, amountMax } = getAmountQueryFields(query);
 
     return flow(
-      transactionsWithinDateRange(dateRangeStart!, dateRangeEnd!),
-      transactionsWithinAmountRange(amountMin!, amountMax!)
+      transactionsWithinDateRange(dateRangeStart, dateRangeEnd),
+      transactionsWithinAmountRange(amountMin, amountMax)
     )(userTransactions);
   }
   return userTransactions;
 });
 
 export const transactionsWithinAmountRange = curry(
-  (amountMin: number, amountMax: number, transactions: Transaction[]) => {
+  (amountMin: number | undefined, amountMax: number | undefined, transactions: Transaction[]) => {
     if (!amountMin || !amountMax) {
       return transactions;
     }
@@ -413,7 +432,11 @@ export const transactionsWithinAmountRange = curry(
 );
 
 export const transactionsWithinDateRange = curry(
-  (dateRangeStart: string, dateRangeEnd: string, transactions: Transaction[]) => {
+  (
+    dateRangeStart: string | undefined,
+    dateRangeEnd: string | undefined,
+    transactions: Transaction[]
+  ) => {
     if (!dateRangeStart || !dateRangeEnd) {
       return transactions;
     }
@@ -474,8 +497,8 @@ export const getPublicTransactionsByQuery = (userId: string, query: TransactionQ
     return {
       contactsTransactions: getTransactionsForUserContacts(userId, query),
       publicTransactions: flow(
-        transactionsWithinDateRange(dateRangeStart!, dateRangeEnd!),
-        transactionsWithinAmountRange(amountMin!, amountMax!)
+        transactionsWithinDateRange(dateRangeStart, dateRangeEnd),
+        transactionsWithinAmountRange(amountMin, amountMax)
       )(getNonContactPublicTransactionsForApi(userId)),
     };
   } else {
@@ -599,7 +622,7 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
 
 // Likes
 
-export const getLikeBy = (key: string, value: any): Like => getBy(LIKE_TABLE, key, value);
+export const getLikeBy = (key: string, value: unknown): Like => getBy(LIKE_TABLE, key, value);
 export const getLikesByObj = (query: object) => getAllByObj(LIKE_TABLE, query);
 
 export const getLikeById = (id: string): Like => getLikeBy("id", id);
@@ -644,7 +667,8 @@ const saveLike = (like: Like): Like => {
 
 // Comments
 
-export const getCommentBy = (key: string, value: any): Comment => getBy(COMMENT_TABLE, key, value);
+export const getCommentBy = (key: string, value: unknown): Comment =>
+  getBy(COMMENT_TABLE, key, value);
 export const getCommentsByObj = (query: object) => getAllByObj(COMMENT_TABLE, query);
 
 export const getCommentById = (id: string): Comment => getCommentBy("id", id);
@@ -691,10 +715,10 @@ const saveComment = (comment: Comment): Comment => {
 
 // Notifications
 
-export const getNotificationBy = (key: string, value: any): NotificationType =>
+export const getNotificationBy = (key: string, value: unknown): NotificationType =>
   getBy(NOTIFICATION_TABLE, key, value);
 
-export const getNotificationsByObj = (query: object): Notification[] =>
+export const getNotificationsByObj = (query: object): NotificationType[] =>
   getAllByObj(NOTIFICATION_TABLE, query);
 
 export const getUnreadNotificationsByUserId = (userId: string) =>
@@ -827,7 +851,7 @@ export const formatNotificationsForApiResponse = (
 /* istanbul ignore next */
 export const getRandomUser = () => {
   const users = getAllUsers();
-  return sample(users)!;
+  return required(sample(users), "random user");
 };
 
 /* istanbul ignore next */

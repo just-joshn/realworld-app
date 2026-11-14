@@ -5,7 +5,7 @@ import { BankAccount } from "../models";
 
 export interface BankAccountListItemProps {
   bankAccount: BankAccount;
-  deleteBankAccount: Function;
+  deleteBankAccount: (payload: { id: BankAccount["id"] }) => void;
 }
 
 const BankAccountListItem: React.FC<BankAccountListItemProps> = ({

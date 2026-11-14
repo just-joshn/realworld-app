@@ -1,14 +1,15 @@
+import { User } from "../../../src/models";
 import { getBankAccountsByUserId } from "../../database";
 
 const Query = {
-  listBankAccount(obj: any, args: any, ctx: any) {
+  listBankAccount(obj: unknown, args: unknown, ctx: { user: User }) {
     /* istanbul ignore next */
     try {
       return getBankAccountsByUserId(ctx.user.id);
       /* istanbul ignore next */
-    } catch (err: any) {
+    } catch (err) {
       /* istanbul ignore next */
-      throw new Error(err); // eslint-disable-line preserve-caught-error
+      throw new Error(err === undefined ? undefined : `${err}`); // eslint-disable-line preserve-caught-error
     }
   },
 };

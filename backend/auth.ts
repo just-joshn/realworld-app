@@ -4,12 +4,12 @@ import express, { Request, Response } from "express";
 import { User } from "../src/models/user";
 import { getUserBy, getUserById } from "./database";
 
-const LocalStrategy = require("passport-local").Strategy;
+import { Strategy as LocalStrategy } from "passport-local";
 const router = express.Router();
 
 // configure passport for local strategy
 passport.use(
-  new LocalStrategy(function (username: string, password: string, done: Function) {
+  new LocalStrategy(function (username: string, password: string, done) {
     const user = getUserBy("username", username);
 
     const failureMessage = "Incorrect username or password.";
@@ -38,9 +38,9 @@ passport.deserializeUser(function (id: string, done) {
 // authentication routes
 router.post("/login", passport.authenticate("local"), (req: Request, res: Response): void => {
   if (req.body.remember) {
-    req.session!.cookie.maxAge = 24 * 60 * 60 * 1000 * 30; // Expire in 30 days
+    req.session.cookie.maxAge = 24 * 60 * 60 * 1000 * 30; // Expire in 30 days
   } else {
-    req.session!.cookie.expires = undefined;
+    req.session.cookie.expires = undefined;
   }
 
   res.send({ user: req.user });
@@ -49,7 +49,7 @@ router.post("/login", passport.authenticate("local"), (req: Request, res: Respon
 router.post("/logout", (req: Request, res: Response): void => {
   res.clearCookie("connect.sid");
   req.logout(() => res.redirect("/"));
-  req.session!.destroy(function (err) {
+  req.session.destroy(function () {
     res.redirect("/");
   });
 });

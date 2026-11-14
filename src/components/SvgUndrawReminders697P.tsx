@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgUndrawReminders697P(props: any) {
+function SvgUndrawReminders697P(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       data-name="Layer 1"

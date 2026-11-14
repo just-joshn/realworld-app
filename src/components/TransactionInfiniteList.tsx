@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { get } from "lodash/fp";
 import { useTheme, useMediaQuery, Divider } from "@mui/material";
-import { InfiniteLoader, List, Index } from "react-virtualized";
+import { InfiniteLoader, List, Index, ListRowProps } from "react-virtualized";
 import "react-virtualized/styles.css"; // only needs to be imported once
 
 import TransactionItem from "./TransactionItem";
@@ -14,7 +14,7 @@ const classes = {
   transactionList: `${PREFIX}-transactionList`,
 };
 
-const StyledInfiniteLoader = styled(InfiniteLoader)(({ theme }) => ({
+const StyledInfiniteLoader = styled(InfiniteLoader)(() => ({
   [`& .${classes.transactionList}`]: {
     width: "100%",
     minHeight: "80vh",
@@ -26,7 +26,7 @@ const StyledInfiniteLoader = styled(InfiniteLoader)(({ theme }) => ({
 
 export interface TransactionListProps {
   transactions: TransactionResponseItem[];
-  loadNextPage: Function;
+  loadNextPage: (page: number) => void;
   pagination: TransactionPagination;
 }
 
@@ -50,8 +50,7 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
   const isRowLoaded = (params: Index) =>
     !pagination.hasNextPages || params.index < transactions.length;
 
-  // @ts-ignore
-  function rowRenderer({ key, index, style }) {
+  function rowRenderer({ key, index, style }: ListRowProps) {
     const transaction = get(index, transactions);
 
     if (index < transactions.length) {

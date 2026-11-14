@@ -25,7 +25,7 @@ const classes = {
   submit: `${PREFIX}-submit`,
 };
 
-const StyledFormik = styled(Formik)(({ theme }) => ({
+const StyledFormik = styled(Formik<BankAccountPayload>)(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
     display: "flex",
@@ -45,7 +45,7 @@ const StyledFormik = styled(Formik)(({ theme }) => ({
 
 export interface BankAccountFormProps {
   userId: User["id"];
-  createBankAccount: Function;
+  createBankAccount: (payload: BankAccountPayload) => void;
   onboarding?: boolean;
 }
 

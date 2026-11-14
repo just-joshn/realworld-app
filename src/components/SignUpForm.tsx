@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { useActor } from "@xstate/react";
-import { Interpreter } from "xstate";
+import { InterpreterFrom } from "xstate";
 import { Link } from "react-router-dom";
 import { Button, Container, CssBaseline, TextField, Grid, Box, Typography } from "@mui/material";
 import { Formik, Form, Field, FieldProps } from "formik";
@@ -10,7 +10,7 @@ import { string, object, ref } from "yup";
 import RWALogo from "./SvgRwaLogo";
 import Footer from "./Footer";
 import { SignUpPayload } from "../models";
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
+import { authMachine } from "../machines/authMachine";
 
 const PREFIX = "SignUpForm";
 
@@ -56,7 +56,7 @@ const validationSchema = object({
 });
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
+  authService: InterpreterFrom<typeof authMachine>;
 }
 
 const SignUpForm: React.FC<Props> = ({ authService }) => {
@@ -84,13 +84,13 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting, setFieldValue }) => {
+          onSubmit={async (values, { setSubmitting }) => {
             setSubmitting(true);
 
             signUpPending(values);
           }}
         >
-          {({ isValid, isSubmitting, dirty }) => (
+          {({ isValid, isSubmitting }) => (
             <Form className={classes.form}>
               <Field name="firstName">
                 {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (

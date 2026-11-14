@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { head } from "lodash/fp";
-import { Interpreter } from "xstate";
+import { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import clsx from "clsx";
 import {
@@ -27,7 +27,7 @@ import {
 } from "@mui/icons-material";
 
 import { formatAmount } from "../utils/transactionUtils";
-import { AuthMachineContext, AuthMachineEvents } from "../machines/authMachine";
+import { authMachine } from "../machines/authMachine";
 
 const PREFIX = "NavDrawer";
 
@@ -112,14 +112,10 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
 
 const drawerWidth = 240;
 
-export const mainListItems = (
-  toggleDrawer: ((event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void) | undefined,
-  showTemporaryDrawer: Boolean
-) => (
+export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boolean) => (
   <div>
     <ListItem
       button
-      // @ts-ignore
       onClick={() => showTemporaryDrawer && toggleDrawer()}
       component={RouterLink}
       to="/"
@@ -132,7 +128,6 @@ export const mainListItems = (
     </ListItem>
     <ListItem
       button
-      // @ts-ignore
       onClick={() => showTemporaryDrawer && toggleDrawer()}
       component={RouterLink}
       to="/user/settings"
@@ -145,7 +140,6 @@ export const mainListItems = (
     </ListItem>
     <ListItem
       button
-      // @ts-ignore
       onClick={() => showTemporaryDrawer && toggleDrawer()}
       component={RouterLink}
       to="/bankaccounts"
@@ -158,7 +152,6 @@ export const mainListItems = (
     </ListItem>
     <ListItem
       button
-      // @ts-ignore
       onClick={() => showTemporaryDrawer && toggleDrawer()}
       component={RouterLink}
       to="/notifications"
@@ -172,7 +165,7 @@ export const mainListItems = (
   </div>
 );
 
-export const secondaryListItems = (signOutPending: Function) => (
+export const secondaryListItems = (signOutPending: () => void) => (
   <div>
     <ListItem button onClick={() => signOutPending()} data-test="sidenav-signout">
       <ListItemIcon>
@@ -187,7 +180,7 @@ interface Props {
   closeMobileDrawer: () => void;
   toggleDrawer: () => void;
   drawerOpen: boolean;
-  authService: Interpreter<AuthMachineContext, any, AuthMachineEvents, any>;
+  authService: InterpreterFrom<typeof authMachine>;
 }
 
 const NavDrawer: React.FC<Props> = ({

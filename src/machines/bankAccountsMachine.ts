@@ -1,3 +1,4 @@
+import { BankAccount } from "../models";
 import { omit } from "lodash/fp";
 import gql from "graphql-tag";
 import { dataMachine } from "./dataMachine";
@@ -45,17 +46,17 @@ const createBankAccountMutation = gql`
   }
 `;
 
-export const bankAccountsMachine = dataMachine("bankAccounts").withConfig({
+export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").withConfig({
   services: {
-    fetchData: async (ctx, event: any) => {
+    fetchData: async () => {
       const resp = await httpClient.post(`http://localhost:${backendPort}/graphql`, {
         operationName: "ListBankAccount",
         query: listBankAccountQuery.loc?.source.body,
       });
-      // @ts-ignore
+
       return { results: resp.data.data.listBankAccount, pageData: {} };
     },
-    deleteData: async (ctx, event: any) => {
+    deleteData: async (ctx, event) => {
       const payload = omit("type", event);
       const resp = await httpClient.post(`http://localhost:${backendPort}/graphql`, {
         operationName: "DeleteBankAccount",
@@ -64,7 +65,7 @@ export const bankAccountsMachine = dataMachine("bankAccounts").withConfig({
       });
       return resp.data;
     },
-    createData: async (ctx, event: any) => {
+    createData: async (ctx, event) => {
       const payload = omit("type", event);
       const resp = await httpClient.post(`http://localhost:${backendPort}/graphql`, {
         operationName: "CreateBankAccount",

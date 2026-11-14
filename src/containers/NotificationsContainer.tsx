@@ -1,18 +1,12 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
+import { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import { Paper, Typography } from "@mui/material";
 import { NotificationUpdatePayload } from "../models";
 import NotificationList from "../components/NotificationList";
-import { DataContext, DataSchema, DataEvents } from "../machines/dataMachine";
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
+import { authMachine } from "../machines/authMachine";
 
 const PREFIX = "NotificationsContainer";
 
@@ -31,14 +25,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
-  notificationsService: Interpreter<
-    DataContext,
-    DataSchema,
-    DataEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, DataEvents, BaseActionObject, ServiceMap>
-  >;
+  authService: InterpreterFrom<typeof authMachine>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
 }
 
 const NotificationsContainer: React.FC<Props> = ({ authService, notificationsService }) => {
@@ -52,15 +40,13 @@ const NotificationsContainer: React.FC<Props> = ({ authService, notificationsSer
   const updateNotification = (payload: NotificationUpdatePayload) =>
     sendNotifications({ type: "UPDATE", ...payload });
 
+  const notifications = notificationsState.context.results;
   return (
     <StyledPaper className={classes.paper}>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
         Notifications
       </Typography>
-      <NotificationList
-        notifications={notificationsState?.context?.results!}
-        updateNotification={updateNotification}
-      />
+      <NotificationList notifications={notifications} updateNotification={updateNotification} />
     </StyledPaper>
   );
 };

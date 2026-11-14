@@ -22,8 +22,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface TransactionCreateStepOneProps {
-  setReceiver: Function;
-  userListSearch: Function;
+  setReceiver: (user: User) => void;
+  userListSearch: (payload: { q: string }) => void;
   users: User[];
 }
 

@@ -1,20 +1,14 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useMachine } from "@xstate/react";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
+import { InterpreterFrom } from "xstate";
 import { Container, Grid, useMediaQuery, useTheme } from "@mui/material";
 
 import Footer from "./Footer";
 import NavBar from "./NavBar";
 import NavDrawer from "./NavDrawer";
-import { DataContext, DataEvents, DataSchema } from "../machines/dataMachine";
-import { AuthMachineContext, AuthMachineEvents, AuthMachineSchema } from "../machines/authMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
+import { authMachine } from "../machines/authMachine";
 import { drawerMachine } from "../machines/drawerMachine";
 
 const PREFIX = "MainLayout";
@@ -59,14 +53,8 @@ const Root = styled("div")(({ theme }) => ({
 
 interface Props {
   children: React.ReactNode;
-  authService: Interpreter<AuthMachineContext, AuthMachineSchema, AuthMachineEvents, any, any>;
-  notificationsService: Interpreter<
-    DataContext,
-    DataSchema,
-    DataEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, DataEvents, BaseActionObject, ServiceMap>
-  >;
+  authService: InterpreterFrom<typeof authMachine>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
 }
 
 const MainLayout: React.FC<Props> = ({ children, notificationsService, authService }) => {
@@ -85,7 +73,8 @@ const MainLayout: React.FC<Props> = ({ children, notificationsService, authServi
     sendDrawer("TOGGLE_MOBILE");
   };
 
-  const openDesktopDrawer = (payload: any) => sendDrawer("OPEN_DESKTOP", payload);
+  const openDesktopDrawer = (payload: { aboveSmallBreakpoint: boolean }) =>
+    sendDrawer("OPEN_DESKTOP", payload);
   const closeMobileDrawer = () => sendDrawer("CLOSE_MOBILE");
 
   useEffect(() => {

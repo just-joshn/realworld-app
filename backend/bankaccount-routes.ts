@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 
@@ -17,7 +18,7 @@ const router = express.Router();
 //GET /bankAccounts (scoped-user)
 router.get("/", ensureAuthenticated, (req, res) => {
   /* istanbul ignore next */
-  const accounts = getBankAccountsByUserId(req.user?.id!);
+  const accounts = getBankAccountsByUserId(required(req.user, "authenticated user").id);
 
   res.status(200);
   res.json({ results: accounts });
@@ -41,7 +42,7 @@ router.get(
 //POST /bankAccounts (scoped-user)
 router.post("/", ensureAuthenticated, validateMiddleware(isBankAccountValidator), (req, res) => {
   /* istanbul ignore next */
-  const account = createBankAccountForUser(req.user?.id!, req.body);
+  const account = createBankAccountForUser(required(req.user, "authenticated user").id, req.body);
 
   res.status(200);
   res.json({ account });
