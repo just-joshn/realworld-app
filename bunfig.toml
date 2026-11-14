@@ -1,0 +1,5 @@
+[fmt]
+printWidth = 100
+trailingComma = "es5"
+endOfLine = "auto"
+ignorePatterns = ["data/", "amplify/"]
