@@ -2,6 +2,7 @@ import { configDefaults, defineConfig, mergeConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import { msw } from "msw/vite";
 import viteConfig from "./vite.config";
+import { BACKEND_PORT, CORS_ORIGIN_PORT } from "./test/integration/ports";
 
 export default defineConfig((env) =>
   mergeConfig(
@@ -70,6 +71,31 @@ export default defineConfig((env) =>
                 headless: true,
                 provider: playwright({ actionTimeout: 5_000 }),
                 instances: [{ browser: "chromium" }, { browser: "webkit" }],
+              },
+            },
+          },
+          {
+            define: {
+              "process.env": JSON.stringify({
+                VITE_BACKEND_PORT: String(BACKEND_PORT),
+                VITE_AUTH_TOKEN_NAME: "authAccessToken",
+              }),
+            },
+            test: {
+              name: "integration",
+              include: ["test/integration/**/*.integration.test.tsx"],
+              globalSetup: ["./test/integration/global-setup.ts"],
+              setupFiles: ["./test/integration/setup.ts"],
+              fileParallelism: false,
+              testTimeout: 30_000,
+              hookTimeout: 30_000,
+              api: { port: CORS_ORIGIN_PORT, strictPort: true },
+              browser: {
+                enabled: true,
+                headless: true,
+                provider: playwright({ actionTimeout: 5_000 }),
+                // v8 coverage only works in Chromium.
+                instances: [{ browser: "chromium" }],
               },
             },
           },
