@@ -173,7 +173,7 @@
     "postinstall": "husky install",
     "test": "vitest",
     "test:unit": "vitest run --project unit",
-    "coverage": "vitest run --coverage",
+    "coverage": "vitest run --coverage --project unit --project \"browser (chromium)\"",
     "test:browser": "vitest run --project browser"
   },
   "engines": {

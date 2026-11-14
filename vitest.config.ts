@@ -13,6 +13,7 @@ export default defineConfig((env) =>
         unstubEnvs: true,
         unstubGlobals: true,
         expect: { requireAssertions: true },
+        // v8 coverage only works in Chromium, so `bun run coverage` skips the webkit instance.
         coverage: {
           provider: "v8",
           include: [
@@ -68,7 +69,7 @@ export default defineConfig((env) =>
                 enabled: true,
                 headless: true,
                 provider: playwright({ actionTimeout: 5_000 }),
-                instances: [{ browser: "chromium" }],
+                instances: [{ browser: "chromium" }, { browser: "webkit" }],
               },
             },
           },
