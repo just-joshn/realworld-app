@@ -13,7 +13,7 @@ All helpers live in `.pi/skills/verify-rwa/scripts/` and run from the repo root.
 
 The ports are hard-coded: the frontend is on 3000 (`vite.config.ts`), and `.env` sets `PORT` and `VITE_BACKEND_PORT`. The DB path is also fixed (`backend/database.ts`). **You cannot run two instances side by side.** `launch.sh` refuses to start if either port is taken. If that happens, the port belongs to someone else's dev server. Do not kill it. Ask the user, or stop.
 
-This checkout can also be shared with other agents. `yarn test:unit` writes the same `data/database.json`, and a `git checkout` makes vite hot-reload every module in the running app, which breaks it partway through a journey. Guards are in place for this:
+This checkout can also be shared with other agents. Another dev server writes the same `data/database.json`, and a `git checkout` makes vite hot-reload every module in the running app, which breaks it partway through a journey. Guards are in place for this:
 - `drive.sh` exits **3 (INVALID)** if HEAD differs from the launch HEAD, or changes during a journey. Discard that result, then run cleanup and launch again.
 - `cleanup.sh` does not restore the DB if HEAD moved. It saves the pre-launch copy under the evidence root instead.
 
@@ -25,9 +25,7 @@ If other work is happening in the checkout, wait for a quiet window.
 $S/setup-tools.sh
 ```
 
-This script is idempotent. It installs two things into `~/.cache/verify-rwa/`, outside the repo:
-- A `yarn` shim. The repo's scripts call `yarn` through `concurrently`, and this machine only has `corepack yarn`.
-- Playwright with Chromium.
+This script is idempotent. It installs Playwright with Chromium into `~/.cache/verify-rwa/`, outside the repo. The repo's scripts run through [Bun](https://bun.com/docs/installation), which must already be installed.
 
 ## Launch
 
@@ -37,7 +35,7 @@ $S/launch.sh
 
 The script does the following:
 1. Backs up `data/database.json` to `/tmp/verify-rwa/state/`.
-2. Runs `yarn start`. Its `prestart` step reseeds the DB from `data/database-seed.json`. The run uses `NODE_ENV=development` and no file watcher.
+2. Runs `bun run start`. Its `prestart` step reseeds the DB from `data/database-seed.json`. The run uses `NODE_ENV=development` and no file watcher.
 3. Puts the server in its own process group and writes the group ID to `/tmp/verify-rwa/state/app.pid`.
 
 It exits 0 only when the instance is **usable**: `/signin` is served and the seed user `Heath93` / `s3cret` can `POST /login`. That normally takes about 6 seconds. The server log is at `/tmp/verify-rwa/state/app.log`.
@@ -92,7 +90,7 @@ Proof standards:
 - **Drive the real user path.** Never use `/testData/*`, and never call API mutations directly to set up the thing you're proving. Seeding comes only from `launch.sh`.
 - **Capture the action and the resulting state.** The per-step shots do this. Don't hand over just the final screen.
 - **Check side effects as well as the UI.** For example, verify a DB row was written, a password was hashed, or a session was created or destroyed. A green banner alone is not proof.
-- **No mocks.** Nothing here talks to an external system in the default local-auth mode. Auth0, Okta, Cognito, and Google modes (`yarn dev:auth0` etc.) need real tenant credentials in `.env`. They are **not** covered by this skill.
+- **No mocks.** Nothing here talks to an external system in the default local-auth mode. Auth0, Okta, Cognito, and Google modes (`bun run dev:auth0` etc.) need real tenant credentials in `.env`. They are **not** covered by this skill.
 - **Journeys mutate the shared DB.** For example, `settings` renames `Heath93`, and every money journey changes balances. Write checks against the stored value, not hard-coded seed values. To get a clean state, run cleanup and launch again.
 
 ## Cleanup
