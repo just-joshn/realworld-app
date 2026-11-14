@@ -2,7 +2,6 @@ import globals from 'globals'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import pluginCypress from 'eslint-plugin-cypress'
 
 export default defineConfig([
   globalIgnores(['build/']),
@@ -11,7 +10,6 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      pluginCypress.configs.recommended,
     ],
     rules: {
       // TODO: review violations of disabled rules

@@ -1,7 +1,7 @@
 {
   "name": "cypress-realworld-app",
   "version": "1.0.0",
-  "description": "A payment application to demonstrate **real-world** usage of Cypress testing methods, patterns, and workflows. For a full reference of our documentation, go to https://docs.cypress.io",
+  "description": "A payment application with **real-world** features, patterns, and workflows.",
   "repository": {
     "type": "git",
     "url": "https://github.com/cypress-io/cypress-realworld-app.git"
@@ -55,12 +55,8 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "7.21.11",
     "@babel/preset-env": "^7.28.0",
-    "@cypress/code-coverage": "^4.0.3",
-    "@cypress/instrument-cra": "1.4.0",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "6.1.2",
-    "@percy/cli": "^1.27.4",
-    "@percy/cypress": "^3.1.8",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@types/bcryptjs": "2.4.2",
@@ -98,23 +94,21 @@
     "connect-history-api-fallback": "1.6.0",
     "cors": "2.8.5",
     "cross-env": "7.0.3",
-    "cypress": "^16.1.1",
     "dotenv": "16.0.0",
     "eslint": "^10.0.2",
-    "eslint-plugin-cypress": "^6.1.0",
     "express": "4.20.0",
     "express-jwt": "6.1.2",
     "express-paginate": "1.0.2",
     "express-session": "1.18.0",
     "express-validator": "6.15.0",
     "fuse.js": "6.5.3",
+    "globals": "^17.3.0",
     "graphql": "16.8.1",
     "graphql-http": "^1.22.0",
     "graphql-playground-middleware-express": "^1.7.23",
     "graphql-tools": "8.2.7",
     "http-proxy-middleware": "0.19.1",
     "husky": "7.0.4",
-    "istanbul-lib-coverage": "3.2.2",
     "jsdom": "^22.1.0",
     "json": "11.0.0",
     "jwks-rsa": "2.0.5",
@@ -123,24 +117,19 @@
     "ncp": "2.0.0",
     "nodemon": "2.0.22",
     "npm": "^9.8.0",
-    "nyc": "15.1.0",
     "passport": "0.5.0",
     "passport-local": "1.0.0",
     "patch-package": "^7.0.0",
     "prettier": "^3.0.0",
-    "start-server-and-test": "1.14.0",
     "ts-node": "10.9.2",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.2.2",
     "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-istanbul": "^4.1.0",
-    "vitest": "^3.2.4",
-    "wait-on": "^8.0.3"
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "dev:coverage": "cross-env NODE_ENV=development CYPRESS_COVERAGE=true concurrently yarn:start:react yarn:start:api:watch",
     "dev:auth0": "cross-env VITE_AUTH0=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
     "dev:okta": "cross-env VITE_OKTA=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
     "dev:cognito": "cross-env VITE_AWS_COGNITO=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
@@ -158,25 +147,13 @@
     "lint": "eslint && prettier --check \"**/**.{ts,js,tsx}\" \"*.{json,md,yml}\"",
     "list:dev:users": "cat data/database.json | json -a users | json -a id username",
     "types": "tsc --noEmit",
-    "precypress:open": "yarn predev:cognito:ci",
-    "cypress:open": "cypress open",
-    "cypress:open:mobile": "cypress open --config '{\"e2e\":{\"viewportWidth\":375,\"viewportHeight\":667}}'",
-    "precypress:run": "wait-on --timeout 60s http://localhost:3000 http://localhost:3001",
-    "cypress:run": "cypress run",
-    "cypress:run:component": "cypress run --component",
-    "cypress:run:mobile": "cypress run --config '{\"e2e\":{\"viewportWidth\":375,\"viewportHeight\":667}}'",
-    "test": "yarn cypress:open",
-    "test:headless": "yarn cypress:run",
-    "test:api": "yarn cypress:run --spec 'cypress/tests/api/*'",
     "test:unit": "vitest",
     "test:unit:ci": "vitest --run",
-    "test:component:ci": "yarn cypress:run:component",
     "start:api": "yarn tsnode --files backend/app.ts",
     "start:api:watch": "nodemon --exec yarn tsnode --watch 'backend' backend/app.ts",
     "start:react:proxy-server": "yarn tsnode scripts/testServer.ts",
     "prettier": "prettier --write \"**/**.{ts,js,tsx}\" \"*.{json,md,yml}\"",
-    "tsnode": "nyc --silent ts-node -P tsconfig.tsnode.json",
-    "tsnode:not-instrumented": "ts-node -P tsconfig.tsnode.json",
+    "tsnode": "ts-node -P tsconfig.tsnode.json",
     "db:seed": "yarn tsnode scripts/generateSeedData",
     "predb:seed:dev": "yarn predev:cognito:ci",
     "db:seed:dev": "ncp ./data/database-seed.json ./data/database.json",
@@ -187,9 +164,9 @@
     "prestart:empty": "yarn db:seed:empty",
     "prebuild": "yarn types",
     "prebuild:ci": "yarn predev:cognito:ci",
-    "build:ci": "cross-env CYPRESS_COVERAGE=true vite build",
+    "build:ci": "vite build",
     "build": "vite build",
-    "codesandbox:start:api": "yarn tsnode:not-instrumented --files backend/app.ts",
+    "codesandbox:start:api": "yarn tsnode --files backend/app.ts",
     "codesandbox:start": "NODE_ENV=development TSC_COMPILE_ON_ERROR=true concurrently \"vite\" yarn:start:api:codesandbox",
     "postinstall": "husky install && patch-package"
   },
@@ -211,23 +188,6 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ]
-  },
-  "percy": {
-    "version": 1,
-    "snapshot": {
-      "widths": [
-        1280
-      ]
-    }
-  },
-  "nyc": {
-    "exclude": [
-      "src/models/*.ts"
-    ],
-    "reporter": [
-      "html",
-      "json"
     ]
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"

@@ -26,13 +26,6 @@ const Root = styled("div")(({ theme }) => ({
   },
 }));
 
-// @ts-ignore
-if (window.Cypress) {
-  // Expose authService on window for Cypress
-  // @ts-ignore
-  window.authService = authService;
-}
-
 /* istanbul ignore next */
 const AppOkta: React.FC = () => {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();
@@ -44,24 +37,13 @@ const AppOkta: React.FC = () => {
 
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
-  // @ts-ignore
-  if (window.Cypress && process.env.VITE_OKTA_PROGRAMMATIC) {
-    useEffect(() => {
-      const okta = JSON.parse(localStorage.getItem("oktaCypress")!);
-      authService.send("OKTA", {
-        user: okta.user,
-        token: okta.token,
+  useEffect(() => {
+    if (oktaAuthState.isAuthenticated) {
+      oktaAuthService.getUser().then((user: any) => {
+        authService.send("OKTA", { user, token: oktaAuthState.accessToken });
       });
-    }, []);
-  } else {
-    useEffect(() => {
-      if (oktaAuthState.isAuthenticated) {
-        oktaAuthService.getUser().then((user: any) => {
-          authService.send("OKTA", { user, token: oktaAuthState.accessToken });
-        });
-      }
-    }, [oktaAuthState, oktaAuthService]);
-  }
+    }
+  }, [oktaAuthState, oktaAuthService]);
 
   const isLoggedIn =
     authState.matches("authorized") ||
@@ -93,7 +75,4 @@ const AppOkta: React.FC = () => {
   );
 };
 
-let appOkta =
-  //@ts-ignore
-  window.Cypress && process.env.VITE_OKTA_PROGRAMMATIC ? AppOkta : withOktaAuth(AppOkta);
-export default appOkta;
+export default withOktaAuth(AppOkta);

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { styled } from "@mui/material/styles";
 import { useActor, useMachine } from "@xstate/react";
 import { Container, CssBaseline } from "@mui/material";
@@ -10,13 +10,6 @@ import AlertBar from "../components/AlertBar";
 import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
 import { GoogleLogin, useGoogleLogin } from "@matheusluizn/react-google-login";
-
-// @ts-ignore
-if (window.Cypress) {
-  // Expose authService on window for Cypress
-  // @ts-ignore
-  window.authService = authService;
-}
 
 const PREFIX = "AppGoogle";
 
@@ -47,27 +40,16 @@ const AppGoogle: React.FC = () => {
 
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
-  // @ts-ignore
-  if (window.Cypress) {
-    useEffect(() => {
-      const { user, token } = JSON.parse(localStorage.getItem("googleCypress")!);
-      authService.send("GOOGLE", {
-        user,
-        token,
-      });
-    }, []);
-  } else {
-    useGoogleLogin({
-      clientId: process.env.VITE_GOOGLE_CLIENTID!,
-      onSuccess: (res) => {
-        console.log("onSuccess", res);
-        // @ts-ignore
-        authService.send("GOOGLE", { user: res.profileObj, token: res.tokenId });
-      },
-      cookiePolicy: "single_host_origin",
-      isSignedIn: true,
-    });
-  }
+  useGoogleLogin({
+    clientId: process.env.VITE_GOOGLE_CLIENTID!,
+    onSuccess: (res) => {
+      console.log("onSuccess", res);
+      // @ts-ignore
+      authService.send("GOOGLE", { user: res.profileObj, token: res.tokenId });
+    },
+    cookiePolicy: "single_host_origin",
+    isSignedIn: true,
+  });
 
   const isLoggedIn = authState.matches("authorized");
 
