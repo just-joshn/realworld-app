@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { interpret } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import { notificationsMachine } from "../machines/notificationsMachine";
@@ -77,6 +77,28 @@ test.for(destinations)(
     await expect.element(screen.getByText("@ada")).not.toBeVisible();
   }
 );
+
+test("closes the mobile drawer when the user taps outside it", async () => {
+  await setMobileViewport();
+  const screen = await renderLayout();
+  await screen.getByRole("button", { name: "open drawer" }).click();
+  await expect.element(screen.getByText("@ada")).toBeVisible();
+
+  await userEvent.click(page.getByRole("presentation"), { position: { x: 380, y: 450 } });
+
+  await expect.element(screen.getByText("@ada")).not.toBeVisible();
+});
+
+test("closes the mobile drawer with Escape", async () => {
+  await setMobileViewport();
+  const screen = await renderLayout();
+  await screen.getByRole("button", { name: "open drawer" }).click();
+  await expect.element(screen.getByText("@ada")).toBeVisible();
+
+  await userEvent.keyboard("{Escape}");
+
+  await expect.element(screen.getByText("@ada")).not.toBeVisible();
+});
 
 test("signs out from the drawer", async () => {
   await page.viewport(1280, 900);
