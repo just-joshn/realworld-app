@@ -42,6 +42,18 @@ const AppOkta: React.FC = () => {
     }
   }, [oktaAuthState, oktaAuthService]);
 
+  useEffect(() => {
+    const signOutOfOkta = (event: { type: string }) => {
+      if (event.type.startsWith("done.invoke.authentication.logout")) {
+        void oktaAuthService.signOut();
+      }
+    };
+    authService.onEvent(signOutOfOkta);
+    return () => {
+      authService.off(signOutOfOkta);
+    };
+  }, [oktaAuthService]);
+
   const isLoggedIn =
     authState.matches("authorized") ||
     authState.matches("refreshing") ||

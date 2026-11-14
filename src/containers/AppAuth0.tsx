@@ -24,7 +24,7 @@ const Root = styled("div")(() => ({
 }));
 
 const AppAuth0: React.FC = () => {
-  const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
+  const { isAuthenticated, user, getAccessTokenSilently, logout } = useAuth0();
 
   const [authState] = useActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
@@ -39,6 +39,18 @@ const AppAuth0: React.FC = () => {
       authService.send("AUTH0", { user, token });
     })();
   }, [isAuthenticated, user, getAccessTokenSilently]);
+
+  useEffect(() => {
+    const signOutOfAuth0 = (event: { type: string }) => {
+      if (event.type.startsWith("done.invoke.authentication.logout")) {
+        void logout({ logoutParams: { returnTo: window.location.origin } });
+      }
+    };
+    authService.onEvent(signOutOfAuth0);
+    return () => {
+      authService.off(signOutOfAuth0);
+    };
+  }, [logout]);
 
   const isLoggedIn =
     authState.matches("authorized") ||
