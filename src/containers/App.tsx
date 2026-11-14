@@ -19,7 +19,7 @@ const classes = {
   root: `${PREFIX}-root`,
 };
 
-const Root = styled("div")(({ theme }) => ({
+const Root = styled("div")(() => ({
   [`&.${classes.root}`]: {
     display: "flex",
   },

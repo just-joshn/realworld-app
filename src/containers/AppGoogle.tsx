@@ -40,11 +40,18 @@ const AppGoogle: React.FC = () => {
 
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
+  const clientId = process.env.VITE_GOOGLE_CLIENTID;
+  if (!clientId) {
+    throw new Error("Missing VITE_GOOGLE_CLIENTID");
+  }
+
   useGoogleLogin({
-    clientId: process.env.VITE_GOOGLE_CLIENTID!,
+    clientId,
     onSuccess: (res) => {
       console.log("onSuccess", res);
-      // @ts-ignore
+      if (!("profileObj" in res)) {
+        throw new Error("Missing Google profile in login response");
+      }
       authService.send("GOOGLE", { user: res.profileObj, token: res.tokenId });
     },
     cookiePolicy: "single_host_origin",
@@ -72,7 +79,7 @@ const AppGoogle: React.FC = () => {
           <CssBaseline />
           <div className={classes.paper}>
             <GoogleLogin
-              clientId={process.env.VITE_GOOGLE_CLIENTID!}
+              clientId={clientId}
               buttonText="Login"
               cookiePolicy={"single_host_origin"}
             />

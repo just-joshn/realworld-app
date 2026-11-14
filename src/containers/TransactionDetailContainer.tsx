@@ -2,14 +2,14 @@ import React, { useEffect } from "react";
 import { useMachine, useActor } from "@xstate/react";
 import { useParams } from "react-router-dom";
 import TransactionDetail from "../components/TransactionDetail";
-import { Transaction } from "../models";
+import { Transaction, Comment, TransactionUpdateActionPayload } from "../models";
 import { transactionDetailMachine } from "../machines/transactionDetailMachine";
 import { first } from "lodash/fp";
-import { Interpreter } from "xstate";
-import { AuthMachineContext, AuthMachineEvents } from "../machines/authMachine";
+import { InterpreterFrom } from "xstate";
+import { authMachine } from "../machines/authMachine";
 
 export interface Props {
-  authService: Interpreter<AuthMachineContext, any, AuthMachineEvents, any>;
+  authService: InterpreterFrom<typeof authMachine>;
 }
 interface Params {
   transactionId: string;
@@ -26,10 +26,11 @@ const TransactionDetailsContainer: React.FC<Props> = ({ authService }) => {
   const transactionLike = (transactionId: Transaction["id"]) =>
     sendTransactionDetail("CREATE", { entity: "LIKE", transactionId });
 
-  const transactionComment = (payload: any) =>
+  const transactionComment = (payload: Pick<Comment, "transactionId" | "content">) =>
     sendTransactionDetail("CREATE", { entity: "COMMENT", ...payload });
 
-  const transactionUpdate = (payload: any) => sendTransactionDetail("UPDATE", payload);
+  const transactionUpdate = (payload: TransactionUpdateActionPayload) =>
+    sendTransactionDetail("UPDATE", payload);
 
   const transaction = first(transactionDetailState.context?.results);
   const currentUser = authState?.context?.user;

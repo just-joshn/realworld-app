@@ -12,7 +12,7 @@ import PrivateRoutesContainer from "./PrivateRoutesContainer";
 import { Amplify, ResourcesConfig } from "aws-amplify";
 import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 
-// @ts-ignore
+// @ts-expect-error Amplify generates aws-exports locally during configuration.
 import awsConfig from "../aws-exports";
 const PREFIX = "AppCognito";
 
@@ -20,7 +20,7 @@ const classes = {
   root: `${PREFIX}-root`,
 };
 
-const Root = styled("div")(({ theme }) => ({
+const Root = styled("div")(() => ({
   [`&.${classes.root}`]: {
     display: "flex",
   },
@@ -46,10 +46,13 @@ const AppCognito: React.FC = /* istanbul ignore next */ () => {
       fetchAuthSession().then((authSession) => {
         if (authSession && authSession.tokens && authSession.tokens.accessToken) {
           const { tokens, userSub } = authSession;
+          if (!tokens || !tokens.idToken || !userSub) {
+            throw new Error("Missing Cognito session tokens or user subject");
+          }
           authService.send("COGNITO", {
-            accessTokenJwtString: tokens!.accessToken.toString(),
-            userSub: userSub!,
-            email: tokens!.idToken!.payload.email,
+            accessTokenJwtString: tokens.accessToken.toString(),
+            userSub,
+            email: tokens.idToken.payload.email,
           });
         } else {
           void signInWithRedirect();

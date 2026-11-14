@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useActor, useMachine } from "@xstate/react";
 import { CssBaseline } from "@mui/material";
-// @ts-ignore
 import { LoginCallback, SecureRoute, useOktaAuth, withOktaAuth } from "@okta/okta-react";
 import { Route } from "react-router-dom";
 
@@ -20,7 +19,7 @@ const classes = {
   root: `${PREFIX}-root`,
 };
 
-const Root = styled("div")(({ theme }) => ({
+const Root = styled("div")(() => ({
   [`&.${classes.root}`]: {
     display: "flex",
   },
@@ -39,7 +38,7 @@ const AppOkta: React.FC = () => {
 
   useEffect(() => {
     if (oktaAuthState?.isAuthenticated) {
-      oktaAuthService.getUser().then((user: any) => {
+      oktaAuthService.getUser().then((user) => {
         authService.send("OKTA", { user, token: oktaAuthState.accessToken });
       });
     }
