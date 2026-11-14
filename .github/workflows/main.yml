@@ -15,10 +15,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: yarn
 
-      - run: yarn install --frozen-lockfile
-      - run: yarn types
-      - run: yarn lint
-      - run: yarn test:unit:ci
-      - run: yarn build:ci
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun ci
+      - run: bun run types
+      - run: bun run lint
+      - run: bun run test:unit:ci
+      - run: bun run build:ci

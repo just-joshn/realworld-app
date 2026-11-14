@@ -7,7 +7,7 @@ const scripts: Record<string, string> = pkg.scripts;
 describe("package scripts", () => {
   it("only invoke scripts that exist", () => {
     const missing = Object.entries(scripts).flatMap(([name, command]) =>
-      [...command.matchAll(/yarn(?::| (?:run )?)([\w:.-]+)/g)]
+      [...command.matchAll(/bun(?::| run )([\w:.-]+)/g)]
         .map(([, target]) => target)
         .filter((target) => !(target in scripts))
         .map((target) => `${name} -> ${target}`)

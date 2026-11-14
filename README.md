@@ -48,25 +48,17 @@ The app is bundled with [example data](./data/database.json) (`data/database.jso
 > 🚩 **Note**
 >
 > You can login to the app with any of the [example app users](./data/database.json#L2). The default password for all users is `s3cret`.
-> Example users can be seen by running `yarn list:dev:users`.
+> Example users can be seen by running `bun run list:dev:users`.
 
 ### Prerequisites
 
 This project requires [Node.js](https://nodejs.org/en/) to be installed on your machine. Refer to the [.node-version](./.node-version) file for the exact version.
 
-[Yarn Classic](https://classic.yarnpkg.com/) is also required. Once you have [Node.js](https://nodejs.org/en/) installed, execute the following to install the npm module [yarn](https://www.npmjs.com/package/yarn) (Classic - version 1) globally.
+[Bun](https://bun.com/) is also required as the package manager. See [Bun's installation guide](https://bun.com/docs/installation) for every platform. On macOS and Linux:
 
 ```shell
-npm install yarn@1 -g
+curl -fsSL https://bun.com/install | bash
 ```
-
-If you have Node.js' experimental [Corepack](https://nodejs.org/dist/latest/docs/api/corepack.html) feature enabled,
-then you should skip the step `npm install yarn@1 -g` to install Yarn Classic globally.
-The RWA project is locally configured for `Corepack` to use Yarn Classic (version 1).
-
-#### Yarn Modern
-
-**This project is not compatible with [Yarn Modern](https://yarnpkg.com/) (version 2 and later).**
 
 ### Installation
 
@@ -75,19 +67,19 @@ To clone the repo to your local system and install dependencies, execute the fol
 ```shell
 git clone https://github.com/cypress-io/cypress-realworld-app
 cd cypress-realworld-app
-yarn
+bun install
 ```
 
 #### Mac users with M-series chips will need to prepend `PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true`.
 
 ```shell
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true yarn install
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true bun install
 ```
 
 ### Run the app
 
 ```shell
-yarn dev
+bun run dev
 ```
 
 > 🚩 **Note**
@@ -98,19 +90,19 @@ yarn dev
 
 ## Tests
 
-Unit tests live in [`src/__tests__`](./src/__tests__) and run with `yarn test:unit`.
+Unit tests live in [`src/__tests__`](./src/__tests__) and run with `bun run test:unit`.
 
 ## Database
 
 - The local JSON database is located in [data/database.json](./data/database.json) and is managed with [lowdb].
 
-- The database is [reseeded](./data/database-seed.json) each time the application is started (via `yarn dev`).
+- The database is [reseeded](./data/database-seed.json) each time the application is started (via `bun run dev`).
 
 - Updates via the React frontend are sent to the [Express][express] server and handled by a set of [database utilities](backend/database.ts)
 
-- Generate a new database using `yarn db:seed`.
+- Generate a new database using `bun run db:seed`.
 
-- An [empty database seed](./data/empty-seed.json) is provided along with a script (`yarn start:empty`) to view the application without data.
+- An [empty database seed](./data/empty-seed.json) is provided along with a script (`bun run start:empty`) to view the application without data.
 
 ## Additional NPM Scripts
 
@@ -145,13 +137,13 @@ The app contains different entry points for each provider. There is a separate *
 
 Prerequisites include an [Auth0](https://auth0.com/) account and a Tenant configured for use with a SPA. Environment variables from Auth0 are to be placed in the [.env](./.env).
 
-To start the application with Auth0, replace the current **src/index.tsx** file with the **src/index.auth0.tsx** file and start the application with `yarn dev:auth0`.
+To start the application with Auth0, replace the current **src/index.tsx** file with the **src/index.auth0.tsx** file and start the application with `bun run dev:auth0`.
 
 ### Okta
 
 Prerequisites include an [Okta][okta] account and [application configured for use with a SPA][oktacreateapp]. Environment variables from [Okta][okta] are to be placed in the [.env](./.env).
 
-To start the application with Okta, replace the current **src/index.tsx** file with the **src/index.okta.tsx** file and start the application with `yarn dev:okta`.
+To start the application with Okta, replace the current **src/index.tsx** file with the **src/index.okta.tsx** file and start the application with `bun run dev:okta`.
 
 ### Amazon Cognito
 
@@ -167,20 +159,20 @@ Prerequisites include an [Amazon Cognito][cognito] account. Environment variable
       - openid
   - The user pool must have an app client configured, with:
     - enabled auth flow `ALLOW_USER_SRP_AUTH`.
-  - The user pool must have a user corresponding to the `AWS_COGNITO` env vars mentioned below, and the user's Confirmation Status must be `Confirmed`. If it is `Force Reset Password`, then use a browser to log in once at `http://localhost:3000` while `yarn dev:cognito` is running to reset their password.
+  - The user pool must have a user corresponding to the `AWS_COGNITO` env vars mentioned below, and the user's Confirmation Status must be `Confirmed`. If it is `Force Reset Password`, then use a browser to log in once at `http://localhost:3000` while `bun run dev:cognito` is running to reset their password.
 
 The configuration is in a few places:
 
 - The `.env` file has `VITE_AUTH_TOKEN_NAME` and vars beginning `AWS_COGNITO`. Be careful not to commit any secrets.
 - Both `scripts/mock-aws-exports.js` and `scripts/mock-aws-exports-es5.js` must have the same data; only their export statements differ. These files can be edited manually or exported from the amplify CLI.
 
-To start the application with Cognito, replace the current **src/index.tsx** file with the **src/index.cognito.tsx** file and start the application with `yarn dev:cognito`. `yarn dev` may need to have been run once first.
+To start the application with Cognito, replace the current **src/index.tsx** file with the **src/index.cognito.tsx** file and start the application with `bun run dev:cognito`. `bun run dev` may need to have been run once first.
 
 ### Google
 
 Prerequisites include an [Google][google] account. Environment variables from [Google][google] are to be placed in the [.env](./.env).
 
-To start the application with Google, replace the current **src/index.tsx** file with the **src/index.google.tsx** file and start the application with `yarn dev:google`.
+To start the application with Google, replace the current **src/index.tsx** file with the **src/index.google.tsx** file and start the application with `bun run dev:google`.
 
 ## License
 

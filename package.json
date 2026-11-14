@@ -38,7 +38,6 @@
     "dinero.js": "^2.0.0",
     "formik": "2.4.6",
     "history": "4.10.1",
-    "postinstall-postinstall": "^2.1.0",
     "react": "18.2.0",
     "react-calendar": "^6.0.0",
     "react-dom": "18.2.0",
@@ -120,7 +119,6 @@
     "npm": "^9.8.0",
     "passport": "0.5.0",
     "passport-local": "1.0.0",
-    "patch-package": "^7.0.0",
     "prettier": "^3.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.8.3",
@@ -133,53 +131,53 @@
     "@types/react": "18.3.17"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "dev:auth0": "cross-env VITE_AUTH0=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "dev:okta": "cross-env VITE_OKTA=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "dev:cognito": "cross-env VITE_AWS_COGNITO=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "dev:google": "cross-env VITE_GOOGLE=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
-    "predev:cognito": "yarn build:aws-exports-es5",
-    "predev:cognito:ci": "yarn copy:mock:awsexports && yarn copy:mock:awsexportses5",
+    "dev": "cross-env NODE_ENV=development concurrently bun:start:react bun:start:api:watch",
+    "dev:auth0": "cross-env VITE_AUTH0=true NODE_ENV=development concurrently bun:start:react bun:start:api:watch",
+    "dev:okta": "cross-env VITE_OKTA=true NODE_ENV=development concurrently bun:start:react bun:start:api:watch",
+    "dev:cognito": "cross-env VITE_AWS_COGNITO=true NODE_ENV=development concurrently bun:start:react bun:start:api:watch",
+    "dev:google": "cross-env VITE_GOOGLE=true NODE_ENV=development concurrently bun:start:react bun:start:api:watch",
+    "predev:cognito": "bun run build:aws-exports-es5",
+    "predev:cognito:ci": "bun run copy:mock:awsexports && bun run copy:mock:awsexportses5",
     "copy:mock:awsexports": "ncp scripts/mock-aws-exports.js src/aws-exports.js",
     "copy:mock:awsexportses5": "ncp scripts/mock-aws-exports-es5.js aws-exports-es5.js",
     "build:aws-exports-es5": "cross-env tsc --skipLibCheck --allowJs --lib 'es5' --module 'commonjs' --target 'es5' --moduleResolution 'node' --outDir . src/aws-exports.js; mv aws-exports.js aws-exports-es5.js",
-    "start": "cross-env NODE_ENV=development concurrently yarn:start:react yarn:start:api",
-    "start:ci": "cross-env NODE_ENV=test concurrently yarn:start:react:proxy-server yarn:start:api",
-    "prestart:ci": "yarn predev:cognito:ci",
+    "start": "cross-env NODE_ENV=development concurrently bun:start:react bun:start:api",
+    "start:ci": "cross-env NODE_ENV=test concurrently bun:start:react:proxy-server bun:start:api",
+    "prestart:ci": "bun run predev:cognito:ci",
     "start:react": "vite",
-    "start:empty": "cross-env NODE_ENV=development EMPTY_SEED=true concurrently yarn:start:react yarn:start:api:watch",
+    "start:empty": "cross-env NODE_ENV=development EMPTY_SEED=true concurrently bun:start:react bun:start:api:watch",
     "lint": "eslint && prettier --check \"**/**.{ts,js,tsx}\" \"*.{json,md,yml}\"",
     "list:dev:users": "cat data/database.json | json -a users | json -a id username",
     "types": "tsc --noEmit",
     "test:unit": "vitest",
     "test:unit:ci": "vitest --run",
-    "start:api": "yarn tsnode --files backend/app.ts",
-    "start:api:watch": "nodemon --exec yarn tsnode --watch 'backend' backend/app.ts",
-    "start:react:proxy-server": "yarn tsnode scripts/testServer.ts",
+    "start:api": "bun run tsnode --files backend/app.ts",
+    "start:api:watch": "nodemon --exec bun run tsnode --watch 'backend' backend/app.ts",
+    "start:react:proxy-server": "bun run tsnode scripts/testServer.ts",
     "prettier": "prettier --write \"**/**.{ts,js,tsx}\" \"*.{json,md,yml}\"",
     "tsnode": "ts-node -P tsconfig.tsnode.json",
-    "db:seed": "yarn tsnode scripts/generateSeedData",
-    "predb:seed:dev": "yarn predev:cognito:ci",
+    "db:seed": "bun run tsnode scripts/generateSeedData",
+    "predb:seed:dev": "bun run predev:cognito:ci",
     "db:seed:dev": "ncp ./data/database-seed.json ./data/database.json",
     "db:seed:empty": "ncp ./data/empty-seed.json ./data/database.json",
-    "postdb:seed": "yarn db:seed:dev",
-    "prestart": "yarn db:seed:dev",
-    "predev": "yarn db:seed:dev",
-    "prestart:empty": "yarn db:seed:empty",
-    "prebuild": "yarn types",
-    "prebuild:ci": "yarn predev:cognito:ci",
+    "postdb:seed": "bun run db:seed:dev",
+    "prestart": "bun run db:seed:dev",
+    "predev": "bun run db:seed:dev",
+    "prestart:empty": "bun run db:seed:empty",
+    "prebuild": "bun run types",
+    "prebuild:ci": "bun run predev:cognito:ci",
     "build:ci": "vite build",
     "build": "vite build",
-    "codesandbox:start:api": "yarn tsnode --files backend/app.ts",
-    "codesandbox:start": "NODE_ENV=development TSC_COMPILE_ON_ERROR=true concurrently \"vite\" yarn:codesandbox:start:api",
-    "postinstall": "husky install && patch-package"
+    "codesandbox:start:api": "bun run tsnode --files backend/app.ts",
+    "codesandbox:start": "NODE_ENV=development TSC_COMPILE_ON_ERROR=true concurrently \"vite\" bun:codesandbox:start:api",
+    "postinstall": "husky install"
   },
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn types"
+      "pre-push": "bun run types"
     }
   },
   "browserslist": {
@@ -194,5 +192,7 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "patchedDependencies": {
+    "react-virtualized@9.22.5": "patches/react-virtualized@9.22.5.patch"
+  }
 }
