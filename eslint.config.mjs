@@ -1,19 +1,19 @@
-import globals from 'globals'
-import { defineConfig, globalIgnores } from 'eslint/config'
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
+import globals from "globals";
+import { defineConfig, globalIgnores } from "eslint/config";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(['build/']),
+  globalIgnores(["build/"]),
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     extends: [js.configs.recommended, tseslint.configs.strict],
     rules: {
       // TypeScript reports undefined identifiers; this rule misreads type-only globals.
-      'no-undef': 'off',
+      "no-undef": "off",
     },
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
     },
   },
-])
+]);
