@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import { Link } from "react-router-dom";
 import {
@@ -14,13 +14,14 @@ import {
   Typography,
   Container,
 } from "@mui/material";
-import { Formik, Form, Field, FieldProps } from "formik";
+import type { FieldProps } from "formik";
+import { Formik, Form, Field } from "formik";
 import { string, object } from "yup";
 
 import RWALogo from "./SvgRwaLogo";
 import Footer from "./Footer";
-import { SignInPayload } from "../models";
-import { authMachine } from "../machines/authMachine";
+import type { SignInPayload } from "../models";
+import type { authMachine } from "../machines/authMachine";
 import { Alert } from "@mui/material";
 
 const validationSchema = object({
@@ -40,7 +41,11 @@ const classes = {
   alertMessage: `${PREFIX}-alertMessage`,
 };
 
-const StyledContainer = styled(Container)(({ theme }) => ({
+const StyledContainer = styled(
+  (props: React.ComponentProps<typeof Container> & { component?: React.ElementType }) => (
+    <Container {...props} />
+  )
+)(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
     display: "flex",
@@ -64,7 +69,7 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   [`& .${classes.alertMessage}`]: {
     marginBottom: theme.spacing(2),
   },
-})) as typeof Container;
+}));
 
 export interface Props {
   authService: InterpreterFrom<typeof authMachine>;
@@ -75,7 +80,6 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
   const initialValues: SignInPayload = {
     username: "",
     password: "",
-    remember: undefined,
   };
 
   const signInPending = (payload: SignInPayload) => sendAuth({ type: "LOGIN", ...payload });
@@ -84,7 +88,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
     <StyledContainer component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        {authState.context?.message && (
+        {authState.context.message && (
           <Alert data-test="signin-error" severity="error" className={classes.alertMessage}>
             {authState.context.message}
           </Alert>
@@ -98,7 +102,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting }) => {
+          onSubmit={(values, { setSubmitting }) => {
             setSubmitting(true);
 
             signInPending(values);

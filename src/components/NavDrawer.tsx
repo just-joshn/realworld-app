@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { head } from "lodash/fp";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import clsx from "clsx";
 import {
@@ -10,7 +10,7 @@ import {
   Drawer,
   List,
   Divider,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Grid,
@@ -27,7 +27,7 @@ import {
 } from "@mui/icons-material";
 
 import { formatAmount } from "../utils/transactionUtils";
-import { authMachine } from "../machines/authMachine";
+import { isAppUser, type authMachine } from "../machines/authMachine";
 
 const PREFIX = "NavDrawer";
 
@@ -114,9 +114,10 @@ const drawerWidth = 240;
 
 export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boolean) => (
   <div>
-    <ListItem
-      button
-      onClick={() => showTemporaryDrawer && toggleDrawer()}
+    <ListItemButton
+      onClick={() => {
+        if (showTemporaryDrawer) toggleDrawer();
+      }}
       component={RouterLink}
       to="/"
       data-test="sidenav-home"
@@ -125,10 +126,11 @@ export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boo
         <HomeIcon />
       </ListItemIcon>
       <ListItemText primary="Home" />
-    </ListItem>
-    <ListItem
-      button
-      onClick={() => showTemporaryDrawer && toggleDrawer()}
+    </ListItemButton>
+    <ListItemButton
+      onClick={() => {
+        if (showTemporaryDrawer) toggleDrawer();
+      }}
       component={RouterLink}
       to="/user/settings"
       data-test="sidenav-user-settings"
@@ -137,10 +139,11 @@ export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boo
         <PersonIcon />
       </ListItemIcon>
       <ListItemText primary="My Account" />
-    </ListItem>
-    <ListItem
-      button
-      onClick={() => showTemporaryDrawer && toggleDrawer()}
+    </ListItemButton>
+    <ListItemButton
+      onClick={() => {
+        if (showTemporaryDrawer) toggleDrawer();
+      }}
       component={RouterLink}
       to="/bankaccounts"
       data-test="sidenav-bankaccounts"
@@ -149,10 +152,11 @@ export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boo
         <AccountBalanceIcon />
       </ListItemIcon>
       <ListItemText primary="Bank Accounts" />
-    </ListItem>
-    <ListItem
-      button
-      onClick={() => showTemporaryDrawer && toggleDrawer()}
+    </ListItemButton>
+    <ListItemButton
+      onClick={() => {
+        if (showTemporaryDrawer) toggleDrawer();
+      }}
       component={RouterLink}
       to="/notifications"
       data-test="sidenav-notifications"
@@ -161,18 +165,23 @@ export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boo
         <NotificationsIcon />
       </ListItemIcon>
       <ListItemText primary="Notifications" />
-    </ListItem>
+    </ListItemButton>
   </div>
 );
 
 export const secondaryListItems = (signOutPending: () => void) => (
   <div>
-    <ListItem button onClick={() => signOutPending()} data-test="sidenav-signout">
+    <ListItemButton
+      onClick={() => {
+        signOutPending();
+      }}
+      data-test="sidenav-signout"
+    >
       <ListItemIcon>
         <LogoutIcon />
       </ListItemIcon>
       <ListItemText primary="Logout" />
-    </ListItem>
+    </ListItemButton>
   </div>
 );
 
@@ -193,7 +202,7 @@ const NavDrawer: React.FC<Props> = ({
   const [authState, sendAuth] = useActor(authService);
   const showTemporaryDrawer = useMediaQuery(theme.breakpoints.only("xs"));
 
-  const currentUser = authState?.context?.user;
+  const currentUser = authState.context.user;
   const signOut = () => sendAuth("LOGOUT");
 
   return (
@@ -220,8 +229,8 @@ const NavDrawer: React.FC<Props> = ({
           {currentUser && (
             <Avatar
               className={classes.avatar}
-              alt={`${currentUser.firstName} ${currentUser.lastName}`}
-              src={currentUser.avatar}
+              alt={`${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`}
+              {...(currentUser.avatar ? { src: currentUser.avatar } : {})}
             />
           )}
         </Grid>
@@ -256,7 +265,7 @@ const NavDrawer: React.FC<Props> = ({
         className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
       >
         <Grid item>
-          {currentUser && (
+          {currentUser && isAppUser(currentUser) && (
             <>
               <Typography
                 variant="h6"

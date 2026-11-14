@@ -1,12 +1,12 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { get } from "lodash/fp";
 import { useTheme, useMediaQuery, Divider } from "@mui/material";
-import { InfiniteLoader, List, Index, ListRowProps } from "react-virtualized";
+import type { Index, ListRowProps } from "react-virtualized";
+import { InfiniteLoader, List } from "react-virtualized";
 import "react-virtualized/styles.css";
 
 import TransactionItem from "./TransactionItem";
-import { TransactionResponseItem, TransactionPagination } from "../models";
+import type { TransactionResponseItem, TransactionPagination } from "../models";
 
 const PREFIX = "TransactionInfiniteList";
 
@@ -27,7 +27,7 @@ const StyledInfiniteLoader = styled(InfiniteLoader)(() => ({
 export interface TransactionListProps {
   transactions: TransactionResponseItem[];
   loadNextPage: (page: number) => void;
-  pagination: TransactionPagination;
+  pagination: Pick<TransactionPagination, "page" | "hasNextPages"> & Partial<TransactionPagination>;
 }
 
 const TransactionInfiniteList: React.FC<TransactionListProps> = ({
@@ -42,18 +42,17 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
   const itemCount = pagination.hasNextPages ? transactions.length + 1 : transactions.length;
 
   const loadMoreItems = () => {
-    return new Promise((resolve) => {
-      return resolve(pagination.hasNextPages && loadNextPage(pagination.page + 1));
-    });
+    if (pagination.hasNextPages) loadNextPage(pagination.page + 1);
+    return Promise.resolve();
   };
 
   const isRowLoaded = (params: Index) =>
     !pagination.hasNextPages || params.index < transactions.length;
 
   function rowRenderer({ key, index, style }: ListRowProps) {
-    const transaction = get(index, transactions);
+    const transaction = transactions[index];
 
-    if (index < transactions.length) {
+    if (transaction) {
       return (
         <div key={key} style={style}>
           <TransactionItem transaction={transaction} />
@@ -61,6 +60,7 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
         </div>
       );
     }
+    return null;
   }
 
   const removePx = (str: string) => +str.slice(0, str.length - 2);

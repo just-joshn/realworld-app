@@ -11,15 +11,15 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { isEmpty } from "lodash/fp";
 import { useActor, useMachine } from "@xstate/react";
 
 import { userOnboardingMachine } from "../machines/userOnboardingMachine";
-import { BankAccountPayload } from "../models";
+import type { BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
-import { authMachine } from "../machines/authMachine";
+import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import type { authMachine } from "../machines/authMachine";
 import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
 import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
 
@@ -35,15 +35,14 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
   const [authState, sendAuth] = useActor(authService);
   const [userOnboardingState, sendUserOnboarding] = useMachine(userOnboardingMachine);
 
-  const currentUser = authState?.context?.user;
+  const currentUser = authState.context.user;
 
   useEffect(() => {
     sendBankAccounts("FETCH");
   }, [sendBankAccounts]);
 
   const noBankAccounts =
-    bankAccountsState?.matches("success.withoutData") &&
-    isEmpty(bankAccountsState?.context?.results);
+    bankAccountsState.matches("success.withoutData") && isEmpty(bankAccountsState.context.results);
 
   const dialogIsOpen =
     (userOnboardingState.matches("stepTwo") && !noBankAccounts) ||

@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper, Grid } from "@mui/material";
-import { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
+import type { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
 import TransactionListDateRangeFilter from "./TransactionDateRangeFilter";
 import TransactionListAmountRangeFilter from "./TransactionListAmountRangeFilter";
 import { debounce } from "lodash/fp";
@@ -35,14 +35,19 @@ const TransactionListFilters: React.FC<TransactionListFiltersProps> = ({
   dateRangeFilters,
   amountRangeFilters,
 }) => {
-  const filterDateRange = (payload: TransactionDateRangePayload) =>
+  const filterDateRange = (payload: TransactionDateRangePayload) => {
     sendFilterEvent("DATE_FILTER", payload);
-  const resetDateRange = () => sendFilterEvent("DATE_RESET");
+  };
+  const resetDateRange = () => {
+    sendFilterEvent("DATE_RESET");
+  };
 
-  const filterAmountRange = debounce(200, (payload: TransactionAmountRangePayload) =>
-    sendFilterEvent("AMOUNT_FILTER", payload)
-  );
-  const resetAmountRange = () => sendFilterEvent("AMOUNT_RESET");
+  const filterAmountRange = debounce(200, (payload: TransactionAmountRangePayload) => {
+    sendFilterEvent("AMOUNT_FILTER", payload);
+  });
+  const resetAmountRange = () => {
+    sendFilterEvent("AMOUNT_RESET");
+  };
 
   return (
     <StyledPaper className={classes.paper} elevation={0}>

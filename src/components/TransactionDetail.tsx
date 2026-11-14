@@ -3,7 +3,8 @@ import { styled } from "@mui/material/styles";
 import { Button, Typography, Grid, Avatar, Paper, IconButton } from "@mui/material";
 import { AvatarGroup } from "@mui/material";
 import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
-import { TransactionResponseItem, TransactionRequestStatus, User } from "../models";
+import type { TransactionResponseItem, User } from "../models";
+import { TransactionRequestStatus } from "../models";
 import CommentForm from "./CommentForm";
 import {
   isPendingRequestTransaction,
@@ -171,13 +172,15 @@ const TransactionDetail: React.FC<TransactionProps> = ({
             spacing={2}
           >
             <Grid item data-test={`transaction-like-count-${transaction.id}`}>
-              {transaction.likes ? transaction.likes.length : 0}{" "}
+              {transaction.likes.length}{" "}
             </Grid>
             <Grid item>
               <IconButton
                 color="primary"
                 disabled={currentUserLikesTransaction(currentUser, transaction)}
-                onClick={() => transactionLike(transaction.id)}
+                onClick={() => {
+                  transactionLike(transaction.id);
+                }}
                 data-test={`transaction-like-button-${transaction.id}`}
                 aria-label="Like"
                 size="large"
@@ -193,12 +196,12 @@ const TransactionDetail: React.FC<TransactionProps> = ({
                       className={classes.greenButton}
                       variant="contained"
                       size="small"
-                      onClick={() =>
+                      onClick={() => {
                         transactionUpdate({
                           id: transaction.id,
                           requestStatus: TransactionRequestStatus.accepted,
-                        })
-                      }
+                        });
+                      }}
                       data-test={`transaction-accept-request-${transaction.id}`}
                     >
                       Accept Request
@@ -207,12 +210,12 @@ const TransactionDetail: React.FC<TransactionProps> = ({
                       variant="contained"
                       className={classes.redButton}
                       size="small"
-                      onClick={() =>
+                      onClick={() => {
                         transactionUpdate({
                           id: transaction.id,
                           requestStatus: TransactionRequestStatus.rejected,
-                        })
-                      }
+                        });
+                      }}
                       data-test={`transaction-reject-request-${transaction.id}`}
                     >
                       Reject Request
@@ -224,7 +227,9 @@ const TransactionDetail: React.FC<TransactionProps> = ({
           <Grid item>
             <CommentForm
               transactionId={transaction.id}
-              transactionComment={(payload) => transactionComment(payload)}
+              transactionComment={(payload) => {
+                transactionComment(payload);
+              }}
             />
           </Grid>
         </Grid>

@@ -1,3 +1,5 @@
+import type * as Provider from "@okta/okta-react";
+import type { ComponentType } from "react";
 import { expect, test, vi } from "vitest";
 import { renderWithRouter } from "../../test/browser/render";
 import { startProviderSession } from "../../test/browser/auth-providers-helpers";
@@ -6,26 +8,28 @@ import AppOkta from "./AppOkta";
 const sdk = vi.hoisted(() => ({
   state: { isAuthenticated: true, accessToken: "okta-token" },
   auth: {
-    getUser: vi.fn(async () => ({
-      sub: "user1",
-      email: "ada@example.com",
-      given_name: "Ada",
-      family_name: "Lovelace",
-      preferred_username: "ada",
-    })),
-    signOut: vi.fn(async () => true),
+    getUser: vi.fn(() =>
+      Promise.resolve({
+        sub: "user1",
+        email: "ada@example.com",
+        given_name: "Ada",
+        family_name: "Lovelace",
+        preferred_username: "ada",
+      })
+    ),
+    signOut: vi.fn(() => Promise.resolve(true)),
   },
 }));
 
-vi.mock(import("@okta/okta-react"), async (importOriginal) => {
-  const original = await importOriginal();
+vi.mock("@okta/okta-react", async (importOriginal) => {
+  const original = await importOriginal<typeof Provider>();
   return {
     ...original,
-    withOktaAuth: ((Component) => Component) as typeof original.withOktaAuth,
+    withOktaAuth: <P extends object>(Component: ComponentType<P>) => Component,
     useOktaAuth: vi.fn(() => ({
       authState: sdk.state,
       oktaAuth: sdk.auth,
-    })) as unknown as typeof original.useOktaAuth,
+    })),
     SecureRoute: () => <a href="/provider-login">Sign in with Okta</a>,
     LoginCallback: () => <p>Completing Okta sign in</p>,
   };

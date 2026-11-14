@@ -14,7 +14,7 @@ export default function TransactionNavTabs() {
 
   const [value, setValue] = React.useState(navUrls[match.url]);
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 

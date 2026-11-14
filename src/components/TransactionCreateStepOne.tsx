@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper } from "@mui/material";
 import UsersList from "./UsersList";
-import { User } from "../models";
+import type { User } from "../models";
 import UserListSearchForm from "./UserListSearchForm";
 
 const PREFIX = "TransactionCreateStepOne";

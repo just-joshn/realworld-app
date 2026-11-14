@@ -1,7 +1,7 @@
 import React from "react";
 import { ListItem, ListItemText } from "@mui/material";
 
-import { Comment } from "../models";
+import type { Comment } from "../models";
 
 export interface CommentListItemProps {
   comment: Comment;
@@ -10,7 +10,7 @@ export interface CommentListItemProps {
 const CommentListItem: React.FC<CommentListItemProps> = ({ comment }) => {
   return (
     <ListItem data-test={`comment-list-item-${comment.id}`}>
-      <ListItemText primary={`${comment.content}`} />
+      <ListItemText primary={comment.content} />
     </ListItem>
   );
 };

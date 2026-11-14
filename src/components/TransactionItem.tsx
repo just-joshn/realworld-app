@@ -1,18 +1,10 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { useHistory } from "react-router";
-import {
-  ListItem,
-  Typography,
-  Grid,
-  Avatar,
-  ListItemAvatar,
-  Paper,
-  Badge,
-  Theme,
-} from "@mui/material";
+import type { Theme } from "@mui/material";
+import { ListItem, Typography, Grid, Avatar, ListItemAvatar, Paper, Badge } from "@mui/material";
 import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
-import { TransactionResponseItem } from "../models";
+import type { TransactionResponseItem } from "../models";
 import TransactionTitle from "./TransactionTitle";
 import TransactionAmount from "./TransactionAmount";
 
@@ -83,7 +75,9 @@ const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
     <StyledListItem
       data-test={`transaction-item-${transaction.id}`}
       alignItems="flex-start"
-      onClick={() => showTransactionDetail(transaction.id)}
+      onClick={() => {
+        showTransactionDetail(transaction.id);
+      }}
     >
       <Paper className={classes.paper} elevation={0}>
         <Grid container spacing={2}>

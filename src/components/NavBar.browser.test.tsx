@@ -12,7 +12,7 @@ test("opens notifications with the unread count", async () => {
   await page.viewport(1280, 900);
   worker.use(
     http.get(apiUrl("/notifications"), () =>
-      HttpResponse.json({ results: [buildLikeNotification()] })
+      HttpResponse.json({ results: [{ ...buildLikeNotification(), userFullName: "Ada Lovelace" }] })
     )
   );
   const service = interpret(notificationsMachine).start();

@@ -1,17 +1,16 @@
 import React, { useEffect } from "react";
 import { useMachine, useActor } from "@xstate/react";
-import { User } from "../models";
+import type { User } from "../models";
 import TransactionCreateStepOne from "../components/TransactionCreateStepOne";
-import TransactionCreateStepTwo, {
-  TransactionCreateStepTwoProps,
-} from "../components/TransactionCreateStepTwo";
+import type { TransactionCreateStepTwoProps } from "../components/TransactionCreateStepTwo";
+import TransactionCreateStepTwo from "../components/TransactionCreateStepTwo";
 import TransactionCreateStepThree from "../components/TransactionCreateStepThree";
 import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { usersMachine } from "../machines/usersMachine";
 import { debounce } from "lodash/fp";
-import { InterpreterFrom } from "xstate";
-import { authMachine } from "../machines/authMachine";
-import { snackbarMachine, SnackbarContext } from "../machines/snackbarMachine";
+import type { InterpreterFrom } from "xstate";
+import { isAppUser, type authMachine } from "../machines/authMachine";
+import type { snackbarMachine, SnackbarContext } from "../machines/snackbarMachine";
 import { Stepper, Step, StepLabel } from "@mui/material";
 
 export interface Props {
@@ -32,7 +31,11 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     sendUsers({ type: "FETCH" });
   }, [sendUsers]);
 
-  const sender = authState?.context?.user;
+  const sender =
+    authState.context.user && isAppUser(authState.context.user)
+      ? authState.context.user
+      : undefined;
+  const receiver = createTransactionState.context.receiver;
   const setReceiver = (receiver: User) => {
     if (!sender) return;
     sendCreateTransaction({ type: "SET_USERS", sender, receiver });
@@ -75,9 +78,9 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
           userListSearch={userListSearch}
         />
       )}
-      {sender && createTransactionState.matches("stepTwo") && (
+      {sender && receiver && createTransactionState.matches("stepTwo") && (
         <TransactionCreateStepTwo
-          receiver={createTransactionState.context.receiver}
+          receiver={receiver}
           sender={sender}
           createTransaction={createTransaction}
           showSnackbar={showSnackbar}

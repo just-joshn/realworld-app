@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import { Paper, Typography } from "@mui/material";
-import { NotificationUpdatePayload } from "../models";
+import type { NotificationUpdatePayload } from "../models";
 import NotificationList from "../components/NotificationList";
-import { notificationsMachine } from "../machines/notificationsMachine";
-import { authMachine } from "../machines/authMachine";
+import type { notificationsMachine } from "../machines/notificationsMachine";
+import type { authMachine } from "../machines/authMachine";
 
 const PREFIX = "NotificationsContainer";
 

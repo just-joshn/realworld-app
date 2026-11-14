@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Grid, Typography, Button, ListItem } from "@mui/material";
-import { BankAccount } from "../models";
+import type { BankAccount } from "../models";
 
 export interface BankAccountListItemProps {
   bankAccount: BankAccount;

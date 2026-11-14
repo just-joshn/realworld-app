@@ -1,10 +1,12 @@
+import { object, string } from "yup";
 import { http, HttpResponse } from "msw";
 import { Route } from "react-router-dom";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { interpret } from "xstate";
 import { authMachine } from "../machines/authMachine";
-import { TransactionRequestStatus, TransactionResponseItem } from "../models";
+import type { TransactionResponseItem } from "../models";
+import { TransactionRequestStatus } from "../models";
 import {
   buildComment,
   buildLike,
@@ -73,7 +75,7 @@ test("adds a comment with Enter and shows the saved comment", async () => {
   const received = vi.fn();
   worker.use(
     http.post(apiUrl("/comments/txn1"), async ({ request }) => {
-      const payload = (await request.json()) as { content: string };
+      const payload = object({ content: string().required() }).validateSync(await request.json());
       received(payload);
       transaction.comments = [buildComment({ content: payload.content })];
       return HttpResponse.json({});

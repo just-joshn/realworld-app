@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useMachine } from "@xstate/react";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { Container, Grid, useMediaQuery, useTheme } from "@mui/material";
 
 import Footer from "./Footer";
 import NavBar from "./NavBar";
 import NavDrawer from "./NavDrawer";
-import { notificationsMachine } from "../machines/notificationsMachine";
-import { authMachine } from "../machines/authMachine";
+import type { notificationsMachine } from "../machines/notificationsMachine";
+import type { authMachine } from "../machines/authMachine";
 import { drawerMachine } from "../machines/drawerMachine";
 
 const PREFIX = "MainLayout";
@@ -63,8 +63,8 @@ const MainLayout: React.FC<Props> = ({ children, notificationsService, authServi
   const aboveSmallBreakpoint = useMediaQuery(theme.breakpoints.up("sm"));
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
 
-  const desktopDrawerOpen = drawerState?.matches({ desktop: "open" });
-  const mobileDrawerOpen = drawerState?.matches({ mobile: "open" });
+  const desktopDrawerOpen = drawerState.matches({ desktop: "open" });
+  const mobileDrawerOpen = drawerState.matches({ mobile: "open" });
   const toggleDesktopDrawer = () => {
     sendDrawer("TOGGLE_DESKTOP");
   };

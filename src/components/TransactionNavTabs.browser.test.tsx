@@ -8,7 +8,7 @@ test("switches between everyone's, friends' and personal transactions", async ()
     ["Friends", "/contacts"],
     ["Mine", "/personal"],
     ["Everyone", "/"],
-  ]) {
+  ] as const) {
     await screen.getByRole("tab", { name }).click();
     await expect.poll(() => history.location.pathname).toBe(route);
     await expect

@@ -17,8 +17,9 @@ vi.mock(import("aws-amplify/auth"), async (importOriginal) => {
     ...original,
     fetchAuthSession: vi.fn(),
     signOut: vi.fn(async () => {}),
-    signInWithRedirect: vi.fn(async () => {
+    signInWithRedirect: vi.fn(() => {
       window.history.replaceState(null, "", "/cognito-login");
+      return Promise.resolve();
     }),
   };
 });

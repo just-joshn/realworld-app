@@ -1,9 +1,10 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { TextField, Button, Grid } from "@mui/material";
-import { Formik, Form, Field, FieldProps } from "formik";
+import type { FieldProps } from "formik";
+import { Formik, Form, Field } from "formik";
 import { string, object } from "yup";
-import { BankAccountPayload, User } from "../models";
+import type { BankAccountPayload, User } from "../models";
 import { useHistory } from "react-router";
 
 const validationSchema = object({

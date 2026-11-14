@@ -1,3 +1,4 @@
+import { object, string } from "yup";
 import { http, HttpResponse } from "msw";
 import { expect, test, vi } from "vitest";
 import { apiUrl, worker } from "../../test/browser/msw";
@@ -11,7 +12,10 @@ test("guides a new user through adding a bank account", async () => {
   const received = vi.fn();
   worker.use(
     http.post(apiUrl("/graphql"), async ({ request }) => {
-      const body = (await request.json()) as { operationName: string; variables: object };
+      const body = object({
+        operationName: string().required(),
+        variables: object().default({}),
+      }).validateSync(await request.json());
       if (body.operationName === "CreateBankAccount") {
         created = true;
         received(body.variables);

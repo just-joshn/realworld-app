@@ -1,14 +1,18 @@
-import React, { ReactNode } from "react";
+import { object, number, boolean } from "yup";
+import type { ReactNode } from "react";
+import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper, Button, ListSubheader, Grid } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { isEmpty } from "lodash/fp";
 
 import SkeletonList from "./SkeletonList";
-import { TransactionResponseItem, TransactionPagination } from "../models";
+import type { TransactionResponseItem } from "../models";
 import EmptyList from "./EmptyList";
 import TransactionInfiniteList from "./TransactionInfiniteList";
 import TransferMoneyIllustration from "./SvgUndrawTransferMoneyRywa";
+
+const paginationSchema = object({ page: number().required(), hasNextPages: boolean().required() });
 
 const PREFIX = "TransactionList";
 
@@ -28,7 +32,7 @@ export interface TransactionListProps {
   isLoading: boolean;
   showCreateButton?: boolean;
   loadNextPage: (page: number) => void;
-  pagination: TransactionPagination;
+  pagination: object | undefined;
   filterComponent: ReactNode;
 }
 
@@ -41,7 +45,10 @@ const TransactionList: React.FC<TransactionListProps> = ({
   pagination,
   filterComponent,
 }) => {
-  const showEmptyList = !isLoading && transactions?.length === 0;
+  const paginationData = isEmpty(pagination)
+    ? undefined
+    : paginationSchema.validateSync(pagination);
+  const showEmptyList = !isLoading && transactions.length === 0;
   const showSkeleton = isLoading && isEmpty(pagination);
 
   return (
@@ -49,11 +56,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
       {filterComponent}
       <ListSubheader component="div">{header}</ListSubheader>
       {showSkeleton && <SkeletonList />}
-      {transactions.length > 0 && (
+      {transactions.length > 0 && paginationData && (
         <TransactionInfiniteList
           transactions={transactions}
           loadNextPage={loadNextPage}
-          pagination={pagination}
+          pagination={paginationData}
         />
       )}
       {showEmptyList && (

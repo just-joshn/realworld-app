@@ -13,7 +13,7 @@ for (const [requestStatus, action, amount] of [
     const screen = await renderWithRouter(
       <TransactionItem
         transaction={buildTransactionResponseItem({
-          requestStatus,
+          ...(requestStatus ? { requestStatus } : {}),
           likes: [buildLike()],
           comments: [buildComment(), buildComment({ id: "comment2" })],
         })}

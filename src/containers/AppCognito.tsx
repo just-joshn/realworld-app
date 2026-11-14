@@ -42,8 +42,8 @@ const AppCognito: React.FC = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      fetchAuthSession().then((authSession) => {
-        if (authSession && authSession.tokens && authSession.tokens.accessToken) {
+      void fetchAuthSession().then((authSession) => {
+        if (authSession.tokens) {
           const { tokens, userSub } = authSession;
           if (!tokens.idToken || !userSub) {
             throw new Error("Missing Cognito session tokens or user subject");
@@ -51,7 +51,7 @@ const AppCognito: React.FC = () => {
           authService.send("COGNITO", {
             accessTokenJwtString: tokens.accessToken.toString(),
             userSub,
-            email: tokens.idToken.payload.email,
+            email: tokens.idToken.payload["email"],
           });
         } else {
           void signInWithRedirect();
@@ -61,12 +61,12 @@ const AppCognito: React.FC = () => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    const signOutOfCognito = async (event: { type: string }) => {
+    const signOutOfCognito = (event: { type: string }) => {
       if (
         event.type.startsWith("done.invoke.authentication.logout") ||
         event.type.startsWith("error.platform.authentication.logout")
       ) {
-        await signOut();
+        void signOut();
       }
     };
     authService.onEvent(signOutOfCognito);
