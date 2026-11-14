@@ -175,7 +175,8 @@
     "test:unit": "vitest run --project unit",
     "coverage": "vitest run --coverage --project unit --project \"browser (chromium)\"",
     "test:browser": "vitest run --project browser",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "coverage:integration": "vitest run --project integration --coverage.enabled --coverage.include=src/components --coverage.include=src/containers --coverage.include=src/machines --coverage.include=src/utils --coverage.exclude='src/containers/App{Auth0,Cognito,Google,Okta}.tsx' --coverage.reportsDirectory=coverage/integration"
   },
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
