@@ -1,4 +1,5 @@
 import express from "express";
+import { required } from "./required";
 import { join } from "path";
 import logger from "morgan";
 import passport from "passport";
@@ -26,7 +27,9 @@ import { checkAuth0Jwt, verifyOktaToken, checkCognitoJwt, checkGoogleJwt } from 
 import resolvers from "./graphql/resolvers";
 import { frontendPort, getBackendPort } from "../src/utils/portUtils";
 
-require("dotenv").config();
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const corsOption = {
   origin: `http://localhost:${frontendPort}`,
@@ -60,7 +63,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(paginate.middleware(+process.env.PAGINATION_PAGE_SIZE!));
+app.use(paginate.middleware(+required(process.env.PAGINATION_PAGE_SIZE, "PAGINATION_PAGE_SIZE")));
 
 /* istanbul ignore next */
 if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
@@ -97,7 +100,7 @@ app.use(
   "/graphql",
   graphqlHandler({
     schema: schemaWithResolvers,
-    context: async (req, _args) => {
+    context: async (req) => {
       return { user: req.raw.user };
     },
   })

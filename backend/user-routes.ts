@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 import { isEqual, pick } from "lodash/fp";
@@ -25,7 +26,7 @@ const router = express.Router();
 // Routes
 router.get("/", ensureAuthenticated, (req, res) => {
   /* istanbul ignore next */
-  const users = removeUserFromResults(req.user?.id!, getAllUsers());
+  const users = removeUserFromResults(required(req.user, "authenticated user").id, getAllUsers());
   res.status(200).json({ results: users });
 });
 
@@ -33,7 +34,10 @@ router.get("/search", ensureAuthenticated, validateMiddleware([searchValidation]
   const { q } = req.query;
 
   /* istanbul ignore next */
-  const users = removeUserFromResults(req.user?.id!, searchUsers(q as string));
+  const users = removeUserFromResults(
+    required(req.user, "authenticated user").id,
+    searchUsers(q as string)
+  );
 
   res.status(200).json({ results: users });
 });
@@ -56,7 +60,7 @@ router.get(
 
     // Permission: account owner
     /* istanbul ignore next */
-    if (!isEqual(userId, req.user?.id)) {
+    if (!isEqual(userId, required(req.user, "authenticated user").id)) {
       return res.status(401).send({
         error: "Unauthorized",
       });

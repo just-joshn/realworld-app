@@ -101,11 +101,9 @@ describe("Notifications", () => {
 
       const notifications = createNotifications(user.id, notificationsPayload);
 
-      expect(notifications[0]!.transactionId).toBe(transaction.id);
-      // @ts-ignore
-      expect(notifications[1]!.likeId).toBe(like.id);
-      // @ts-ignore
-      expect(notifications[2]!.commentId).toBe(comment.id);
+      expect(notifications[0]).toMatchObject({ transactionId: transaction.id });
+      expect(notifications[1]).toMatchObject({ likeId: like.id });
+      expect(notifications[2]).toMatchObject({ commentId: comment.id });
     });
   });
 
@@ -132,10 +130,8 @@ describe("Notifications", () => {
     const edits: Partial<NotificationType> = {
       isRead: true,
     };
-    // @ts-ignore
     updateNotificationById(user.id, notifications[0].id, edits);
 
-    // @ts-ignore
     const updatedNotification = getNotificationById(notifications[0].id);
     expect(updatedNotification.isRead).toBe(true);
   });

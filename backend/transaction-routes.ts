@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 import { remove, isEmpty, slice, concat } from "lodash/fp";
@@ -37,7 +38,10 @@ router.get(
   ]),
   (req, res) => {
     /* istanbul ignore next */
-    const transactions = getTransactionsForUserForApi(req.user?.id!, req.query);
+    const transactions = getTransactionsForUserForApi(
+      required(req.user, "authenticated user").id,
+      req.query
+    );
 
     const { totalPages, data: paginatedItems } = getPaginatedItems(
       req.query.page as unknown as number,
@@ -69,7 +73,10 @@ router.get(
   ]),
   (req, res) => {
     /* istanbul ignore next */
-    const transactions = getTransactionsForUserContacts(req.user?.id!, req.query);
+    const transactions = getTransactionsForUserContacts(
+      required(req.user, "authenticated user").id,
+      req.query
+    );
 
     const { totalPages, data: paginatedItems } = getPaginatedItems(
       req.query.page as unknown as number,
@@ -99,10 +106,10 @@ router.get(
     const isFirstPage = (req.query.page as unknown as number) === 1;
 
     /* istanbul ignore next */
-    let transactions = !isEmpty(req.query)
-      ? getPublicTransactionsByQuery(req.user?.id!, req.query)
+    const transactions = !isEmpty(req.query)
+      ? getPublicTransactionsByQuery(required(req.user, "authenticated user").id, req.query)
       : /* istanbul ignore next */
-        getPublicTransactionsDefaultSort(req.user?.id!);
+        getPublicTransactionsDefaultSort(required(req.user, "authenticated user").id);
 
     const { contactsTransactions, publicTransactions } = transactions;
 
@@ -145,7 +152,11 @@ router.post(
     remove("transactionType", transactionPayload);
 
     /* istanbul ignore next */
-    const transaction = createTransaction(req.user?.id!, transactionType, transactionPayload);
+    const transaction = createTransaction(
+      required(req.user, "authenticated user").id,
+      transactionType,
+      transactionPayload
+    );
 
     res.status(200);
     res.json({ transaction });

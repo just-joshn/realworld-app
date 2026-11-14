@@ -37,7 +37,7 @@ describe("BankAccounts", () => {
     const user: User = getRandomUser();
     const accountNumber = faker.finance.account(10);
 
-    const accountDetails: Partial<BankAccount> = {
+    const accountDetails: Pick<BankAccount, "bankName" | "accountNumber" | "routingNumber"> = {
       bankName: `${faker.company.companyName()} Bank`,
       accountNumber,
       routingNumber: faker.finance.account(9),

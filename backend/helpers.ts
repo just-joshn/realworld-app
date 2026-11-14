@@ -1,13 +1,12 @@
 import dotenv from "dotenv";
 import { set } from "lodash";
 import { Request, Response, NextFunction } from "express";
-import { validationResult } from "express-validator";
+import { validationResult, ValidationChain, SanitizationChain } from "express-validator";
 import jwt from "express-jwt";
 import jwksRsa from "jwks-rsa";
 
-// @ts-ignore
 import OktaJwtVerifier from "@okta/jwt-verifier";
-// @ts-ignore
+// @ts-expect-error Amplify generates this optional configuration outside the repository.
 import awsConfig from "../src/aws-exports";
 
 dotenv.config();
@@ -59,15 +58,12 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
 
     oktaJwtVerifier
       .verifyAccessToken(bearerToken, "api://default")
-      .then((jwt: any) => {
+      .then((jwt) => {
         // the token is valid
-        req.user = {
-          // @ts-ignore
-          sub: jwt.sub,
-        };
+        set(req, "user", { sub: "sub" in jwt ? jwt.sub : undefined });
         return next();
       })
-      .catch((err: any) => {
+      .catch((err: unknown) => {
         // a validation failed, inspect the error
         console.log("error", err);
       });
@@ -97,11 +93,9 @@ export const checkGoogleJwt = jwt(googleJwtConfig).unless({ path: ["/testData/*"
 
 export const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
-    // @ts-ignore
     // Map sub to id on req.user
     if (req.user?.sub) {
       /* istanbul ignore next */
-      // @ts-ignore
       set(req.user, "id", req.user.sub);
     }
     return next();
@@ -112,9 +106,9 @@ export const ensureAuthenticated = (req: Request, res: Response, next: NextFunct
   });
 };
 
-export const validateMiddleware = (validations: any[]) => {
+export const validateMiddleware = (validations: (ValidationChain | SanitizationChain)[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    await Promise.all(validations.map((validation: any) => validation.run(req)));
+    await Promise.all(validations.map((validation) => validation.run(req)));
 
     const errors = validationResult(req);
     if (errors.isEmpty()) {
