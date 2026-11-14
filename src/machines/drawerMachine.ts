@@ -1,9 +1,10 @@
 import { Machine } from "xstate";
 
-export const drawerMachine = Machine(
+export const drawerMachine = Machine<{ aboveSmallBreakpoint?: boolean }>(
   {
     id: "drawer",
     type: "parallel",
+    context: {},
     states: {
       desktop: {
         initial: "open",

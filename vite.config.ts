@@ -5,9 +5,8 @@ import eslint from "vite-plugin-eslint";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE");
   return {
-    define: {
-      "process.env": env,
-    },
+    // Vitest stubs process.env per test, so only inline it outside test mode.
+    define: mode === "test" ? {} : { "process.env": env },
     server: {
       port: 3000,
     },
