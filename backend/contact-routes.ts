@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 
@@ -26,7 +27,10 @@ router.post(
   (req, res) => {
     const { contactUserId } = req.body;
     /* istanbul ignore next */
-    const contact = createContactForUser(req.user?.id!, contactUserId);
+    const contact = createContactForUser(
+      required(req.user, "authenticated user").id,
+      contactUserId
+    );
 
     res.status(200);
     res.json({ contact });

@@ -56,7 +56,7 @@ describe("Transactions", () => {
     const userToLookup: User = getAllUsers()[0];
 
     const result: Transaction[] = getTransactionsForUserByObj(userToLookup.id, {});
-    expect(result.pop()!.senderId).toBe(userToLookup.id);
+    expect(result.pop()).toMatchObject({ senderId: userToLookup.id });
   });
 
   it("should retrieve a list of transactions for a users contacts", () => {
@@ -99,7 +99,7 @@ describe("Transactions", () => {
     const senderBankAccount = getBankAccountsByUserId(sender.id)[0];
 
     const paymentDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Payment: ${sender.id} to ${receiver.id}`,
@@ -120,7 +120,7 @@ describe("Transactions", () => {
     const senderBankAccount = getBankAccountsByUserId(sender.id)[0];
 
     const requestDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Request: ${sender.id} to ${receiver.id}`,
@@ -141,7 +141,7 @@ describe("Transactions", () => {
     const senderBankAccount = getBankAccountsByUserId(sender.id)[0];
 
     const paymentDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Payment: ${sender.id} to ${receiver.id}`,
@@ -222,7 +222,7 @@ describe("Transactions", () => {
 
     console.log("sender balance:", sender.balance + 1000);
     const paymentDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Payment: ${sender.id} to ${receiver.id}`,
@@ -245,7 +245,7 @@ describe("Transactions", () => {
 
     // second transaction - $500
     const secondPaymentDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Payment: ${sender.id} to ${receiver.id}`,
@@ -287,7 +287,7 @@ describe("Transactions", () => {
     expect(receiverTransactions.length).toBeGreaterThan(1);
 
     const requestDetails: TransactionPayload = {
-      source: senderBankAccount.id!,
+      source: senderBankAccount.id,
       senderId: sender.id,
       receiverId: receiver.id,
       description: `Request: ${sender.id} to ${receiver.id}`,

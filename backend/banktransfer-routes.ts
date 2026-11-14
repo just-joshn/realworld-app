@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 
@@ -11,7 +12,7 @@ const router = express.Router();
 //GET /bankTransfers (scoped-user)
 router.get("/", ensureAuthenticated, (req, res) => {
   /* istanbul ignore next */
-  const transfers = getBankTransfersByUserId(req.user?.id!);
+  const transfers = getBankTransfersByUserId(required(req.user, "authenticated user").id);
 
   res.status(200);
   res.json({ transfers });

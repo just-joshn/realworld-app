@@ -1,4 +1,5 @@
-///<reference path="types.ts" />
+import { required } from "./required";
+import "./types";
 
 import express from "express";
 import { getCommentsByTransactionId, createComments } from "./database";
@@ -32,7 +33,7 @@ router.post(
     const { content } = req.body;
 
     /* istanbul ignore next */
-    createComments(req.user?.id!, transactionId, content);
+    createComments(required(req.user, "authenticated user").id, transactionId, content);
 
     res.sendStatus(200);
   }
