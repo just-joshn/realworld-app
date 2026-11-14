@@ -75,8 +75,8 @@
       "matchPackageNames": ["xstate", "@xstate/react"]
     },
     {
-      "groupName": "ESLint and Prettier",
-      "matchPackageNames": ["eslint", "prettier"],
+      "groupName": "ESLint",
+      "matchPackageNames": ["eslint"],
       "matchPackagePatterns": ["^eslint-config-", "^eslint-plugin-"]
     },
     {
