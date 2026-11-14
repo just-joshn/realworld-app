@@ -194,6 +194,30 @@ describe("Transactions", () => {
     expect(updatedTransaction.requestStatus).toEqual("accepted");
   });
 
+  it("should not move money when a request is rejected", () => {
+    const requester: User = getAllUsers()[0];
+    const payee: User = getAllUsers()[1];
+    // lowdb returns live rows, so copy the balances before they can change.
+    const requesterBalance = requester.balance;
+    const payeeBalance = payee.balance;
+
+    const request = createTransaction(requester.id, "request", {
+      source: "",
+      senderId: requester.id,
+      receiverId: payee.id,
+      description: "Request to reject",
+      amount: 25,
+      privacyLevel: DefaultPrivacyLevel.public,
+      status: TransactionStatus.pending,
+    });
+
+    updateTransactionById(request.id, { requestStatus: TransactionRequestStatus.rejected });
+
+    expect(getTransactionById(request.id).requestStatus).toEqual("rejected");
+    expect(getUserById(requester.id).balance).toBe(requesterBalance);
+    expect(getUserById(payee.id).balance).toBe(payeeBalance);
+  });
+
   it("should add additional fields (e.g. retreiverName, senderName, etc) to a list of transactions for a user for API response", () => {
     const userToLookup: User = getAllUsers()[0];
 
