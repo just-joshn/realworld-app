@@ -28,6 +28,7 @@ This directory is the maintained source for verifying user-facing behavior in th
 ## Feature entry contract
 
 Each feature file starts with an H1 and a one-paragraph description of the behavior. It then has four H2 sections, in this order:
+
 1. `Sub-features`
 2. `How to get to it (user POV)`
 3. `Driving it with drive.sh`
@@ -35,13 +36,13 @@ Each feature file starts with an H1 and a one-paragraph description of the behav
 
 ## Features
 
-| Feature | Journeys | Status on branch `work` |
-|---|---|---|
-| [Sign in and session](./sign-in-and-session.md) | `signin`, `signin-invalid`, `remember-me`, `signout`, `guard` | all pass |
-| [Sign up and onboarding](./sign-up-and-onboarding.md) | `signup-onboarding`, `signup-link` | all pass |
-| [User settings](./user-settings.md) | `settings` | pass |
-| [Send a payment](./send-payment.md) | `pay`, `pay-insufficient`, `pay-cents` | all pass |
-| [Request money](./request-money.md) | `request-accept`, `request-reject` | all pass |
-| [Bank accounts](./bank-accounts.md) | `bank-accounts` | pass |
+| Feature                                               | Journeys                                                      | Status on branch `work` |
+| ----------------------------------------------------- | ------------------------------------------------------------- | ----------------------- |
+| [Sign in and session](./sign-in-and-session.md)       | `signin`, `signin-invalid`, `remember-me`, `signout`, `guard` | all pass                |
+| [Sign up and onboarding](./sign-up-and-onboarding.md) | `signup-onboarding`, `signup-link`                            | all pass                |
+| [User settings](./user-settings.md)                   | `settings`                                                    | pass                    |
+| [Send a payment](./send-payment.md)                   | `pay`, `pay-insufficient`, `pay-cents`                        | all pass                |
+| [Request money](./request-money.md)                   | `request-accept`, `request-reject`                            | all pass                |
+| [Bank accounts](./bank-accounts.md)                   | `bank-accounts`                                               | pass                    |
 
 Not yet mapped: the transaction feeds and filters, likes and comments, notifications, and the third-party auth modes (Auth0, Okta, Cognito, Google).
