@@ -14,16 +14,16 @@ for p in 3000 3001; do
     lsof -nP -iTCP:$p -sTCP:LISTEN >&2; exit 1
   fi
 done
-command -v yarn >/dev/null || { echo "yarn missing: run setup-tools.sh" >&2; exit 1; }
-[ -d node_modules ] || yarn install --frozen-lockfile
+command -v bun >/dev/null || { echo "bun missing: install it from https://bun.com/docs/installation" >&2; exit 1; }
+[ -d node_modules ] || bun ci
 
 mkdir -p "$STATE"
-# `yarn start` overwrites data/database.json (tracked) with the seed. Back up the user's copy.
+# `bun run start` overwrites data/database.json (tracked) with the seed. Back up the user's copy.
 cp data/database.json "$STATE/database.json.before"
 git rev-parse HEAD > "$STATE/git-head"
 
 set -m  # background job gets its own process group, so cleanup can kill the whole tree
-nohup yarn start > "$STATE/app.log" 2>&1 &
+nohup bun run start > "$STATE/app.log" 2>&1 &
 echo $! > "$STATE/app.pid"
 set +m
 

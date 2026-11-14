@@ -35,6 +35,6 @@ Preconditions:
 ## Gotchas
 
 - `request-reject` guards a fixed bug: rejecting a request used to move the money. Only `requestStatus: accepted` debits the payee and credits the requester. Both outcomes still set `status: complete`.
-- The side nav refreshes the user profile after an accept or reject. That used to happen only after *creating* a transaction, so the balance stayed stale even across reloads because the UI restores the user from `localStorage.authState`. A balance change made by someone else (for example, an incoming payment) still isn't picked up until the next refresh or sign-in.
+- The side nav refreshes the user profile after an accept or reject. That used to happen only after _creating_ a transaction, so the balance stayed stale even across reloads because the UI restores the user from `localStorage.authState`. A balance change made by someone else (for example, an incoming payment) still isn't picked up until the next refresh or sign-in.
 - The API doesn't check that the person updating is the payee. Only the UI hides the buttons from the requester. Don't treat "the requester sees no buttons" as proof of authorization.
 - The Accept and Reject handles include the transaction ID. Read the ID from the DB row the journey just created. Never use a seed ID.

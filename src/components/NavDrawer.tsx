@@ -47,7 +47,7 @@ const classes = {
 
 const StyledDrawer = styled(Drawer)(({ theme }) => ({
   [`& .${classes.toolbar}`]: {
-    paddingRight: 24, // keep right padding when drawer closed
+    paddingRight: 24,
   },
 
   [`& .${classes.toolbarIcon}`]: {

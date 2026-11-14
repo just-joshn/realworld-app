@@ -86,9 +86,6 @@ export const defaultPassword = required(
 
 export const paymentVariations = 2;
 export const requestVariations = 3;
-// transactions per user = paymentsPerUser * paymentVariations * sender/receiver(2)
-// +
-// requestsPerUser * requestVariations * sender/receiver(2)
 export const transactionsPerUser =
   paymentsPerUser * paymentVariations * 2 + requestsPerUser * requestVariations * 2;
 export const totalTransactions = userbaseSize * transactionsPerUser;
@@ -96,7 +93,7 @@ export const totalLikes = userbaseSize * likesPerUser;
 export const totalComments = userbaseSize * commentsPerUser;
 export const totalNotifications = userbaseSize * notificationsPerUser;
 export const totalContacts = userbaseSize * contactsPerUser;
-export const totalBankTransfers = userbaseSize * bankTransfersPerUser * 2; // deposit & withdrawal
+export const totalBankTransfers = userbaseSize * bankTransfersPerUser * 2;
 
 export const isPayment = (type: string) => type === "payment";
 export const passwordHash = bcrypt.hashSync(defaultPassword, 10);
@@ -173,9 +170,8 @@ export const createContact = (userId: User["id"], contactUserId: User["id"]) => 
   modifiedAt: faker.date.recent(),
 });
 
-// returns a random user other than the one passed in
-export const getOtherRandomUser = curry(
-  (seedUsers: User[], userId: User["id"]): User => flow(reject(["id", userId]), sample)(seedUsers)
+export const getOtherRandomUser = curry((seedUsers: User[], userId: User["id"]): User =>
+  flow(reject(["id", userId]), sample)(seedUsers)
 );
 
 export const randomContactsForUser = curry((seedUsers: User[], user: User) =>
@@ -217,8 +213,6 @@ export const createSeedBankAccounts = (seedUsers: User[]) =>
       modifiedAt: faker.date.recent(),
     };
   })(seedUsers);
-
-// Transactions
 
 export const createTransaction = (
   type: "payment" | "request",
@@ -386,16 +380,13 @@ export const createSeedLikes = (seedUsers: User[], seedTransactions: Transaction
     map((user: User): Like[] => {
       const transactions = getPublicTransactionsForOtherUsers(seedTransactions, user.id);
 
-      // choose random transactions
       const randomTransactions = getRandomTransactions(10, transactions);
 
-      // get a slice of random transactions
       const selectedTransactions = sampleSize(
         likesPerUser,
         compact(randomTransactions.slice(0, likesPerUser * 2))
       );
 
-      // iterate over transactions and like
       return selectedTransactions.map((transaction) => createFakeLike(user.id, transaction.id));
     })(seedUsers)
   );
@@ -415,13 +406,10 @@ export const createSeedComments = (seedUsers: User[], seedTransactions: Transact
     map((user: User): Comment[] => {
       const transactions = getPublicTransactionsForOtherUsers(seedTransactions, user.id);
 
-      // choose random transactions
       const randomTransactions = getRandomTransactions(5, transactions);
 
-      // get a slice of random transactions
       const selectedTransactions = randomTransactions.slice(0, commentsPerUser);
 
-      // iterate over transactions and comment
       return selectedTransactions.map((transaction) => createFakeComment(user.id, transaction.id));
     })(seedUsers)
   );
@@ -519,14 +507,12 @@ export const createSeedNotifications = (
         "transaction with comments"
       );
       const comment = getCommentByTransactionId(commentTransaction.id, seedComments);
-      // comment notification
       const commentNotification = createFakeCommentNotification(
         user.id,
         commentTransaction.id,
         comment.id
       );
 
-      // choose random transactions
       const randomTransactions = getRandomTransactions(notificationsPerUser - 2, transactions);
 
       const paymentRequestNotifications = randomTransactions.map((transaction) =>
@@ -576,7 +562,6 @@ export const createSeedBankTransfers = (
       const userTransactions: Transaction[] = getTransactionsByUserId(seedTransactions, user.id);
       const bankAccounts = getBankAccountsByUserId(seedBankAccounts, user.id);
 
-      // choose random transactions
       const randomTransactions = getRandomTransactions(
         bankTransfersPerUser,
         userTransactions

@@ -23,7 +23,6 @@ if (!rootElement) {
 const root = createRoot(rootElement);
 
 if (process.env.VITE_AWS_COGNITO) {
-  /* istanbul ignore next */
   root.render(
     <Router history={history}>
       <StyledEngineProvider injectFirst>

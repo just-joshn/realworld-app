@@ -16,7 +16,6 @@ const theme = createTheme(
   })
 );
 
-/* istanbul ignore next */
 const onRedirectCallback = (appState?: AppState) => {
   history.replace((appState && appState.returnTo) || window.location.pathname);
 };
@@ -27,7 +26,6 @@ if (!rootElement) {
 }
 const root = createRoot(rootElement);
 
-/* istanbul ignore if */
 if (process.env.VITE_AUTH0) {
   const domain = process.env.VITE_AUTH0_DOMAIN;
   const clientId = process.env.VITE_AUTH0_CLIENTID;

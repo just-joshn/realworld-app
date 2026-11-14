@@ -11,7 +11,6 @@ const httpClient = axios.create({
 });
 
 httpClient.interceptors.request.use((config) => {
-  /* istanbul ignore if */
   if (
     process.env.VITE_AUTH0 ||
     process.env.VITE_OKTA ||

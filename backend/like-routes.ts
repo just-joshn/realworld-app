@@ -7,9 +7,6 @@ import { ensureAuthenticated, validateMiddleware } from "./helpers";
 import { shortIdValidation } from "./validators";
 const router = express.Router();
 
-// Routes
-
-//GET /likes/:transactionId
 router.get(
   "/:transactionId",
   ensureAuthenticated,
@@ -23,14 +20,12 @@ router.get(
   }
 );
 
-//POST /likes/:transactionId
 router.post(
   "/:transactionId",
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("transactionId")]),
   (req, res) => {
     const { transactionId } = req.params;
-    /* istanbul ignore next */
     createLikes(required(req.user, "authenticated user").id, transactionId);
 
     res.sendStatus(200);

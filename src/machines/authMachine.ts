@@ -1,9 +1,8 @@
 import { Machine, assign, interpret, State } from "xstate";
 import { omit } from "lodash/fp";
-import { httpClient } from "../utils/asyncUtils";
+import { httpClient, getAuthTokenName } from "../utils/asyncUtils";
 import { history } from "../utils/historyUtils";
 import { User } from "../models";
-import { getAuthTokenName } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
 
 export interface AuthMachineSchema {
@@ -190,9 +189,8 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
             throw new Error("Username or password is invalid");
           });
       },
-      getOktaUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+      getOktaUserProfile: (ctx, event: AuthMachineEvents) => {
         if (event.type !== "OKTA") throw new Error("Expected OKTA event");
-        // Map Okta User fields to our User Model
         const user = {
           id: event.user.sub,
           email: event.user.email,
@@ -201,7 +199,6 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
           username: event.user.preferred_username,
         };
 
-        // Set Access Token in Local Storage for API calls
         localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
@@ -210,9 +207,8 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         const resp = await httpClient.get(`http://localhost:${backendPort}/checkAuth`);
         return resp.data;
       },
-      getGoogleUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+      getGoogleUserProfile: (ctx, event: AuthMachineEvents) => {
         if (event.type !== "GOOGLE") throw new Error("Expected GOOGLE event");
-        // Map Google User fields to our User Model
         const user = {
           id: event.user.googleId,
           email: event.user.email,
@@ -221,14 +217,12 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
           avatar: event.user.imageUrl,
         };
 
-        // Set Google Access Token in Local Storage for API calls
         localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
       },
-      getAuth0UserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+      getAuth0UserProfile: (ctx, event: AuthMachineEvents) => {
         if (event.type !== "AUTH0") throw new Error("Expected AUTH0 event");
-        // Map Auth0 User fields to our User Model
         const user = {
           id: event.user.sub,
           email: event.user.email,
@@ -236,7 +230,6 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
           avatar: event.user.picture,
         };
 
-        // Set Auth0 Access Token in Local Storage for API calls
         localStorage.setItem(getAuthTokenName(), event.token);
 
         return Promise.resolve({ user });
@@ -254,15 +247,13 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
         localStorage.removeItem("authState");
         return await httpClient.post(`http://localhost:${backendPort}/logout`);
       },
-      getCognitoUserProfile: /* istanbul ignore next */ (ctx, event: AuthMachineEvents) => {
+      getCognitoUserProfile: (ctx, event: AuthMachineEvents) => {
         if (event.type !== "COGNITO") throw new Error("Expected COGNITO event");
-        // Map Cognito User fields to our User Model
         const ourUser = {
           id: event.userSub,
           email: event.email,
         };
 
-        // Set Access Token in Local Storage for API calls
         localStorage.setItem(getAuthTokenName(), event.accessTokenJwtString);
 
         return Promise.resolve(ourUser);
@@ -271,7 +262,6 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
     actions: {
       redirectHomeAfterLogin: async () => {
         if (history.location.pathname === "/signin") {
-          /* istanbul ignore next */
           window.location.pathname = "/";
         }
       },

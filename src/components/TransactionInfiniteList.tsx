@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import { get } from "lodash/fp";
 import { useTheme, useMediaQuery, Divider } from "@mui/material";
 import { InfiniteLoader, List, Index, ListRowProps } from "react-virtualized";
-import "react-virtualized/styles.css"; // only needs to be imported once
+import "react-virtualized/styles.css";
 
 import TransactionItem from "./TransactionItem";
 import { TransactionResponseItem, TransactionPagination } from "../models";

@@ -61,7 +61,6 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
     );
   }
 
-  const bankAccounts = bankAccountsState.context.results;
   return (
     <StyledPaper className={classes.paper}>
       <Grid container direction="row" justifyContent="space-between" alignItems="center">
@@ -83,7 +82,10 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
           </Button>
         </Grid>
       </Grid>
-      <BankAccountList bankAccounts={bankAccounts} deleteBankAccount={deleteBankAccount} />
+      <BankAccountList
+        bankAccounts={bankAccountsState.context.results}
+        deleteBankAccount={deleteBankAccount}
+      />
     </StyledPaper>
   );
 };

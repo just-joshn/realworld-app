@@ -138,7 +138,6 @@ const TransactionDetail: React.FC<TransactionProps> = ({
                 src={transaction.receiverAvatar}
               />
             </AvatarGroup>
-            {/* eat up space to right of AvatarGroup: */}
             <Grid item sx={{ width: "100%" }} />
           </Grid>
           <Grid container direction="column" justifyContent="flex-start" alignItems="flex-start">

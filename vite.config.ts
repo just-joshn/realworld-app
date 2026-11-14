@@ -5,7 +5,6 @@ import eslint from "vite-plugin-eslint";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE");
   return {
-    // expose all vite "VITE_*" variables as process.env.VITE_* in the browser
     define: {
       "process.env": env,
     },
@@ -25,12 +24,6 @@ export default defineConfig(({ mode }) => {
           replacement: "./runtimeConfig.browser", // ensures browser compatible version of AWS JS SDK is used
         },
       ],
-    },
-    test: {
-      environment: "jsdom",
-      setupFiles: "./src/setup-tests.js",
-      exclude: ["node_modules", "dist"],
-      fileParallelism: false, // #1666: Run tests sequentially to avoid race conditions with shared database.json file.
     },
   };
 });

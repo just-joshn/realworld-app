@@ -8,8 +8,6 @@ import { ensureAuthenticated, validateMiddleware } from "./helpers";
 import { shortIdValidation } from "./validators";
 const router = express.Router();
 
-// Routes
-//GET /contacts/:username
 router.get("/:username", (req, res) => {
   const { username } = req.params;
 
@@ -19,14 +17,12 @@ router.get("/:username", (req, res) => {
   res.json({ contacts });
 });
 
-//POST /contacts (scoped-user)
 router.post(
   "/",
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("contactUserId")]),
   (req, res) => {
     const { contactUserId } = req.body;
-    /* istanbul ignore next */
     const contact = createContactForUser(
       required(req.user, "authenticated user").id,
       contactUserId
@@ -36,7 +32,6 @@ router.post(
     res.json({ contact });
   }
 );
-//DELETE /contacts/:contactId (scoped-user)
 router.delete(
   "/:contactId",
   ensureAuthenticated,

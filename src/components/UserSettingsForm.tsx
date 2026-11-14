@@ -22,7 +22,7 @@ const StyledFormik = styled(Formik<UserSettingsPayload>)(({ theme }) => ({
 }));
 
 const MarginHonoringDiv = styled("div")(({ theme }) => ({
-  width: "100%", // Fix IE 11 issue.
+  width: "100%",
   marginTop: theme.spacing(1),
 }));
 

@@ -13,7 +13,6 @@ const classes = {
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   [`&.${classes.paper}`]: {
-    //marginTop: theme.spacing(2),
     padding: theme.spacing(2),
     display: "flex",
     overflow: "auto",

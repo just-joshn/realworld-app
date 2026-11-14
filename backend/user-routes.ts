@@ -23,9 +23,7 @@ import {
 } from "./validators";
 const router = express.Router();
 
-// Routes
 router.get("/", ensureAuthenticated, (req, res) => {
-  /* istanbul ignore next */
   const users = removeUserFromResults(required(req.user, "authenticated user").id, getAllUsers());
   res.status(200).json({ results: users });
 });
@@ -33,7 +31,6 @@ router.get("/", ensureAuthenticated, (req, res) => {
 router.get("/search", ensureAuthenticated, validateMiddleware([searchValidation]), (req, res) => {
   const { q } = req.query;
 
-  /* istanbul ignore next */
   const users = removeUserFromResults(
     required(req.user, "authenticated user").id,
     searchUsers(q as string)
@@ -58,8 +55,6 @@ router.get(
   (req, res) => {
     const { userId } = req.params;
 
-    // Permission: account owner
-    /* istanbul ignore next */
     if (!isEqual(userId, required(req.user, "authenticated user").id)) {
       return res.status(401).send({
         error: "Unauthorized",

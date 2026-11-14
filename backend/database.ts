@@ -98,7 +98,6 @@ export const seedDatabase = () => {
     fs.readFileSync(path.join(process.cwd(), "data", "database-seed.json"), "utf-8")
   );
 
-  // seed database with test data
   db.setState(testSeed).write();
   return;
 };
@@ -137,7 +136,6 @@ export function getAllByObj(entity: keyof DbSchema, query: object) {
   return chain(db.get(entity).value()).filter(query).value();
 }
 
-// Search
 export const cleanSearchQuery = (query: string) => query.replace(/[^a-zA-Z0-9]/g, "");
 
 export const setupSearch = curry(
@@ -168,9 +166,6 @@ export const searchUsers = (query: string) => {
 export const removeUserFromResults = (userId: User["id"], results: User[]) =>
   remove({ id: userId }, results);
 
-// convenience methods
-
-// User
 export const getUserBy = (key: string, value: unknown) => getBy(USER_TABLE, key, value);
 export const getUserId = (user: User): string => user.id;
 export const getUserById = (id: string) => getUserBy("id", id);
@@ -221,7 +216,6 @@ export const updateUserById = (userId: string, edits: Partial<User>) => {
   db.get(USER_TABLE).find(user).assign(edits).write();
 };
 
-// Contact
 export const getContactBy = (key: string, value: unknown) => getBy(CONTACT_TABLE, key, value);
 
 export const getContactsBy = (key: string, value: unknown) => getAllBy(CONTACT_TABLE, key, value);
@@ -234,7 +228,6 @@ export const getContactsByUserId = (userId: string): Contact[] => getContactsBy(
 export const createContact = (contact: Contact) => {
   db.get(CONTACT_TABLE).push(contact).write();
 
-  // manual lookup after create
   return getContactBy("id", contact.id);
 };
 
@@ -255,13 +248,11 @@ export const createContactForUser = (userId: string, contactUserId: string) => {
     modifiedAt: new Date(),
   };
 
-  // Write contact record to the database
   const result = createContact(contact);
 
   return result;
 };
 
-// Bank Account
 export const getBankAccountBy = (key: string, value: unknown) =>
   getBy(BANK_ACCOUNT_TABLE, key, value);
 
@@ -273,7 +264,6 @@ export const getBankAccountsBy = (key: string, value: unknown) =>
 export const createBankAccount = (bankaccount: BankAccount) => {
   db.get(BANK_ACCOUNT_TABLE).push(bankaccount).write();
 
-  // manual lookup after create
   return getBankAccountBy("id", bankaccount.id);
 };
 
@@ -294,24 +284,15 @@ export const createBankAccountForUser = (
     modifiedAt: new Date(),
   };
 
-  // Write bank account record to the database
   const result = createBankAccount(bankaccount);
 
   return result;
 };
 
 export const removeBankAccountById = (bankAccountId: string) => {
-  db.get(BANK_ACCOUNT_TABLE)
-    .find({ id: bankAccountId })
-    .assign({ isDeleted: true }) // soft delete
-    .write();
+  db.get(BANK_ACCOUNT_TABLE).find({ id: bankAccountId }).assign({ isDeleted: true }).write();
 };
 
-// Bank Transfer
-// Note: Balance transfers from/to bank accounts is a future feature,
-// but some of the backend database functionality is already implemented here.
-
-/* istanbul ignore next */
 export const getBankTransferBy = (key: string, value: unknown) =>
   getBy(BANK_TRANSFER_TABLE, key, value);
 
@@ -320,7 +301,6 @@ export const getBankTransfersBy = (key: string, value: unknown) =>
 
 export const getBankTransfersByUserId = (userId: string) => getBankTransfersBy("userId", userId);
 
-/* istanbul ignore next */
 export const createBankTransfer = (bankTransferDetails: BankTransferPayload) => {
   const bankTransfer: BankTransfer = {
     id: shortid(),
@@ -334,15 +314,11 @@ export const createBankTransfer = (bankTransferDetails: BankTransferPayload) => 
   return savedBankTransfer;
 };
 
-/* istanbul ignore next */
 const saveBankTransfer = (bankTransfer: BankTransfer): BankTransfer => {
   db.get(BANK_TRANSFER_TABLE).push(bankTransfer).write();
 
-  // manual lookup after banktransfer created
   return getBankTransferBy("id", bankTransfer.id);
 };
-
-// Transaction
 
 export const getTransactionBy = (key: string, value: unknown) =>
   getBy(TRANSACTION_TABLE, key, value);
@@ -515,7 +491,6 @@ export const debitPayAppBalance = (user: User, transaction: Transaction) => {
   if (hasSufficientFunds(user, transaction)) {
     flow(getChargeAmount, savePayAppBalance(user))(user, transaction);
   } else {
-    /* istanbul ignore next */
     flow(
       getTransferAmount(user),
       createBankTransferWithdrawal(user, transaction),
@@ -528,7 +503,6 @@ export const debitPayAppBalance = (user: User, transaction: Transaction) => {
 export const creditPayAppBalance = (user: User, transaction: Transaction) =>
   flow(getPayAppCreditedAmount, savePayAppBalance(user))(user, transaction);
 
-/* istanbul ignore next */
 export const createBankTransferWithdrawal = curry(
   (sender: User, transaction: Transaction, transferAmount: number) =>
     createBankTransfer({
@@ -568,7 +542,6 @@ export const createTransaction = (
 
   const savedTransaction = saveTransaction(transaction);
 
-  // if payment, debit sender's balance for payment amount
   if (isPayment(transaction)) {
     debitPayAppBalance(sender, transaction);
     creditPayAppBalance(receiver, transaction);
@@ -594,7 +567,6 @@ export const createTransaction = (
 const saveTransaction = (transaction: Transaction): Transaction => {
   db.get(TRANSACTION_TABLE).push(transaction).write();
 
-  // manual lookup after transaction created
   return getTransactionBy("id", transaction.id);
 };
 
@@ -626,8 +598,6 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
   db.get(TRANSACTION_TABLE).find(transaction).assign(edits).write();
 };
 
-// Likes
-
 export const getLikeBy = (key: string, value: unknown): Like => getBy(LIKE_TABLE, key, value);
 export const getLikesByObj = (query: object) => getAllByObj(LIKE_TABLE, query);
 
@@ -653,7 +623,6 @@ export const createLikes = (userId: string, transactionId: string) => {
 
   const like = createLike(userId, transactionId);
 
-  /* istanbul ignore next */
   if (userId !== senderId || userId !== receiverId) {
     createLikeNotification(senderId, transactionId, like.id);
     createLikeNotification(receiverId, transactionId, like.id);
@@ -667,11 +636,8 @@ export const createLikes = (userId: string, transactionId: string) => {
 const saveLike = (like: Like): Like => {
   db.get(LIKE_TABLE).push(like).write();
 
-  // manual lookup after like created
   return getLikeById(like.id);
 };
-
-// Comments
 
 export const getCommentBy = (key: string, value: unknown): Comment =>
   getBy(COMMENT_TABLE, key, value);
@@ -701,7 +667,6 @@ export const createComments = (userId: string, transactionId: string, content: s
 
   const comment = createComment(userId, transactionId, content);
 
-  /* istanbul ignore next */
   if (userId !== senderId || userId !== receiverId) {
     createCommentNotification(senderId, transactionId, comment.id);
     createCommentNotification(receiverId, transactionId, comment.id);
@@ -715,11 +680,8 @@ export const createComments = (userId: string, transactionId: string, content: s
 const saveComment = (comment: Comment): Comment => {
   db.get(COMMENT_TABLE).push(comment).write();
 
-  // manual lookup after comment created
   return getCommentById(comment.id);
 };
-
-// Notifications
 
 export const getNotificationBy = (key: string, value: unknown): NotificationType =>
   getBy(NOTIFICATION_TABLE, key, value);
@@ -801,7 +763,6 @@ export const createNotifications = (userId: string, notifications: NotificationP
     } else if ("likeId" in item && item.type === NotificationsType.like) {
       return createLikeNotification(userId, item.transactionId, item.likeId);
     } else {
-      /* istanbul ignore next */
       if ("commentId" in item) {
         return createCommentNotification(userId, item.transactionId, item.commentId);
       }
@@ -853,37 +814,27 @@ export const formatNotificationsForApiResponse = (
     notifications.map((notification) => formatNotificationForApiResponse(notification))
   );
 
-// dev/test private methods
-/* istanbul ignore next */
 export const getRandomUser = () => {
   const users = getAllUsers();
   return required(sample(users), "random user");
 };
 
-/* istanbul ignore next */
 export const getAllContacts = () => db.get(CONTACT_TABLE).value();
 
-/* istanbul ignore next */
 export const getAllTransactions = () => db.get(TRANSACTION_TABLE).value();
 
-/* istanbul ignore */
 export const getBankAccountsByUserId = (userId: string) => getBankAccountsBy("userId", userId);
 
-/* istanbul ignore next */
 export const getNotificationById = (id: string): NotificationType => getNotificationBy("id", id);
 
-/* istanbul ignore next */
 export const getNotificationsByUserId = (userId: string) => getNotificationsByObj({ userId });
 
-/* istanbul ignore next */
 export const getBankTransferByTransactionId = (transactionId: string) =>
   getBankTransferBy("transactionId", transactionId);
 
-/* istanbul ignore next */
 export const getTransactionsBy = (key: string, value: string) =>
   getAllBy(TRANSACTION_TABLE, key, value);
 
-/* istanbul ignore next */
 export const getTransactionsByUserId = (userId: string) => getTransactionsBy("receiverId", userId);
 
 export default db;

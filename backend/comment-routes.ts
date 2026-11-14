@@ -7,9 +7,6 @@ import { ensureAuthenticated, validateMiddleware } from "./helpers";
 import { shortIdValidation, isCommentValidator } from "./validators";
 const router = express.Router();
 
-// Routes
-
-//GET /comments/:transactionId
 router.get(
   "/:transactionId",
   ensureAuthenticated,
@@ -23,7 +20,6 @@ router.get(
   }
 );
 
-//POST /comments/:transactionId
 router.post(
   "/:transactionId",
   ensureAuthenticated,
@@ -32,7 +28,6 @@ router.post(
     const { transactionId } = req.params;
     const { content } = req.body;
 
-    /* istanbul ignore next */
     createComments(required(req.user, "authenticated user").id, transactionId, content);
 
     res.sendStatus(200);

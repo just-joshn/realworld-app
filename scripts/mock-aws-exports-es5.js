@@ -1,5 +1,3 @@
-// mock aws-exports-es5.js
-
 const awsmobile = {
   Auth: {
     Cognito: {

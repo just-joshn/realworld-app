@@ -25,9 +25,6 @@ import {
 import { getPaginatedItems } from "../src/utils/transactionUtils";
 const router = express.Router();
 
-// Routes
-
-//GET /transactions - scoped user, auth-required
 router.get(
   "/",
   ensureAuthenticated,
@@ -37,7 +34,6 @@ router.get(
     ...isTransactionQSValidator,
   ]),
   (req, res) => {
-    /* istanbul ignore next */
     const transactions = getTransactionsForUserForApi(
       required(req.user, "authenticated user").id,
       req.query
@@ -62,7 +58,6 @@ router.get(
   }
 );
 
-//GET /transactions/contacts - scoped user, auth-required
 router.get(
   "/contacts",
   ensureAuthenticated,
@@ -72,7 +67,6 @@ router.get(
     ...isTransactionQSValidator,
   ]),
   (req, res) => {
-    /* istanbul ignore next */
     const transactions = getTransactionsForUserContacts(
       required(req.user, "authenticated user").id,
       req.query
@@ -97,7 +91,6 @@ router.get(
   }
 );
 
-//GET /transactions/public - auth-required
 router.get(
   "/public",
   ensureAuthenticated,
@@ -105,11 +98,9 @@ router.get(
   (req, res) => {
     const isFirstPage = (req.query.page as unknown as number) === 1;
 
-    /* istanbul ignore next */
     const transactions = !isEmpty(req.query)
       ? getPublicTransactionsByQuery(required(req.user, "authenticated user").id, req.query)
-      : /* istanbul ignore next */
-        getPublicTransactionsDefaultSort(required(req.user, "authenticated user").id);
+      : getPublicTransactionsDefaultSort(required(req.user, "authenticated user").id);
 
     const { contactsTransactions, publicTransactions } = transactions;
 
@@ -140,7 +131,6 @@ router.get(
   }
 );
 
-//POST /transactions - scoped-user
 router.post(
   "/",
   ensureAuthenticated,
@@ -151,7 +141,6 @@ router.post(
 
     remove("transactionType", transactionPayload);
 
-    /* istanbul ignore next */
     const transaction = createTransaction(
       required(req.user, "authenticated user").id,
       transactionType,
@@ -163,7 +152,6 @@ router.post(
   }
 );
 
-//GET /transactions/:transactionId - scoped-user
 router.get(
   "/:transactionId",
   ensureAuthenticated,
@@ -178,7 +166,6 @@ router.get(
   }
 );
 
-//PATCH /transactions/:transactionId - scoped-user
 router.patch(
   "/:transactionId",
   ensureAuthenticated,
@@ -186,7 +173,6 @@ router.patch(
   (req, res) => {
     const { transactionId } = req.params;
 
-    /* istanbul ignore next */
     updateTransactionById(transactionId, req.body);
 
     res.sendStatus(204);
