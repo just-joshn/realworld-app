@@ -5,6 +5,7 @@ import { Formik, Form, Field, FieldProps } from "formik";
 import { string, object, number } from "yup";
 import { Paper, Typography, Button, Grid, Container, Avatar, Box, TextField } from "@mui/material";
 import { User } from "../models";
+import { SnackbarContext, Severities } from "../machines/snackbarMachine";
 
 const PREFIX = "TransactionCreateStepTwo";
 
@@ -68,8 +69,8 @@ function NumberFormatCustom(props: NumberFormatCustomProps) {
 export interface TransactionCreateStepTwoProps {
   receiver: User;
   sender: User;
-  createTransaction: Function;
-  showSnackbar: Function;
+  createTransaction: (payload: FormValues & { transactionType: string | undefined }) => void;
+  showSnackbar: (payload: SnackbarContext) => void;
 }
 
 interface FormValues {
@@ -121,7 +122,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
 
             createTransaction({ transactionType, ...values });
             showSnackbar({
-              severity: "success",
+              severity: Severities.success,
               message: "Transaction Submitted!",
             });
           }}
@@ -143,7 +144,8 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     error={(touched || value !== initialValue) && Boolean(error)}
                     helperText={touched || value !== initialValue ? error : ""}
                     InputProps={{
-                      inputComponent: NumberFormatCustom as any,
+                      // @ts-expect-error MUI requires a synthetic event, but this number-format adapter emits Formik-compatible target values.
+                      inputComponent: NumberFormatCustom,
                       inputProps: { id: "amount" },
                     }}
                     {...field}

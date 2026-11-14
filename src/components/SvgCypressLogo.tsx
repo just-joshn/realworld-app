@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgCypressLogo(props: any) {
+function SvgCypressLogo(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       width="119"

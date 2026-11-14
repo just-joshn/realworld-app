@@ -5,11 +5,11 @@ import { User } from "../models";
 
 export interface UserListItemProps {
   user: User;
-  setReceiver: Function;
-  index: Number;
+  setReceiver: (user: User) => void;
+  index: number;
 }
 
-const UserListItem: React.FC<UserListItemProps> = ({ user, setReceiver, index }) => {
+const UserListItem: React.FC<UserListItemProps> = ({ user, setReceiver }) => {
   return (
     <ListItem data-test={`user-list-item-${user.id}`} onClick={() => setReceiver(user)}>
       <ListItemAvatar>

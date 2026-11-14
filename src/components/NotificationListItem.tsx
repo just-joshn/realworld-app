@@ -29,7 +29,7 @@ import { NotificationResponseItem } from "../models";
 
 export interface NotificationListItemProps {
   notification: NotificationResponseItem;
-  updateNotification: Function;
+  updateNotification: (payload: { id: NotificationResponseItem["id"]; isRead: boolean }) => void;
 }
 
 const PREFIX = "NotificationListItem";
@@ -91,7 +91,7 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
 
   return (
     <StyledListItem data-test={`notification-list-item-${notification.id}`}>
-      <ListItemIcon>{listItemIcon!}</ListItemIcon>
+      <ListItemIcon>{listItemIcon}</ListItemIcon>
       <ListItemText primary={listItemText} />
       {xsBreakpoint && (
         <IconButton

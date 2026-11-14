@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgUndrawNavigatorA479(props: any) {
+function SvgUndrawNavigatorA479(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       data-name="Layer 1"

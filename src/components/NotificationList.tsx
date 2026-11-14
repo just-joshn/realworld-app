@@ -8,7 +8,7 @@ import RemindersIllustration from "./SvgUndrawReminders697P";
 
 export interface NotificationsListProps {
   notifications: NotificationResponseItem[];
-  updateNotification: Function;
+  updateNotification: React.ComponentProps<typeof NotificationListItem>["updateNotification"];
 }
 
 const NotificationsList: React.FC<NotificationsListProps> = ({

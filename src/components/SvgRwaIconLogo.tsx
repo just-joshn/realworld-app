@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgRwaIconLogo(props: any) {
+function SvgRwaIconLogo(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       width="47px"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgUndrawTransferMoneyRywa(props: any) {
+function SvgUndrawTransferMoneyRywa(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       data-name="Layer 1"

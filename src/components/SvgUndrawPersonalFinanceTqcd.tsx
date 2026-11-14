@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function SvgUndrawPersonalFinanceTqcd(props: any) {
+function SvgUndrawPersonalFinanceTqcd(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       data-name="Layer 1"

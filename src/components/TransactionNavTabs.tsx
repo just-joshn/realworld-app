@@ -6,7 +6,7 @@ export default function TransactionNavTabs() {
   const match = useRouteMatch();
 
   // Route Lookup for tabs
-  const navUrls: any = {
+  const navUrls: Record<string, number> = {
     "/": 0,
     "/public": 0,
     "/contacts": 1,
@@ -16,7 +16,7 @@ export default function TransactionNavTabs() {
   // Set selected tab based on url
   const [value, setValue] = React.useState(navUrls[match.url]);
 
-  const handleChange = (event: React.SyntheticEvent<{}>, newValue: number) => {
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 

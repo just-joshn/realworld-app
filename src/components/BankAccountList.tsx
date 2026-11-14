@@ -7,7 +7,7 @@ import EmptyList from "./EmptyList";
 
 export interface BankAccountListProps {
   bankAccounts: BankAccount[];
-  deleteBankAccount: Function;
+  deleteBankAccount: React.ComponentProps<typeof BankAccountItem>["deleteBankAccount"];
 }
 
 const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts, deleteBankAccount }) => {

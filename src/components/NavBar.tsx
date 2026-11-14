@@ -1,13 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import clsx from "clsx";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
+import { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import {
   AppBar,
@@ -27,7 +21,7 @@ import {
 } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
-import { DataContext, DataEvents, DataSchema } from "../machines/dataMachine";
+import { dataMachine } from "../machines/dataMachine";
 import TransactionNavTabs from "./TransactionNavTabs";
 import RWALogo from "./SvgRwaLogo";
 import RWALogoIcon from "./SvgRwaIconLogo";
@@ -104,14 +98,8 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 
 interface NavBarProps {
   drawerOpen: boolean;
-  toggleDrawer: Function;
-  notificationsService: Interpreter<
-    DataContext,
-    DataSchema,
-    DataEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, DataEvents, BaseActionObject, ServiceMap>
-  >;
+  toggleDrawer: () => void;
+  notificationsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
 }
 
 const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notificationsService }) => {

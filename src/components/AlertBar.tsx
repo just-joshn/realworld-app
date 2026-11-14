@@ -1,24 +1,12 @@
 import React from "react";
 import { Snackbar } from "@mui/material";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
-import { SnackbarContext, SnackbarSchema, SnackbarEvents } from "../machines/snackbarMachine";
+import { InterpreterFrom } from "xstate";
+import { snackbarMachine } from "../machines/snackbarMachine";
 import { useActor } from "@xstate/react";
 import { Alert } from "@mui/material";
 
 interface Props {
-  snackbarService: Interpreter<
-    SnackbarContext,
-    SnackbarSchema,
-    SnackbarEvents,
-    any,
-    ResolveTypegenMeta<TypegenDisabled, SnackbarEvents, BaseActionObject, ServiceMap>
-  >;
+  snackbarService: InterpreterFrom<typeof snackbarMachine>;
 }
 
 const AlertBar: React.FC<Props> = ({ snackbarService }) => {

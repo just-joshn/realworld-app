@@ -6,7 +6,7 @@ import { ArrowDropDown as ArrowDropDownIcon, Cancel as CancelIcon } from "@mui/i
 import Calendar from "react-calendar";
 
 import "react-calendar/dist/Calendar.css";
-import { TransactionDateRangePayload, Value, ValuePiece } from "../models";
+import { TransactionDateRangePayload, Value } from "../models";
 import { hasDateQueryFields, localDateToUTCISOString } from "../utils/transactionUtils";
 
 const PREFIX = "TransactionListDateRangeFilter";
@@ -29,9 +29,9 @@ const Root = styled("div")(({ theme }) => ({
 const { indigo } = colors;
 
 export type TransactionListDateRangeFilterProps = {
-  filterDateRange: Function;
+  filterDateRange: (payload: TransactionDateRangePayload) => void;
   dateRangeFilters: TransactionDateRangePayload;
-  resetDateRange: Function;
+  resetDateRange: () => void;
 };
 
 const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterProps> = ({
@@ -77,7 +77,10 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
   const dateRangeLabel = (dateRangeFields: Value) => {
     if (dateRangeFields && !(dateRangeFields instanceof Date)) {
       const [dateRangeStart, dateRangeEnd] = dateRangeFields;
-      const label = `${formatButtonDate(dateRangeStart!)} - ${formatButtonDate(dateRangeEnd!)}`;
+      if (!dateRangeStart || !dateRangeEnd) {
+        throw new Error("A complete date range is required to format the label");
+      }
+      const label = `${formatButtonDate(dateRangeStart)} - ${formatButtonDate(dateRangeEnd)}`;
       return label;
     }
   };
@@ -174,9 +177,8 @@ export function RangeCalendar({
   const [value, setValue] = useState<Value>(defaultValue);
 
   const width = xsBreakpoint ? window.innerWidth : 350;
-  const height = xsBreakpoint ? window.innerHeight : 300;
 
-  const handleChange = (val: Value, _: any) => {
+  const handleChange = (val: Value) => {
     setValue(val);
     onCalendarSelect(val);
   };

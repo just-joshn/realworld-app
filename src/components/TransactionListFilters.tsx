@@ -22,7 +22,10 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export type TransactionListFiltersProps = {
-  sendFilterEvent: Function;
+  sendFilterEvent: (
+    type: "DATE_FILTER" | "DATE_RESET" | "AMOUNT_FILTER" | "AMOUNT_RESET",
+    payload?: TransactionDateRangePayload | TransactionAmountRangePayload
+  ) => void;
   dateRangeFilters: TransactionDateRangePayload;
   amountRangeFilters: TransactionAmountRangePayload;
 };

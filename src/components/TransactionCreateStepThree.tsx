@@ -2,18 +2,8 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import { Paper, Typography, Grid, Avatar, Box, Button } from "@mui/material";
-import {
-  BaseActionObject,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  TypegenDisabled,
-} from "xstate";
-import {
-  CreateTransactionMachineContext,
-  CreateTransactionMachineEvents,
-  CreateTransactionMachineSchema,
-} from "../machines/createTransactionMachine";
+import { InterpreterFrom } from "xstate";
+import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { useActor } from "@xstate/react";
 import { formatAmount } from "../utils/transactionUtils";
 
@@ -23,7 +13,7 @@ const classes = {
   paper: `${PREFIX}-paper`,
 };
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
+const StyledPaper = styled(Paper)(() => ({
   [`&.${classes.paper}`]: {
     display: "flex",
     flexDirection: "column",
@@ -32,18 +22,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface TransactionCreateStepThreeProps {
-  createTransactionService: Interpreter<
-    CreateTransactionMachineContext,
-    CreateTransactionMachineSchema,
-    CreateTransactionMachineEvents,
-    any,
-    ResolveTypegenMeta<
-      TypegenDisabled,
-      CreateTransactionMachineEvents,
-      BaseActionObject,
-      ServiceMap
-    >
-  >;
+  createTransactionService: InterpreterFrom<typeof createTransactionMachine>;
 }
 
 const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({

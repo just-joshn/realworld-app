@@ -25,9 +25,9 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 export interface TransactionListProps {
   header: string;
   transactions: TransactionResponseItem[];
-  isLoading: Boolean;
-  showCreateButton?: Boolean;
-  loadNextPage: Function;
+  isLoading: boolean;
+  showCreateButton?: boolean;
+  loadNextPage: (page: number) => void;
   pagination: TransactionPagination;
   filterComponent: ReactNode;
 }
