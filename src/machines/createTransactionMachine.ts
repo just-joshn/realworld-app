@@ -44,6 +44,8 @@ export const createTransactionMachine = Machine<
   {
     id: "createTransaction",
     initial: "stepOne",
+    // Filled by SET_USERS and CREATE before step three reads it.
+    context: {} as CreateTransactionMachineContext,
     states: {
       stepOne: {
         entry: "clearContext",

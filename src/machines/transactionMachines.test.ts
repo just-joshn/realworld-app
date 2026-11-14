@@ -148,9 +148,7 @@ describe("createTransactionMachine", () => {
     expect(service.state.value).toBe("stepOne");
   });
 
-  // Known bug: the machine declares no initial context, so xstate skips every assign and
-  // context stays undefined. Remove .fails once the machine declares a context.
-  test.fails("SET_USERS stores the sender and receiver", () => {
+  test("SET_USERS stores the sender and receiver", () => {
     const service = startService(createTransactionMachine);
 
     service.send({ type: "SET_USERS", sender, receiver });
@@ -158,7 +156,7 @@ describe("createTransactionMachine", () => {
     expect(service.state.context).toMatchObject({ sender, receiver });
   });
 
-  test.fails("CREATE stores the transaction details", async () => {
+  test("CREATE stores the transaction details", async () => {
     const posted = servePostTransaction();
     const service = startService(createTransactionMachine);
     service.send({ type: "SET_USERS", sender, receiver });
