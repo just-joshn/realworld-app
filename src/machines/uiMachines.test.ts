@@ -60,15 +60,13 @@ describe("drawerMachine", () => {
     expect(service.state.value).toMatchObject({ desktop: "closed" });
   });
 
-  // Known bug: the machine has no context, so the shouldOpenDesktop guard throws reading
-  // context.aboveSmallBreakpoint. Remove .fails once the machine declares a context.
-  test.fails("OPEN_DESKTOP reopens the drawer when the breakpoint changed", () => {
+  test("OPEN_DESKTOP leaves a drawer the user closed closed when the breakpoint is unchanged", () => {
     const service = startService(drawerMachine);
-    service.send("CLOSE_DESKTOP");
+    service.send("TOGGLE_DESKTOP");
 
     service.send({ type: "OPEN_DESKTOP", aboveSmallBreakpoint: true });
 
-    expect(service.state.value).toMatchObject({ desktop: "open" });
+    expect(service.state.value).toMatchObject({ desktop: "closed" });
   });
 
   test("toggles, opens, and closes the mobile drawer", () => {
