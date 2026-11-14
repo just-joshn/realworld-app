@@ -118,7 +118,8 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
                     autoFocus
                     data-test="signin-username"
                     error={(touched || value !== initialValue) && Boolean(error)}
-                    helperText={touched || value !== initialValue ? error : ""}
+                    // reserve the helper line so a validation message doesn't shift the links below
+                    helperText={((touched || value !== initialValue) && error) || " "}
                     {...field}
                   />
                 )}
@@ -134,7 +135,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
                     id="password"
                     data-test="signin-password"
                     error={touched && value !== initialValue && Boolean(error)}
-                    helperText={touched && value !== initialValue && touched ? error : ""}
+                    helperText={(touched && value !== initialValue && error) || " "}
                     {...field}
                   />
                 )}
