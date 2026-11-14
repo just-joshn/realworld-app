@@ -102,3 +102,17 @@ test("PATCH /:userId updates the user", async () => {
   expect(result).toEqual({ status: 204 });
   expect(getUserById("t45AiwidW").firstName).toBe("Augusta");
 });
+
+test("PATCH /:userId refuses to update another user", async () => {
+  resetDatabase({ users: [buildUser({ id: "t45AiwidW", firstName: "Ada" })] });
+
+  const result = await dispatch(router, {
+    method: "PATCH",
+    url: "/t45AiwidW",
+    user: { id: "someoneElse" },
+    body: { firstName: "Mallory" },
+  });
+
+  expect(result).toEqual({ status: 401, body: { error: "Unauthorized" } });
+  expect(getUserById("t45AiwidW").firstName).toBe("Ada");
+});

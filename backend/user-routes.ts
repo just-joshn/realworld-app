@@ -85,6 +85,12 @@ router.patch(
   (req, res) => {
     const { userId } = req.params;
 
+    if (!isEqual(userId, required(req.user, "authenticated user").id)) {
+      return res.status(401).send({
+        error: "Unauthorized",
+      });
+    }
+
     const edits: User = req.body;
 
     updateUserById(userId, edits);
