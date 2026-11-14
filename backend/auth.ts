@@ -7,7 +7,6 @@ import { getUserBy, getUserById } from "./database";
 import { Strategy as LocalStrategy } from "passport-local";
 const router = express.Router();
 
-// configure passport for local strategy
 passport.use(
   new LocalStrategy(function (username: string, password: string, done) {
     const user = getUserBy("username", username);
@@ -17,7 +16,6 @@ passport.use(
       return done(null, false, { message: failureMessage });
     }
 
-    // validate password
     if (!bcrypt.compareSync(password, user.password)) {
       return done(null, false, { message: failureMessage });
     }
@@ -35,10 +33,9 @@ passport.deserializeUser(function (id: string, done) {
   done(null, user);
 });
 
-// authentication routes
 router.post("/login", passport.authenticate("local"), (req: Request, res: Response): void => {
   if (req.body.remember) {
-    req.session.cookie.maxAge = 24 * 60 * 60 * 1000 * 30; // Expire in 30 days
+    req.session.cookie.maxAge = 24 * 60 * 60 * 1000 * 30;
   } else {
     req.session.cookie.expires = undefined;
   }
@@ -55,7 +52,6 @@ router.post("/logout", (req: Request, res: Response): void => {
 });
 
 router.get("/checkAuth", (req, res) => {
-  /* istanbul ignore next */
   if (!req.user) {
     res.status(401).json({ error: "User is unauthorized" });
   } else {

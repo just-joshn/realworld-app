@@ -31,7 +31,6 @@ const Root = styled("div")(({ theme }) => ({
   },
 }));
 
-/* istanbul ignore next */
 const AppGoogle: React.FC = () => {
   const [authState] = useActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);

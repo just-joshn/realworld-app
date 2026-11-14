@@ -44,7 +44,6 @@ if (process.env.VITE_OKTA) {
     );
   });
 
-  /* istanbul ignore next */
   root.render(
     <Router history={history}>
       <StyledEngineProvider injectFirst>

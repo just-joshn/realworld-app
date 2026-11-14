@@ -56,8 +56,6 @@
     "@babel/preset-env": "^7.28.0",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "6.1.2",
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^14.0.0",
     "@types/bcryptjs": "2.4.2",
     "@types/bluebird": "3.5.36",
     "@types/connect-flash": "0.0.37",
@@ -109,7 +107,6 @@
     "graphql-tools": "8.2.7",
     "http-proxy-middleware": "0.19.1",
     "husky": "7.0.4",
-    "jsdom": "^22.1.0",
     "json": "11.0.0",
     "jwks-rsa": "2.0.5",
     "lowdb": "1.0.0",
@@ -123,8 +120,7 @@
     "typescript": "5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.2.2",
-    "vite-plugin-eslint": "^1.8.1",
-    "vitest": "^3.2.4"
+    "vite-plugin-eslint": "^1.8.1"
   },
   "resolutions": {
     "@types/react": "18.3.17"
@@ -150,8 +146,6 @@
     "format:check": "bun fmt --check",
     "list:dev:users": "cat data/database.json | json -a users | json -a id username",
     "types": "tsc --noEmit",
-    "test:unit": "vitest",
-    "test:unit:ci": "vitest --run",
     "start:api": "bun run tsnode --files backend/app.ts",
     "start:api:watch": "nodemon --exec bun run tsnode --watch 'backend' backend/app.ts",
     "start:react:proxy-server": "bun run tsnode scripts/testServer.ts",

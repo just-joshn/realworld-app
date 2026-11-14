@@ -9,7 +9,6 @@ export default defineConfig([
     files: ["**/*.ts", "**/*.tsx"],
     extends: [js.configs.recommended, tseslint.configs.strict],
     rules: {
-      // TypeScript reports undefined identifiers; this rule misreads type-only globals.
       "no-undef": "off",
     },
     languageOptions: {

@@ -53,7 +53,7 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   },
 
   [`& .${classes.form}`]: {
-    width: "100%", // Fix IE 11 issue.
+    width: "100%",
     marginTop: theme.spacing(1),
   },
 
@@ -161,9 +161,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs>
-                  {/*<Link to="/forgotpassword">Forgot password?</Link>*/}
-                </Grid>
+                <Grid item xs></Grid>
                 <Grid item>
                   <Link data-test="signup" to="/signup">
                     {"Don't have an account? Sign Up"}

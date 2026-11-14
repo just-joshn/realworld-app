@@ -53,7 +53,6 @@ export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").with
         operationName: "ListBankAccount",
         query: listBankAccountQuery.loc?.source.body,
       });
-
       return { results: resp.data.data.listBankAccount, pageData: {} };
     },
     deleteData: async (ctx, event) => {

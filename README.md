@@ -88,10 +88,6 @@ bun run dev
 > If you want to change the default ports, you can do so by modifying `PORT` and `VITE_BACKEND_PORT` variables in `.env` file.
 > However, make sure the modified port numbers in `.env` are not committed into Git since the CI environments still expect the application to run on the default ports.
 
-## Tests
-
-Unit tests live in [`src/__tests__`](./src/__tests__) and run with `bun run test:unit`.
-
 ## Database
 
 - The local JSON database is located in [data/database.json](./data/database.json) and is managed with [lowdb].

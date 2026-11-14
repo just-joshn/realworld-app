@@ -40,13 +40,15 @@ const NotificationsContainer: React.FC<Props> = ({ authService, notificationsSer
   const updateNotification = (payload: NotificationUpdatePayload) =>
     sendNotifications({ type: "UPDATE", ...payload });
 
-  const notifications = notificationsState.context.results;
   return (
     <StyledPaper className={classes.paper}>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>
         Notifications
       </Typography>
-      <NotificationList notifications={notifications} updateNotification={updateNotification} />
+      <NotificationList
+        notifications={notificationsState.context.results}
+        updateNotification={updateNotification}
+      />
     </StyledPaper>
   );
 };

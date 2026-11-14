@@ -10,12 +10,11 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
   services: {
     fetchData: async (ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = ctx.results?.[0]?.id;
+      const contextTransactionId = ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.transactionId;
       const resp = await httpClient.get(
         `http://localhost:${backendPort}/transactions/${transactionId}`
       );
-
       return { results: [resp.data.transaction] };
     },
     createData: async (ctx, event) => {
@@ -29,7 +28,7 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
     },
     updateData: async (ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = ctx.results?.[0]?.id;
+      const contextTransactionId = ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.id;
       const resp = await httpClient.patch(
         `http://localhost:${backendPort}/transactions/${transactionId}`,

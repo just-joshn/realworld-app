@@ -55,7 +55,6 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     activeStep = 0;
   }
 
-  const users = usersState.context.results;
   return (
     <>
       <Stepper activeStep={activeStep}>
@@ -72,7 +71,7 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
       {createTransactionState.matches("stepOne") && (
         <TransactionCreateStepOne
           setReceiver={setReceiver}
-          users={users}
+          users={usersState.context.results}
           userListSearch={userListSearch}
         />
       )}

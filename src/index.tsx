@@ -13,7 +13,6 @@ const theme = createTheme({
     },
   },
   typography: {
-    // htmlFontSize: 18.285714285714286,
     fontSize: 14 * 0.875,
     body1: {
       lineHeight: 1.43,
@@ -35,14 +34,6 @@ const theme = createTheme({
         },
       },
     },
-    // MuiInput: {
-    //   defaultProps: {
-    //     inputProps: {
-    //       backgroundColor: "green",
-    //       height: "300px",
-    //     },
-    //   },
-    // },
   },
 });
 

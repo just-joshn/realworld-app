@@ -18,13 +18,11 @@ const auth0JwtConfig = {
     jwksUri: `https://${process.env.VITE_AUTH0_DOMAIN}/.well-known/jwks.json`,
   }),
 
-  // Validate the audience and the issuer.
   audience: process.env.VITE_AUTH0_AUDIENCE,
   issuer: `https://${process.env.VITE_AUTH0_DOMAIN}/`,
   algorithms: ["RS256"],
 };
 
-// Okta Validate the JWT Signature
 const oktaJwtVerifier = new OktaJwtVerifier({
   issuer: `https://${process.env.VITE_OKTA_DOMAIN}/oauth2/default`,
   clientId: process.env.VITE_OKTA_CLIENTID,
@@ -41,13 +39,11 @@ const googleJwtConfig = {
     jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
   }),
 
-  // Validate the audience and the issuer.
   audience: process.env.VITE_GOOGLE_CLIENTID,
   issuer: "accounts.google.com",
   algorithms: ["RS256"],
 };
 
-/* istanbul ignore next */
 export const verifyOktaToken = (req: Request, res: Response, next: NextFunction) => {
   const bearerHeader = req.headers["authorization"];
 
@@ -58,12 +54,10 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
     oktaJwtVerifier
       .verifyAccessToken(bearerToken, "api://default")
       .then((jwt) => {
-        // the token is valid
         set(req, "user", { sub: "sub" in jwt ? jwt.sub : undefined });
         return next();
       })
       .catch((err: unknown) => {
-        // a validation failed, inspect the error
         console.log("error", err);
       });
   } else {
@@ -73,7 +67,6 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
   }
 };
 
-// Amazon Cognito Validate the JWT Signature
 // https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html#amazon-cognito-user-pools-using-tokens-step-2
 const userPoolId = awsConfig.Auth.Cognito.userPoolId;
 const region = userPoolId.split("_")[0];
@@ -92,14 +85,11 @@ export const checkGoogleJwt = jwt(googleJwtConfig).unless({ path: ["/testData/*"
 
 export const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
-    // Map sub to id on req.user
     if (req.user?.sub) {
-      /* istanbul ignore next */
       set(req.user, "id", req.user.sub);
     }
     return next();
   }
-  /* istanbul ignore next */
   res.status(401).send({
     error: "Unauthorized",
   });

@@ -43,7 +43,7 @@ const classes = {
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   [`& .${classes.toolbar}`]: {
-    paddingRight: 24, // keep right padding when drawer closed
+    paddingRight: 24,
   },
 
   [`&.${classes.appBar}`]: {

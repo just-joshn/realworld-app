@@ -27,7 +27,7 @@ const Root = styled("div")(() => ({
 
 Amplify.configure(awsConfig);
 
-const AppCognito: React.FC = /* istanbul ignore next */ () => {
+const AppCognito: React.FC = () => {
   const [authState] = useActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
@@ -45,7 +45,7 @@ const AppCognito: React.FC = /* istanbul ignore next */ () => {
       fetchAuthSession().then((authSession) => {
         if (authSession && authSession.tokens && authSession.tokens.accessToken) {
           const { tokens, userSub } = authSession;
-          if (!tokens || !tokens.idToken || !userSub) {
+          if (!tokens.idToken || !userSub) {
             throw new Error("Missing Cognito session tokens or user subject");
           }
           authService.send("COGNITO", {
@@ -64,7 +64,6 @@ const AppCognito: React.FC = /* istanbul ignore next */ () => {
     authService.onEvent(async (event) => {
       if (
         event.type === "done.invoke.performLogout" ||
-        // we want the client-side app to discard its JWTs even if server-side errors out:
         event.type.startsWith("error.platform.authentication.logout")
       ) {
         console.log(

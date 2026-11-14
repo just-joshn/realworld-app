@@ -117,7 +117,6 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
           onSubmit={(values, { setSubmitting }) => {
             setSubmitting(true);
 
-            // reset transactionType
             setTransactionType(undefined);
 
             createTransaction({ transactionType, ...values });

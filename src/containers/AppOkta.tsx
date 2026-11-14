@@ -1,4 +1,3 @@
-/* istanbul ignore next */
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useActor, useMachine } from "@xstate/react";
@@ -25,7 +24,6 @@ const Root = styled("div")(() => ({
   },
 }));
 
-/* istanbul ignore next */
 const AppOkta: React.FC = () => {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();
 

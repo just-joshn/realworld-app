@@ -128,11 +128,9 @@ export const dataMachine = <T = unknown>(machineId: string) =>
           return { pageData: event.data.pageData };
         }),
 
-        setMessage: /* istanbul ignore next */ assign<DataContext<T>, DataEvents<T>>(
-          (ctx, event) => ({
-            message: "message" in event ? event.message : undefined,
-          })
-        ),
+        setMessage: assign<DataContext<T>, DataEvents<T>>((ctx, event) => ({
+          message: "message" in event ? event.message : undefined,
+        })),
       },
       guards: {
         hasData: (ctx: DataContext<T>) => !!ctx.results && ctx.results.length > 0,

@@ -17,7 +17,6 @@ import {
   amountRangeValueText,
   amountRangeValueTextLabel,
   padAmountWithZeros,
-  //hasAmountQueryFields
 } from "../utils/transactionUtils";
 import { first, last } from "lodash/fp";
 
