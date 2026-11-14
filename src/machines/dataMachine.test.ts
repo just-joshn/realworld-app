@@ -101,6 +101,34 @@ describe("dataMachine", () => {
     }
   );
 
+  test.for(["CREATE", "UPDATE", "DELETE"] as const)(
+    "%s while a load is in flight runs the change and then reloads",
+    async (type) => {
+      let finishFirstLoad = () => {};
+      const fetchData = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              finishFirstLoad = () => resolve({ results: [] });
+            })
+        )
+        .mockResolvedValue({ results: results("a") });
+      const change = vi.fn(async () => ({}));
+      const service = startService(
+        itemsMachine({ fetchData, createData: change, updateData: change, deleteData: change })
+      );
+      service.send("FETCH");
+      expect(service.state.value).toBe("loading");
+
+      service.send(type);
+      finishFirstLoad();
+
+      await expect.poll(() => change.mock.calls.length).toBe(1);
+      await expect.poll(() => service.state.context.results).toEqual(results("a"));
+    }
+  );
+
   test.for(["CREATE", "UPDATE", "DELETE"] as const)("a failed %s ends in failure", async (type) => {
     const fail = async () => {
       throw new Error("rejected");

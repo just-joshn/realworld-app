@@ -63,6 +63,13 @@ export const dataMachine = <T = unknown>(machineId: string) =>
             onDone: { target: "success" },
             onError: { target: "failure", actions: "setMessage" },
           },
+          // A change made before the list finishes loading must not be dropped. Leaving
+          // `loading` discards the stale fetch; the change reloads the list when it finishes.
+          on: {
+            CREATE: "creating",
+            UPDATE: "updating",
+            DELETE: "deleting",
+          },
         },
         updating: {
           invoke: {
