@@ -25,9 +25,7 @@ describe("Query.listBankAccount", () => {
   });
 
   test("rethrows a lookup failure as an Error", () => {
-    expect(() => resolvers.Query.listBankAccount(null, {}, { user: undefined as never })).toThrow(
-      /^TypeError: Cannot read properties of undefined/
-    );
+    expect(() => resolvers.Query.listBankAccount(null, {}, {})).toThrow(/Missing GraphQL user/);
   });
 });
 

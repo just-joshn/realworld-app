@@ -1,3 +1,4 @@
+import { objectContaining, anyString } from "./test-matchers";
 import { describe, expect, test, vi } from "vitest";
 import {
   buildComment,
@@ -39,7 +40,7 @@ describe("createLikes", () => {
 
     createLikes("user3", "txn1");
 
-    expect(getLikesByTransactionId("txn1")).toEqual([expect.objectContaining({ userId: "user3" })]);
+    expect(getLikesByTransactionId("txn1")).toEqual([objectContaining({ userId: "user3" })]);
     expect(notifiedUsers(["user1", "user2", "user3"])).toEqual(["user1", "user2"]);
   });
 
@@ -50,9 +51,7 @@ describe("createLikes", () => {
 
     createLikes("user1", "txn1");
 
-    expect(getNotificationsByUserId("user1")).toEqual([
-      expect.objectContaining({ likeId: expect.any(String) }),
-    ]);
+    expect(getNotificationsByUserId("user1")).toEqual([objectContaining({ likeId: anyString })]);
   });
 });
 
@@ -63,7 +62,7 @@ describe("createComments", () => {
     createComments("user3", "txn1", "Nice!");
 
     expect(getCommentsByTransactionId("txn1")).toEqual([
-      expect.objectContaining({ userId: "user3", content: "Nice!" }),
+      objectContaining({ userId: "user3", content: "Nice!" }),
     ]);
     expect(notifiedUsers(["user1", "user2", "user3"])).toEqual(["user1", "user2"]);
   });
@@ -75,9 +74,7 @@ describe("createComments", () => {
 
     createComments("user1", "txn1", "Note to self");
 
-    expect(getNotificationsByUserId("user1")).toEqual([
-      expect.objectContaining({ commentId: expect.any(String) }),
-    ]);
+    expect(getNotificationsByUserId("user1")).toEqual([objectContaining({ commentId: anyString })]);
   });
 });
 
@@ -96,9 +93,9 @@ describe("createNotifications", () => {
     ]);
 
     expect(created).toEqual([
-      expect.objectContaining({ status: PaymentNotificationStatus.received }),
-      expect.objectContaining({ likeId: "like1" }),
-      expect.objectContaining({ commentId: "comment1" }),
+      objectContaining({ status: PaymentNotificationStatus.received }),
+      objectContaining({ likeId: "like1" }),
+      objectContaining({ commentId: "comment1" }),
     ]);
     expect(getNotificationsByUserId("user1")).toHaveLength(3);
   });
@@ -107,7 +104,11 @@ describe("createNotifications", () => {
     seedPeople();
 
     const created = createNotifications("user1", [
-      { type: NotificationsType.like, transactionId: "txn1" } as never,
+      {
+        type: NotificationsType.like,
+        transactionId: "txn1",
+        status: PaymentNotificationStatus.received,
+      },
     ]);
 
     expect(created).toEqual([undefined]);

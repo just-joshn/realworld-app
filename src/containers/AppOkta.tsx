@@ -36,7 +36,7 @@ const AppOkta: React.FC = () => {
 
   useEffect(() => {
     if (oktaAuthState?.isAuthenticated) {
-      oktaAuthService.getUser().then((user) => {
+      void oktaAuthService.getUser().then((user) => {
         authService.send("OKTA", { user, token: oktaAuthState.accessToken });
       });
     }

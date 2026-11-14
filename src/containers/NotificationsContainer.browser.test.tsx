@@ -11,7 +11,8 @@ import {
 } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { renderWithRouter } from "../../test/browser/render";
-import { NotificationResponseItem, PaymentNotificationStatus } from "../models";
+import type { NotificationResponseItem } from "../models";
+import { PaymentNotificationStatus } from "../models";
 import NotificationsContainer from "./NotificationsContainer";
 
 function services() {
@@ -47,7 +48,7 @@ for (const mobile of [false, true]) {
       http.get(apiUrl("/notifications"), () => HttpResponse.json({ results })),
       http.patch(apiUrl("/notifications/:id"), async ({ request, params }) => {
         received(await request.json());
-        results = results.filter((item) => item.id !== params.id);
+        results = results.filter((item) => item.id !== params["id"]);
         return HttpResponse.json({});
       })
     );

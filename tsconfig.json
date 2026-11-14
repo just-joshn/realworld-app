@@ -16,6 +16,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "types": ["node"],
     "paths": {
       "msw/node": ["../node_modules/msw/lib/node/index.d.ts"],
@@ -24,5 +33,5 @@
       "vitest/browser": ["../node_modules/vitest/browser/context.d.ts"]
     }
   },
-  "include": ["src", "backend", "scripts", "test"]
+  "include": ["src", "backend", "scripts", "test", "playwright", "playwright.config.ts"]
 }

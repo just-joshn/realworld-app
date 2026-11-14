@@ -1,5 +1,5 @@
 import db from "../backend/database";
-import { DbSchema } from "../src/models/db-schema";
+import type { DbSchema } from "../src/models/db-schema";
 import { buildContact, buildDbState, buildTransaction, buildUser } from "./factories";
 import { DefaultPrivacyLevel } from "../src/models";
 

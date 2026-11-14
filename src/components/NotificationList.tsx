@@ -2,7 +2,7 @@ import React from "react";
 import { List } from "@mui/material";
 
 import NotificationListItem from "./NotificationListItem";
-import { NotificationResponseItem } from "../models";
+import type { NotificationResponseItem } from "../models";
 import EmptyList from "./EmptyList";
 import RemindersIllustration from "./SvgUndrawReminders697P";
 
@@ -17,7 +17,7 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
 }) => {
   return (
     <>
-      {notifications?.length > 0 ? (
+      {notifications.length > 0 ? (
         <List data-test="notifications-list">
           {notifications.map((notification: NotificationResponseItem) => (
             <NotificationListItem

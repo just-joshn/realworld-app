@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Typography } from "@mui/material";
-import { TransactionResponseItem } from "../models";
+import type { TransactionResponseItem } from "../models";
 import { isRequestTransaction, formatAmount } from "../utils/transactionUtils";
 
 const PREFIX = "TransactionAmount";
@@ -11,7 +11,11 @@ const classes = {
   amountNegative: `${PREFIX}-amountNegative`,
 };
 
-const StyledTypography = styled(Typography)(({ theme }) => ({
+const StyledTypography = styled(
+  (props: React.ComponentProps<typeof Typography> & { component?: React.ElementType }) => (
+    <Typography {...props} />
+  )
+)(({ theme }) => ({
   [`&.${classes.amountPositive}`]: {
     fontSize: 24,
     [theme.breakpoints.down("md")]: {
@@ -27,7 +31,7 @@ const StyledTypography = styled(Typography)(({ theme }) => ({
     },
     color: "red",
   },
-})) as typeof Typography;
+}));
 
 const TransactionAmount: React.FC<{
   transaction: TransactionResponseItem;

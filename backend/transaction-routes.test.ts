@@ -1,3 +1,5 @@
+import { objectContaining } from "./test-matchers";
+import * as yup from "yup";
 import { describe, expect, test, vi } from "vitest";
 import { buildTransaction } from "../test/factories";
 import { seedPeople } from "../test/database";
@@ -17,7 +19,7 @@ const ada = { id: "user1" };
 function seedFeed() {
   const contactTransactions = Array.from({ length: 6 }, (_, index) =>
     buildTransaction({
-      id: `contact${index}`,
+      id: `contact${String(index)}`,
       senderId: "user2",
       receiverId: "user3",
       modifiedAt: new Date(2026, 0, index + 1),
@@ -40,7 +42,10 @@ function seedFeed() {
 }
 
 const resultIds = (body: unknown) =>
-  (body as { results: { id: string }[] }).results.map((item) => item.id);
+  yup
+    .object({ results: yup.array(yup.object({ id: yup.string().defined() })).defined() })
+    .validateSync(body)
+    .results.map((item) => item.id);
 
 test("rejects unauthenticated requests", async () => {
   seedFeed();
@@ -52,6 +57,24 @@ test("rejects unauthenticated requests", async () => {
 });
 
 describe("GET /", () => {
+  test("filters a string amount range whose lower bound is zero", async () => {
+    seedPeople({
+      transactions: [
+        buildTransaction({ id: "small", amount: 100 }),
+        buildTransaction({ id: "large", amount: 5000 }),
+      ],
+    });
+
+    const { body } = await dispatch(router, {
+      method: "GET",
+      url: "/",
+      user: ada,
+      query: { amountMin: "0", amountMax: "1000" },
+    });
+
+    expect(resultIds(body)).toEqual(["small"]);
+  });
+
   test("returns a page of the user's transactions with page data", async () => {
     seedFeed();
 
@@ -65,7 +88,7 @@ describe("GET /", () => {
     expect(status).toBe(200);
     expect(body).toEqual({
       pageData: { page: 1, limit: 10, hasNextPages: false, totalPages: 1 },
-      results: [expect.objectContaining({ id: "request1" })],
+      results: [objectContaining({ id: "request1" })],
     });
   });
 });
@@ -149,7 +172,7 @@ test("POST / creates a payment for the authenticated user", async () => {
 
   expect(status).toBe(200);
   expect(body).toEqual({
-    transaction: expect.objectContaining({ senderId: "user1", amount: 1250 }),
+    transaction: objectContaining({ senderId: "user1", amount: 1250 }),
   });
   expect(getUserById("user1").balance).toBe(8750);
 });
@@ -160,7 +183,7 @@ test("GET /:transactionId returns the formatted transaction", async () => {
   const { body } = await dispatch(router, { method: "GET", url: "/t45AiwidW", user: ada });
 
   expect(body).toEqual({
-    transaction: expect.objectContaining({ id: "t45AiwidW", senderName: "Ada Lovelace" }),
+    transaction: objectContaining({ id: "t45AiwidW", senderName: "Ada Lovelace" }),
   });
 });
 

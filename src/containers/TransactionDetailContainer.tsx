@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import { useMachine, useActor } from "@xstate/react";
 import { useParams } from "react-router-dom";
 import TransactionDetail from "../components/TransactionDetail";
-import { Transaction, Comment, TransactionUpdateActionPayload } from "../models";
+import type { Transaction, Comment, TransactionUpdateActionPayload } from "../models";
 import { transactionDetailMachine } from "../machines/transactionDetailMachine";
 import { first } from "lodash/fp";
-import { InterpreterFrom } from "xstate";
-import { authMachine } from "../machines/authMachine";
+import type { InterpreterFrom } from "xstate";
+import { isAppUser, type authMachine } from "../machines/authMachine";
 
 export interface Props {
   authService: InterpreterFrom<typeof authMachine>;
@@ -32,8 +32,11 @@ const TransactionDetailsContainer: React.FC<Props> = ({ authService }) => {
   const transactionUpdate = (payload: TransactionUpdateActionPayload) =>
     sendTransactionDetail("UPDATE", payload);
 
-  const transaction = first(transactionDetailState.context?.results);
-  const currentUser = authState?.context?.user;
+  const transaction = first(transactionDetailState.context.results);
+  const currentUser =
+    authState.context.user && isAppUser(authState.context.user)
+      ? authState.context.user
+      : undefined;
 
   return (
     <>

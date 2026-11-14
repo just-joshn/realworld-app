@@ -11,14 +11,13 @@ import {
   Drawer,
 } from "@mui/material";
 import { ArrowDropDown as ArrowDropDownIcon } from "@mui/icons-material";
-import { TransactionAmountRangePayload } from "../models";
+import type { TransactionAmountRangePayload } from "../models";
 import {
   formatAmountRangeValues,
   amountRangeValueText,
   amountRangeValueTextLabel,
   padAmountWithZeros,
 } from "../utils/transactionUtils";
-import { first, last } from "lodash/fp";
 
 export type TransactionListAmountRangeFilterProps = {
   filterAmountRange: (payload: TransactionAmountRangePayload) => void;
@@ -47,11 +46,15 @@ const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilte
   };
 
   const handleAmountRangeChange = (_event: Event, amountRange: number | number[]) => {
+    if (!Array.isArray(amountRange)) return;
+    const minimum = amountRange[0];
+    const maximum = amountRange.at(-1);
+    if (minimum === undefined || maximum === undefined) return;
     filterAmountRange({
-      amountMin: padAmountWithZeros(first(amountRange as number[]) as number),
-      amountMax: padAmountWithZeros(last(amountRange as number[]) as number),
+      amountMin: padAmountWithZeros(minimum),
+      amountMax: padAmountWithZeros(maximum),
     });
-    setAmountRangeValue(amountRange as number[]);
+    setAmountRangeValue(amountRange);
   };
 
   const amountRangeOpen = Boolean(amountRangeAnchorEl);
@@ -149,7 +152,9 @@ const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilte
         >
           <Button
             data-test="amount-range-filter-drawer-close"
-            onClick={() => handleAmountRangeClose()}
+            onClick={() => {
+              handleAmountRangeClose();
+            }}
           >
             Close
           </Button>

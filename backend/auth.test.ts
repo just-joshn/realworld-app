@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import passport from "passport";
+import session from "express-session";
 import { describe, expect, test, vi } from "vitest";
 import { buildUser } from "../test/factories";
 import { resetDatabase } from "../test/database";
@@ -20,7 +21,7 @@ function seedAda() {
 
 function loginRequest() {
   return {
-    session: { cookie: { maxAge: undefined as number | undefined, expires: new Date() } },
+    session: { cookie: new session.Cookie() },
     logIn(this: { user?: unknown }, user: unknown, _options: unknown, done: () => void) {
       this.user = user;
       done();
@@ -41,7 +42,23 @@ describe("POST /login", () => {
     });
 
     expect(result).toEqual({ status: 200, body: { user: ada } });
-    expect(request.session.cookie.expires).toBeUndefined();
+    expect(request.session.cookie.maxAge).toBeUndefined();
+  });
+
+  test("a string false remember value keeps a browser session", async () => {
+    seedAda();
+    const request = loginRequest();
+    request.session.cookie.maxAge = thirtyDays;
+
+    const result = await dispatch(router, {
+      method: "POST",
+      url: "/login",
+      body: { username: "ada", password: "s3cret", remember: "false" },
+      request,
+    });
+
+    expect(result.status).toBe(200);
+    expect(request.session.cookie.maxAge).toBeUndefined();
   });
 
   test("keeps the session for thirty days when asked to remember the user", async () => {
@@ -82,7 +99,9 @@ test("POST /logout ends the session and redirects home", async () => {
     method: "POST",
     url: "/logout",
     request: {
-      logout: (done: () => void) => done(),
+      logout: (done: () => void) => {
+        done();
+      },
       session: { destroy },
     },
   });
@@ -93,13 +112,14 @@ test("POST /logout ends the session and redirects home", async () => {
 
 describe("GET /checkAuth", () => {
   test("returns the session user", async () => {
+    const user = buildUser({ id: "user1" });
     const result = await dispatch(router, {
       method: "GET",
       url: "/checkAuth",
-      user: { id: "user1" },
+      user,
     });
 
-    expect(result).toEqual({ status: 200, body: { user: { id: "user1" } } });
+    expect(result).toEqual({ status: 200, body: { user } });
   });
 
   test("responds 401 without a session user", async () => {

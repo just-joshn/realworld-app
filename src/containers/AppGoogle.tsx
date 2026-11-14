@@ -39,7 +39,7 @@ const AppGoogle: React.FC = () => {
 
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
-  const clientId = process.env.VITE_GOOGLE_CLIENTID;
+  const clientId = process.env["VITE_GOOGLE_CLIENTID"];
   if (!clientId) {
     throw new Error("Missing VITE_GOOGLE_CLIENTID");
   }

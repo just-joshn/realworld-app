@@ -23,9 +23,9 @@ function serveTransaction(id: string) {
   const fetched = vi.fn();
   server.use(
     http.get(`${api}/transactions/:id`, ({ params }) => {
-      fetched(params.id);
+      fetched(params["id"]);
       return HttpResponse.json({
-        transaction: buildTransactionResponseItem({ id: String(params.id) }),
+        transaction: buildTransactionResponseItem({ id: String(params["id"]) }),
       });
     })
   );
@@ -39,8 +39,10 @@ describe("transactionDetailMachine", () => {
 
     service.send({ type: "FETCH", transactionId: "txn1" });
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
-    expect(service.state.context.results).toEqual([expect.objectContaining({ id: "txn1" })]);
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
+    expect(service.getSnapshot().context.results).toEqual([
+      expect.objectContaining({ id: "txn1" }),
+    ]);
     expect(fetched).toHaveBeenCalledExactlyOnceWith("txn1");
   });
 
@@ -54,15 +56,15 @@ describe("transactionDetailMachine", () => {
       const posted = vi.fn();
       server.use(
         http.post(`${api}/${route}/:id`, async ({ request, params }) => {
-          posted({ id: params.id, body: await request.json() });
+          posted({ id: params["id"], body: await request.json() });
           return new HttpResponse(null, { status: 200 });
         })
       );
       const service = startService(transactionDetailMachine);
       service.send({ type: "FETCH", transactionId: "txn1" });
-      await expect.poll(() => service.state.matches("success")).toBe(true);
+      await expect.poll(() => service.getSnapshot().matches("success")).toBe(true);
 
-      service.send({ type: "CREATE", entity, transactionId: "txn1", content: "Nice!" } as never);
+      service.send({ type: "CREATE", entity, transactionId: "txn1", content: "Nice!" });
 
       await expect.poll(() => fetched.mock.calls.length).toBe(2);
       expect(fetched).toHaveBeenLastCalledWith("txn1");
@@ -78,15 +80,15 @@ describe("transactionDetailMachine", () => {
     const patched = vi.fn();
     server.use(
       http.patch(`${api}/transactions/:id`, async ({ request, params }) => {
-        patched({ id: params.id, body: await request.json() });
+        patched({ id: params["id"], body: await request.json() });
         return new HttpResponse(null, { status: 204 });
       })
     );
     const service = startService(transactionDetailMachine);
 
-    service.send({ type: "UPDATE", id: "txn1", requestStatus: "accepted" } as never);
+    service.send({ type: "UPDATE", id: "txn1", requestStatus: "accepted" });
 
-    await expect.poll(() => service.state.value).toEqual({ success: "withData" });
+    await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(patched).toHaveBeenCalledExactlyOnceWith({
       id: "txn1",
       body: { id: "txn1", requestStatus: "accepted" },
@@ -122,7 +124,7 @@ describe("createTransactionMachine", () => {
 
     service.send({ type: "SET_USERS", sender, receiver });
 
-    expect(service.state.value).toBe("stepTwo");
+    expect(service.getSnapshot().value).toBe("stepTwo");
   });
 
   test("CREATE moves to step three and posts the transaction", async () => {
@@ -132,7 +134,7 @@ describe("createTransactionMachine", () => {
 
     service.send({ type: "CREATE", ...details });
 
-    expect(service.state.value).toBe("stepThree");
+    expect(service.getSnapshot().value).toBe("stepThree");
     await expect.poll(() => posted.mock.calls).toEqual([[details]]);
   });
 
@@ -145,7 +147,7 @@ describe("createTransactionMachine", () => {
 
     service.send({ type: "RESET" });
 
-    expect(service.state.value).toBe("stepOne");
+    expect(service.getSnapshot().value).toBe("stepOne");
   });
 
   test("SET_USERS stores the sender and receiver", () => {
@@ -153,7 +155,7 @@ describe("createTransactionMachine", () => {
 
     service.send({ type: "SET_USERS", sender, receiver });
 
-    expect(service.state.context).toMatchObject({ sender, receiver });
+    expect(service.getSnapshot().context).toMatchObject({ sender, receiver });
   });
 
   test("CREATE stores the transaction details", async () => {
@@ -164,6 +166,6 @@ describe("createTransactionMachine", () => {
     service.send({ type: "CREATE", ...details });
     await expect.poll(() => posted.mock.calls.length).toBe(1);
 
-    expect(service.state.context.transactionDetails).toMatchObject(details);
+    expect(service.getSnapshot().context.transactionDetails).toMatchObject(details);
   });
 });

@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 import { set } from "lodash";
-import { Request, Response, NextFunction } from "express";
-import { validationResult, ValidationChain, SanitizationChain } from "express-validator";
+import type { Request, Response, NextFunction } from "express";
+import type { ValidationChain, SanitizationChain } from "express-validator";
+import { required } from "./required";
+import { validationResult } from "express-validator";
 import jwt from "express-jwt";
 import jwksRsa from "jwks-rsa";
 
@@ -15,20 +17,20 @@ const auth0JwtConfig = {
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env.VITE_AUTH0_DOMAIN}/.well-known/jwks.json`,
+    jwksUri: `https://${process.env["VITE_AUTH0_DOMAIN"] ?? ""}/.well-known/jwks.json`,
   }),
 
-  audience: process.env.VITE_AUTH0_AUDIENCE,
-  issuer: `https://${process.env.VITE_AUTH0_DOMAIN}/`,
+  audience: process.env["VITE_AUTH0_AUDIENCE"],
+  issuer: `https://${process.env["VITE_AUTH0_DOMAIN"] ?? ""}/`,
   algorithms: ["RS256"],
 };
 
 const oktaJwtVerifier = new OktaJwtVerifier({
-  issuer: `https://${process.env.VITE_OKTA_DOMAIN}/oauth2/default`,
-  clientId: process.env.VITE_OKTA_CLIENTID,
+  issuer: `https://${process.env["VITE_OKTA_DOMAIN"] ?? ""}/oauth2/default`,
+  clientId: process.env["VITE_OKTA_CLIENTID"] ?? "",
   assertClaims: {
     aud: "api://default",
-    cid: process.env.VITE_OKTA_CLIENTID,
+    cid: process.env["VITE_OKTA_CLIENTID"] ?? "",
   },
 });
 const googleJwtConfig = {
@@ -39,7 +41,7 @@ const googleJwtConfig = {
     jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
   }),
 
-  audience: process.env.VITE_GOOGLE_CLIENTID,
+  audience: process.env["VITE_GOOGLE_CLIENTID"],
   issuer: "accounts.google.com",
   algorithms: ["RS256"],
 };
@@ -49,13 +51,13 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
 
   if (bearerHeader) {
     const bearer = bearerHeader.split(" ");
-    const bearerToken = bearer[1];
+    const bearerToken = required(bearer[1], "bearer token");
 
     oktaJwtVerifier
       .verifyAccessToken(bearerToken, "api://default")
       .then((jwt) => {
         set(req, "user", { sub: "sub" in jwt ? jwt.sub : undefined });
-        return next();
+        next();
       })
       .catch((err: unknown) => {
         console.log("error", err);
@@ -69,7 +71,7 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
 
 // https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html#amazon-cognito-user-pools-using-tokens-step-2
 const userPoolId = awsConfig.Auth.Cognito.userPoolId;
-const region = userPoolId.split("_")[0];
+const region = required(userPoolId.split("_")[0], "Cognito region");
 const awsCognitoJwtConfig = {
   secret: jwksRsa.expressJwtSecret({
     jwksUri: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`,
@@ -79,16 +81,27 @@ const awsCognitoJwtConfig = {
   algorithms: ["RS256"],
 };
 
-export const checkAuth0Jwt = jwt(auth0JwtConfig).unless({ path: [/^\/testData\//] });
-export const checkCognitoJwt = jwt(awsCognitoJwtConfig).unless({ path: [/^\/testData\//] });
-export const checkGoogleJwt = jwt(googleJwtConfig).unless({ path: [/^\/testData\//] });
+const skipTestData = (config: jwt.Options) => {
+  const verify = jwt(config);
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (/^\/testData\//.test(req.originalUrl)) {
+      next();
+      return;
+    }
+    void verify(req, res, next);
+  };
+};
+export const checkAuth0Jwt = skipTestData(auth0JwtConfig);
+export const checkCognitoJwt = skipTestData(awsCognitoJwtConfig);
+export const checkGoogleJwt = skipTestData(googleJwtConfig);
 
 export const ensureAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (req.isAuthenticated()) {
-    if (req.user?.sub) {
+    if (req.user.sub) {
       set(req.user, "id", req.user.sub);
     }
-    return next();
+    next();
+    return;
   }
   res.status(401).send({
     error: "Unauthorized",
@@ -96,14 +109,17 @@ export const ensureAuthenticated = (req: Request, res: Response, next: NextFunct
 };
 
 export const validateMiddleware = (validations: (ValidationChain | SanitizationChain)[]) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    await Promise.all(validations.map((validation) => validation.run(req)));
+  return (req: Request, res: Response, next: NextFunction) => {
+    void Promise.all(validations.map((validation) => validation.run(req)))
+      .then(() => {
+        const errors = validationResult(req);
+        if (errors.isEmpty()) {
+          next();
+          return;
+        }
 
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
-    }
-
-    res.status(422).json({ errors: errors.array() });
+        res.status(422).json({ errors: errors.array() });
+      })
+      .catch(next);
   };
 };

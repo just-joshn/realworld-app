@@ -1,3 +1,4 @@
+import { stringField, bankAccountBody } from "./request-data";
 import { required } from "./required";
 import "./types";
 
@@ -25,7 +26,7 @@ router.get(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("bankAccountId")]),
   (req, res) => {
-    const { bankAccountId } = req.params;
+    const bankAccountId = stringField(req.params, "bankAccountId");
 
     const account = getBankAccountById(bankAccountId);
 
@@ -35,7 +36,10 @@ router.get(
 );
 
 router.post("/", ensureAuthenticated, validateMiddleware(isBankAccountValidator), (req, res) => {
-  const account = createBankAccountForUser(required(req.user, "authenticated user").id, req.body);
+  const account = createBankAccountForUser(
+    required(req.user, "authenticated user").id,
+    bankAccountBody.validateSync(req.body)
+  );
 
   res.status(200);
   res.json({ account });
@@ -46,9 +50,10 @@ router.delete(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("bankAccountId")]),
   (req, res) => {
-    const { bankAccountId } = req.params;
+    const bankAccountId = stringField(req.params, "bankAccountId");
 
-    const account = removeBankAccountById(bankAccountId);
+    removeBankAccountById(bankAccountId);
+    const account = undefined;
 
     res.status(200);
     res.json({ account });

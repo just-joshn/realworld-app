@@ -1,5 +1,6 @@
 import React from "react";
-import { Route, Redirect, RouteProps } from "react-router-dom";
+import type { RouteProps } from "react-router-dom";
+import { Route, Redirect } from "react-router-dom";
 
 interface IPrivateRouteProps extends Omit<RouteProps, "children" | "render"> {
   isLoggedIn: boolean;

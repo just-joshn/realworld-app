@@ -1,16 +1,17 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { useActor } from "@xstate/react";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { Link } from "react-router-dom";
 import { Button, Container, CssBaseline, TextField, Grid, Box, Typography } from "@mui/material";
-import { Formik, Form, Field, FieldProps } from "formik";
+import type { FieldProps } from "formik";
+import { Formik, Form, Field } from "formik";
 import { string, object, ref } from "yup";
 
 import RWALogo from "./SvgRwaLogo";
 import Footer from "./Footer";
-import { SignUpPayload } from "../models";
-import { authMachine } from "../machines/authMachine";
+import type { SignUpPayload } from "../models";
+import type { authMachine } from "../machines/authMachine";
 
 const PREFIX = "SignUpForm";
 
@@ -21,7 +22,11 @@ const classes = {
   submit: `${PREFIX}-submit`,
 };
 
-const StyledContainer = styled(Container)(({ theme }) => ({
+const StyledContainer = styled(
+  (props: React.ComponentProps<typeof Container> & { component?: React.ElementType }) => (
+    <Container {...props} />
+  )
+)(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
     display: "flex",
@@ -41,7 +46,7 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   [`& .${classes.submit}`]: {
     margin: theme.spacing(3, 0, 2),
   },
-})) as typeof Container;
+}));
 
 const validationSchema = object({
   firstName: string().required("First Name is required"),
@@ -84,7 +89,7 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={async (values, { setSubmitting }) => {
+          onSubmit={(values, { setSubmitting }) => {
             setSubmitting(true);
 
             signUpPending(values);

@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 import NumberFormat from "react-number-format";
-import { Formik, Form, Field, FieldProps } from "formik";
+import type { FieldProps } from "formik";
+import { Formik, Form, Field } from "formik";
 import { string, object, number } from "yup";
 import { Paper, Typography, Button, Grid, Container, Avatar, Box, TextField } from "@mui/material";
-import { User } from "../models";
-import { SnackbarContext, Severities } from "../machines/snackbarMachine";
+import type { TextFieldProps } from "@mui/material";
+import type { User } from "../models";
+import type { SnackbarContext } from "../machines/snackbarMachine";
+import { Severities } from "../machines/snackbarMachine";
 
 const PREFIX = "TransactionCreateStepTwo";
 
@@ -39,32 +42,9 @@ const validationSchema = object({
   receiverId: string(),
 });
 
-interface NumberFormatCustomProps {
-  inputRef: (el: HTMLInputElement) => void;
-  onChange: (event: { target: { value: string } }) => void;
-}
-
-function NumberFormatCustom(props: NumberFormatCustomProps) {
-  const { inputRef, onChange, ...other } = props;
-
-  return (
-    <NumberFormat
-      {...other}
-      getInputRef={inputRef}
-      onValueChange={(values) => {
-        onChange({
-          target: {
-            ...other,
-            value: values.value,
-          },
-        });
-      }}
-      thousandSeparator
-      isNumericString
-      prefix="$"
-    />
-  );
-}
+// Formik types field values as `any`; the amount field only ever holds what the input produced.
+const amountFieldValue = (value: unknown): string | number =>
+  typeof value === "string" || typeof value === "number" ? value : "";
 
 export interface TransactionCreateStepTwoProps {
   receiver: User;
@@ -129,8 +109,9 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
           {({ isValid, isSubmitting }) => (
             <Form className={classes.form} data-test="transaction-create-form">
               <Field name="amount">
-                {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <TextField
+                {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
+                  <NumberFormat<TextFieldProps>
+                    customInput={TextField}
                     variant="outlined"
                     margin="dense"
                     fullWidth
@@ -142,12 +123,16 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     data-test={"transaction-create-amount-input"}
                     error={(touched || value !== initialValue) && Boolean(error)}
                     helperText={touched || value !== initialValue ? error : ""}
-                    InputProps={{
-                      // @ts-expect-error MUI requires a synthetic event, but this number-format adapter emits Formik-compatible target values.
-                      inputComponent: NumberFormatCustom,
-                      inputProps: { id: "amount" },
+                    inputProps={{ id: "amount" }}
+                    name={field.name}
+                    value={amountFieldValue(field.value)}
+                    onBlur={field.onBlur}
+                    onValueChange={(values) => {
+                      void form.setFieldValue(field.name, values.value);
                     }}
-                    {...field}
+                    thousandSeparator
+                    isNumericString
+                    prefix="$"
                   />
                 )}
               </Field>
@@ -184,7 +169,9 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     className={classes.submit}
                     data-test="transaction-create-submit-request"
                     disabled={!isValid || isSubmitting}
-                    onClick={() => setTransactionType("request")}
+                    onClick={() => {
+                      setTransactionType("request");
+                    }}
                   >
                     Request
                   </Button>
@@ -198,7 +185,9 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     className={classes.submit}
                     data-test="transaction-create-submit-payment"
                     disabled={!isValid || isSubmitting}
-                    onClick={() => setTransactionType("payment")}
+                    onClick={() => {
+                      setTransactionType("payment");
+                    }}
                   >
                     Pay
                   </Button>

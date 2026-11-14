@@ -5,7 +5,7 @@ import { renderWithRouter } from "../../test/browser/render";
 import TransactionInfiniteList from "./TransactionInfiniteList";
 
 for (const width of [390, 800, 1280]) {
-  test(`shows transaction descriptions in a ${width}px viewport`, async () => {
+  test(`shows transaction descriptions in a ${String(width)}px viewport`, async () => {
     await page.viewport(width, 900);
     onTestFinished(() => page.viewport(1280, 900));
     const screen = await renderWithRouter(

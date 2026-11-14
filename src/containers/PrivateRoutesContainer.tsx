@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Switch } from "react-router";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import MainLayout from "../components/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
 import TransactionsContainer from "./TransactionsContainer";
@@ -9,10 +9,10 @@ import NotificationsContainer from "./NotificationsContainer";
 import BankAccountsContainer from "./BankAccountsContainer";
 import TransactionCreateContainer from "./TransactionCreateContainer";
 import TransactionDetailContainer from "./TransactionDetailContainer";
-import { notificationsMachine } from "../machines/notificationsMachine";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
-import { authMachine } from "../machines/authMachine";
-import { snackbarMachine } from "../machines/snackbarMachine";
+import type { notificationsMachine } from "../machines/notificationsMachine";
+import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import type { authMachine } from "../machines/authMachine";
+import type { snackbarMachine } from "../machines/snackbarMachine";
 import { useActor } from "@xstate/react";
 import UserOnboardingContainer from "./UserOnboardingContainer";
 

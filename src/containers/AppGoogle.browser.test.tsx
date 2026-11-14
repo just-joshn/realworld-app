@@ -1,3 +1,4 @@
+import type { GoogleLoginProps, GoogleLoginResponse } from "@matheusluizn/react-google-login";
 import { expect, test, vi } from "vitest";
 import { renderWithRouter } from "../../test/browser/render";
 import { startProviderSession } from "../../test/browser/auth-providers-helpers";
@@ -8,7 +9,16 @@ const sdk = vi.hoisted(() => ({ signedIn: false }));
 vi.mock(import("@matheusluizn/react-google-login"), async (importOriginal) => {
   const original = await importOriginal();
   const React = await import("react");
-  const response = {
+  const tokenObj = {
+    access_token: "google-token",
+    id_token: "google-token",
+    login_hint: "",
+    scope: "",
+    expires_in: 3600,
+    first_issued_at: 0,
+    expires_at: 3600000,
+  };
+  const response: GoogleLoginResponse = {
     tokenId: "google-token",
     profileObj: {
       googleId: "user1",
@@ -18,15 +28,43 @@ vi.mock(import("@matheusluizn/react-google-login"), async (importOriginal) => {
       familyName: "Lovelace",
       imageUrl: "",
     },
-  } as import("@matheusluizn/react-google-login").GoogleLoginResponse;
-  class GoogleLogin extends React.Component<
-    import("@matheusluizn/react-google-login").GoogleLoginProps
-  > {
+    googleId: "user1",
+    accessToken: "google-token",
+    tokenObj,
+    getBasicProfile: () => ({
+      getId: () => "user1",
+      getEmail: () => "ada@example.com",
+      getName: () => "Ada Lovelace",
+      getGivenName: () => "Ada",
+      getFamilyName: () => "Lovelace",
+      getImageUrl: () => "",
+    }),
+    getAuthResponse: () => tokenObj,
+    reloadAuthResponse: () => Promise.resolve(tokenObj),
+    getGrantedScopes: () => "",
+    getHostedDomain: () => "",
+    getId: () => "user1",
+    isSignedIn: () => true,
+    hasGrantedScopes: () => true,
+    disconnect: () => {},
+    grantOfflineAccess: () => Promise.resolve({ code: "code" }),
+    signIn: () => Promise.resolve(),
+    grant: () => Promise.resolve(),
+  };
+  class GoogleLogin extends React.Component<GoogleLoginProps> {
     signIn() {
       this.props.onSuccess?.(response);
     }
-    render() {
-      return <button onClick={() => this.signIn()}>{this.props.buttonText}</button>;
+    override render() {
+      return (
+        <button
+          onClick={() => {
+            this.signIn();
+          }}
+        >
+          {this.props.buttonText}
+        </button>
+      );
     }
   }
   return {

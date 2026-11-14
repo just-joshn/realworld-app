@@ -1,6 +1,6 @@
-import { Machine } from "xstate";
+import { createMachine } from "xstate";
 
-export const drawerMachine = Machine<{ aboveSmallBreakpoint?: boolean }>(
+export const drawerMachine = createMachine<{ aboveSmallBreakpoint?: boolean }>(
   {
     id: "drawer",
     type: "parallel",
@@ -38,7 +38,7 @@ export const drawerMachine = Machine<{ aboveSmallBreakpoint?: boolean }>(
   },
   {
     guards: {
-      shouldOpenDesktop: (context, event, guardMeta) => {
+      shouldOpenDesktop: (context, _event, guardMeta) => {
         return (
           guardMeta.state.history?.context.aboveSmallBreakpoint !== context.aboveSmallBreakpoint
         );

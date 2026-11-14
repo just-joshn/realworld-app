@@ -9,7 +9,7 @@ vi.mock(import("@okta/jwt-verifier"), async (importOriginal) => {
   const { default: OktaJwtVerifier } = await importOriginal();
   return {
     default: class extends OktaJwtVerifier {
-      verifyAccessToken = okta.verifyAccessToken;
+      override verifyAccessToken = okta.verifyAccessToken;
     },
   };
 });
@@ -53,22 +53,22 @@ describe("validateMiddleware", () => {
   test("calls next when every validation passes", async () => {
     const next = buildNext();
 
-    await middleware(
-      buildRequest({ body: { username: "ada" } }),
-      asResponse(buildResponse()),
-      next
-    );
+    middleware(buildRequest({ body: { username: "ada" } }), asResponse(buildResponse()), next);
 
-    expect(next).toHaveBeenCalledOnce();
+    await vi.waitFor(() => {
+      expect(next).toHaveBeenCalledOnce();
+    });
   });
 
   test("responds 422 with the validation errors when a validation fails", async () => {
     const res = buildResponse();
     const next = buildNext();
 
-    await middleware(buildRequest(), asResponse(res), next);
+    middleware(buildRequest(), asResponse(res), next);
 
-    expect(res.status).toHaveBeenCalledWith(422);
+    await vi.waitFor(() => {
+      expect(res.status).toHaveBeenCalledWith(422);
+    });
     expect(res.json).toHaveBeenCalledWith({
       errors: [expect.objectContaining({ param: "username" })],
     });
@@ -93,7 +93,9 @@ describe("verifyOktaToken", () => {
 
     verifyOktaToken(req, asResponse(buildResponse()), next);
 
-    await vi.waitFor(() => expect(next).toHaveBeenCalledOnce());
+    await vi.waitFor(() => {
+      expect(next).toHaveBeenCalledOnce();
+    });
     expect(okta.verifyAccessToken).toHaveBeenCalledWith("good-token", "api://default");
     expect(req.user).toEqual({ sub: "okta-user" });
   });
@@ -105,7 +107,9 @@ describe("verifyOktaToken", () => {
 
     verifyOktaToken(req, asResponse(buildResponse()), next);
 
-    await vi.waitFor(() => expect(next).toHaveBeenCalledOnce());
+    await vi.waitFor(() => {
+      expect(next).toHaveBeenCalledOnce();
+    });
     expect(req.user).toEqual({ sub: undefined });
   });
 
@@ -121,7 +125,9 @@ describe("verifyOktaToken", () => {
       next
     );
 
-    await vi.waitFor(() => expect(log).toHaveBeenCalledWith("error", error));
+    await vi.waitFor(() => {
+      expect(log).toHaveBeenCalledWith("error", error);
+    });
     expect(next).not.toHaveBeenCalled();
   });
 });

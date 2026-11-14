@@ -1,4 +1,5 @@
-import { TransactionResponseItem } from "../models";
+import { transactionDetailResponseSchema } from "../models/schemas";
+import type { TransactionResponseItem } from "../models";
 import { omit, flow } from "lodash/fp";
 import { dataMachine } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
@@ -9,30 +10,30 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
   "transactionData"
 ).withConfig({
   services: {
-    fetchData: async (ctx, event) => {
+    fetchData: async (_ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = ctx.results[0]?.id;
+      const contextTransactionId = _ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.transactionId;
-      const resp = await httpClient.get(
-        `http://localhost:${backendPort}/transactions/${transactionId}`
+      const resp = await httpClient.get<unknown>(
+        `http://localhost:${String(backendPort)}/transactions/${String(transactionId)}`
       );
-      return { results: [resp.data.transaction] };
+      return { results: [transactionDetailResponseSchema.validateSync(resp.data).transaction] };
     },
-    createData: async (ctx, event) => {
+    createData: async (_ctx, event) => {
       const route = event.entity === "LIKE" ? "likes" : "comments";
       const payload = flow(omit("type"), omit("entity"))(event);
-      const resp = await httpClient.post(
-        `http://localhost:${backendPort}/${route}/${payload.transactionId}`,
+      const resp = await httpClient.post<unknown>(
+        `http://localhost:${String(backendPort)}/${route}/${String(payload.transactionId)}`,
         payload
       );
       return resp.data;
     },
-    updateData: async (ctx, event) => {
+    updateData: async (_ctx, event) => {
       const payload = omit("type", event);
-      const contextTransactionId = ctx.results[0]?.id;
+      const contextTransactionId = _ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.id;
-      const resp = await httpClient.patch(
-        `http://localhost:${backendPort}/transactions/${transactionId}`,
+      const resp = await httpClient.patch<unknown>(
+        `http://localhost:${String(backendPort)}/transactions/${String(transactionId)}`,
         payload
       );
       // accepting a request changes the current user's balance

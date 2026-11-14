@@ -31,7 +31,7 @@ test("creates an account and takes the user to sign in", async () => {
     ["Username", "ada"],
     ["Password", "secret"],
     ["Confirm Password", "secret"],
-  ]) {
+  ] as const) {
     await screen.getByLabelText(new RegExp(`^${label}`)).fill(value);
   }
   await screen.getByRole("button", { name: "Sign Up" }).click();
@@ -47,7 +47,13 @@ test("creates an account and takes the user to sign in", async () => {
 
 test("explains missing fields and mismatched passwords", async () => {
   const screen = await renderWithRouter(<SignUpForm authService={startAuth()} />);
-  for (const label of ["First Name", "Last Name", "Username", "Password", "Confirm Password"]) {
+  for (const label of [
+    "First Name",
+    "Last Name",
+    "Username",
+    "Password",
+    "Confirm Password",
+  ] as const) {
     await screen.getByLabelText(new RegExp(`^${label}`)).click();
   }
   await screen.getByRole("heading", { name: "Sign Up" }).click();
@@ -57,7 +63,7 @@ test("explains missing fields and mismatched passwords", async () => {
     "Username is required",
     "Enter your password",
     "Confirm your password",
-  ]) {
+  ] as const) {
     await expect.element(screen.getByText(message)).toBeVisible();
   }
   await screen.getByLabelText(/^Password/).fill("abc");

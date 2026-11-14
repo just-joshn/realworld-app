@@ -15,8 +15,8 @@ describe("snackbarMachine", () => {
 
     service.send({ type: "SHOW", severity: Severities.success, message: "Saved" });
 
-    expect(service.state.value).toBe("visible");
-    expect(service.state.context).toEqual({ severity: "success", message: "Saved" });
+    expect(service.getSnapshot().value).toBe("visible");
+    expect(service.getSnapshot().context).toEqual({ severity: "success", message: "Saved" });
   });
 
   test("HIDE clears the message", () => {
@@ -25,8 +25,8 @@ describe("snackbarMachine", () => {
 
     service.send({ type: "HIDE" });
 
-    expect(service.state.value).toBe("invisible");
-    expect(service.state.context).toEqual({ severity: undefined, message: undefined });
+    expect(service.getSnapshot().value).toBe("invisible");
+    expect(service.getSnapshot().context).toEqual({ severity: undefined, message: undefined });
   });
 
   test("hides itself after three seconds", () => {
@@ -35,10 +35,10 @@ describe("snackbarMachine", () => {
     service.send({ type: "SHOW", severity: Severities.info, message: "Hello" });
 
     vi.advanceTimersByTime(2999);
-    expect(service.state.value).toBe("visible");
+    expect(service.getSnapshot().value).toBe("visible");
 
     vi.advanceTimersByTime(1);
-    expect(service.state.value).toBe("invisible");
+    expect(service.getSnapshot().value).toBe("invisible");
   });
 });
 
@@ -46,18 +46,18 @@ describe("drawerMachine", () => {
   test("starts with the desktop drawer open and the mobile drawer closed", () => {
     const service = startService(drawerMachine);
 
-    expect(service.state.value).toEqual({ desktop: "open", mobile: "closed" });
+    expect(service.getSnapshot().value).toEqual({ desktop: "open", mobile: "closed" });
   });
 
   test("toggles and closes the desktop drawer", () => {
     const service = startService(drawerMachine);
 
     service.send("TOGGLE_DESKTOP");
-    expect(service.state.value).toMatchObject({ desktop: "closed" });
+    expect(service.getSnapshot().value).toMatchObject({ desktop: "closed" });
 
     service.send("TOGGLE_DESKTOP");
     service.send("CLOSE_DESKTOP");
-    expect(service.state.value).toMatchObject({ desktop: "closed" });
+    expect(service.getSnapshot().value).toMatchObject({ desktop: "closed" });
   });
 
   test("OPEN_DESKTOP leaves a drawer the user closed closed when the breakpoint is unchanged", () => {
@@ -66,36 +66,36 @@ describe("drawerMachine", () => {
 
     service.send({ type: "OPEN_DESKTOP", aboveSmallBreakpoint: true });
 
-    expect(service.state.value).toMatchObject({ desktop: "closed" });
+    expect(service.getSnapshot().value).toMatchObject({ desktop: "closed" });
   });
 
   test("toggles, opens, and closes the mobile drawer", () => {
     const service = startService(drawerMachine);
 
     service.send("TOGGLE_MOBILE");
-    expect(service.state.value).toMatchObject({ mobile: "open" });
+    expect(service.getSnapshot().value).toMatchObject({ mobile: "open" });
 
     service.send("CLOSE_MOBILE");
-    expect(service.state.value).toMatchObject({ mobile: "closed" });
+    expect(service.getSnapshot().value).toMatchObject({ mobile: "closed" });
 
     service.send("OPEN_MOBILE");
     service.send("TOGGLE_MOBILE");
-    expect(service.state.value).toMatchObject({ mobile: "closed" });
+    expect(service.getSnapshot().value).toMatchObject({ mobile: "closed" });
   });
 });
 
 describe("userOnboardingMachine", () => {
   test("NEXT walks through every step to done", () => {
     const service = startService(userOnboardingMachine);
-    const visited = [service.state.value];
+    const visited = [service.getSnapshot().value];
 
     for (let step = 0; step < 3; step++) {
       service.send("NEXT");
-      visited.push(service.state.value);
+      visited.push(service.getSnapshot().value);
     }
 
     expect(visited).toEqual(["stepOne", "stepTwo", "stepThree", "done"]);
-    expect(service.state.done).toBe(true);
+    expect(service.getSnapshot().done).toBe(true);
   });
 
   test("PREV goes back a step", () => {
@@ -104,10 +104,10 @@ describe("userOnboardingMachine", () => {
     service.send("NEXT");
 
     service.send("PREV");
-    expect(service.state.value).toBe("stepTwo");
+    expect(service.getSnapshot().value).toBe("stepTwo");
 
     service.send("PREV");
-    expect(service.state.value).toBe("stepOne");
+    expect(service.getSnapshot().value).toBe("stepOne");
   });
 });
 
@@ -120,15 +120,15 @@ describe("transactionFiltersMachine", () => {
       dateRangeStart: "2026-01-01T00:00:00.000Z",
       dateRangeEnd: "2026-01-31T23:59:59.999Z",
     });
-    expect(service.state.value).toMatchObject({ dateRange: "filter" });
-    expect(service.state.context).toMatchObject({
+    expect(service.getSnapshot().value).toMatchObject({ dateRange: "filter" });
+    expect(service.getSnapshot().context).toMatchObject({
       dateRangeStart: "2026-01-01T00:00:00.000Z",
       dateRangeEnd: "2026-01-31T23:59:59.999Z",
     });
 
     service.send({ type: "DATE_RESET" });
-    expect(service.state.value).toMatchObject({ dateRange: "none" });
-    expect(service.state.context.dateRangeStart).toBeUndefined();
+    expect(service.getSnapshot().value).toMatchObject({ dateRange: "none" });
+    expect(service.getSnapshot().context.dateRangeStart).toBeUndefined();
   });
 
   test("AMOUNT_FILTER replaces the amount range and AMOUNT_RESET clears it", () => {
@@ -136,10 +136,10 @@ describe("transactionFiltersMachine", () => {
 
     service.send({ type: "AMOUNT_FILTER", amountMin: "0", amountMax: "100" });
     service.send({ type: "AMOUNT_FILTER", amountMin: "10", amountMax: "50" });
-    expect(service.state.context).toMatchObject({ amountMin: "10", amountMax: "50" });
+    expect(service.getSnapshot().context).toMatchObject({ amountMin: "10", amountMax: "50" });
 
     service.send({ type: "AMOUNT_RESET" });
-    expect(service.state.value).toMatchObject({ amountRange: "none" });
-    expect(service.state.context.amountMax).toBeUndefined();
+    expect(service.getSnapshot().value).toMatchObject({ amountRange: "none" });
+    expect(service.getSnapshot().context.amountMax).toBeUndefined();
   });
 });

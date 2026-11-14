@@ -1,3 +1,4 @@
+import { object, string } from "yup";
 import { http, HttpResponse } from "msw";
 import { Route } from "react-router-dom";
 import { expect, test, vi } from "vitest";
@@ -12,7 +13,10 @@ test("creates an account from the account list", async () => {
   let accounts: ReturnType<typeof buildBankAccount>[] = [];
   worker.use(
     http.post(apiUrl("/graphql"), async ({ request }) => {
-      const body = (await request.json()) as { operationName: string; variables: object };
+      const body = object({
+        operationName: string().required(),
+        variables: object().default({}),
+      }).validateSync(await request.json());
       if (body.operationName === "CreateBankAccount") {
         received(body.variables);
         accounts = [buildBankAccount()];
@@ -49,7 +53,10 @@ test("deletes an account from the list", async () => {
   const received = vi.fn();
   worker.use(
     http.post(apiUrl("/graphql"), async ({ request }) => {
-      const body = (await request.json()) as { operationName: string; variables: object };
+      const body = object({
+        operationName: string().required(),
+        variables: object().default({}),
+      }).validateSync(await request.json());
       if (body.operationName === "DeleteBankAccount") {
         deleted = true;
         received(body.variables);

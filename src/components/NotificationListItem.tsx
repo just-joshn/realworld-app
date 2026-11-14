@@ -25,7 +25,7 @@ import {
   isPaymentRequestedNotification,
   isPaymentReceivedNotification,
 } from "../utils/transactionUtils";
-import { NotificationResponseItem } from "../models";
+import type { NotificationResponseItem } from "../models";
 
 export interface NotificationListItemProps {
   notification: NotificationResponseItem;
@@ -97,7 +97,9 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
         <IconButton
           aria-label="mark as read"
           color="primary"
-          onClick={() => updateNotification({ id: notification.id, isRead: true })}
+          onClick={() => {
+            updateNotification({ id: notification.id, isRead: true });
+          }}
           data-test={`notification-mark-read-${notification.id}`}
           size="large"
         >
@@ -108,7 +110,9 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
         <Button
           color="primary"
           size="small"
-          onClick={() => updateNotification({ id: notification.id, isRead: true })}
+          onClick={() => {
+            updateNotification({ id: notification.id, isRead: true });
+          }}
           data-test={`notification-mark-read-${notification.id}`}
         >
           Dismiss

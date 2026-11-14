@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useActor } from "@xstate/react";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { Link as RouterLink, useRouteMatch } from "react-router-dom";
 import { Grid, Button, Paper, Typography } from "@mui/material";
 
-import { authMachine } from "../machines/authMachine";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
-import { BankAccount, BankAccountPayload } from "../models";
+import type { authMachine } from "../machines/authMachine";
+import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import type { BankAccount, BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
 import BankAccountList from "../components/BankAccountList";
 
@@ -36,7 +36,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
   const [authState] = useActor(authService);
   const [bankAccountsState, sendBankAccounts] = useActor(bankAccountsService);
 
-  const currentUser = authState?.context.user;
+  const currentUser = authState.context.user;
 
   const createBankAccount = (payload: BankAccountPayload) => {
     sendBankAccounts({ type: "CREATE", ...payload });
@@ -56,7 +56,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
         <Typography component="h2" variant="h6" color="primary" gutterBottom>
           Create Bank Account
         </Typography>
-        <BankAccountForm userId={currentUser?.id} createBankAccount={createBankAccount} />
+        <BankAccountForm userId={currentUser.id} createBankAccount={createBankAccount} />
       </StyledPaper>
     );
   }

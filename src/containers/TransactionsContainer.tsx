@@ -1,7 +1,6 @@
 import React from "react";
 import { useMachine } from "@xstate/react";
 import { Switch, Route } from "react-router";
-import { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
 import TransactionListFilters from "../components/TransactionListFilters";
 import TransactionContactsList from "../components/TransactionContactsList";
 import { transactionFiltersMachine } from "../machines/transactionFiltersMachine";
@@ -17,13 +16,31 @@ const TransactionsContainer: React.FC = () => {
     amountRange: "filter",
   });
 
-  const dateRangeFilters = hasDateRangeFilter && getDateQueryFields(currentFilters.context);
-  const amountRangeFilters = hasAmountRangeFilter && getAmountQueryFields(currentFilters.context);
+  const dateFields = getDateQueryFields(currentFilters.context);
+  const amountFields = getAmountQueryFields(currentFilters.context);
+  const dateRangeFilters = hasDateRangeFilter
+    ? {
+        ...(dateFields.dateRangeStart !== undefined
+          ? { dateRangeStart: dateFields.dateRangeStart }
+          : {}),
+        ...(dateFields.dateRangeEnd !== undefined ? { dateRangeEnd: dateFields.dateRangeEnd } : {}),
+      }
+    : {};
+  const amountRangeFilters = hasAmountRangeFilter
+    ? {
+        ...(amountFields.amountMin !== undefined
+          ? { amountMin: Number(amountFields.amountMin) }
+          : {}),
+        ...(amountFields.amountMax !== undefined
+          ? { amountMax: Number(amountFields.amountMax) }
+          : {}),
+      }
+    : {};
 
   const Filters = (
     <TransactionListFilters
-      dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
-      amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
+      dateRangeFilters={dateRangeFilters}
+      amountRangeFilters={amountRangeFilters}
       sendFilterEvent={sendFilterEvent}
     />
   );
@@ -33,22 +50,22 @@ const TransactionsContainer: React.FC = () => {
       <Route exact path="/contacts">
         <TransactionContactsList
           filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
-          amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
+          dateRangeFilters={dateRangeFilters}
+          amountRangeFilters={amountRangeFilters}
         />
       </Route>
       <Route exact path="/personal">
         <TransactionPersonalList
           filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
-          amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
+          dateRangeFilters={dateRangeFilters}
+          amountRangeFilters={amountRangeFilters}
         />
       </Route>
       <Route exact path="/(public)?">
         <TransactionPublicList
           filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters as TransactionDateRangePayload}
-          amountRangeFilters={amountRangeFilters as TransactionAmountRangePayload}
+          dateRangeFilters={dateRangeFilters}
+          amountRangeFilters={amountRangeFilters}
         />
       </Route>
     </Switch>

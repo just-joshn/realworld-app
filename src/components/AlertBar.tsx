@@ -1,7 +1,7 @@
 import React from "react";
 import { Snackbar } from "@mui/material";
-import { InterpreterFrom } from "xstate";
-import { snackbarMachine } from "../machines/snackbarMachine";
+import type { InterpreterFrom } from "xstate";
+import type { snackbarMachine } from "../machines/snackbarMachine";
 import { useActor } from "@xstate/react";
 import { Alert } from "@mui/material";
 
@@ -15,16 +15,16 @@ const AlertBar: React.FC<Props> = ({ snackbarService }) => {
   return (
     <Snackbar
       anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      open={snackbarState?.matches("visible")}
+      open={snackbarState.matches("visible")}
       autoHideDuration={3000}
     >
       <Alert
-        data-test={`alert-bar-${snackbarState?.context.severity}`}
+        data-test={`alert-bar-${snackbarState.context.severity ?? "success"}`}
         elevation={6}
         variant="filled"
-        severity={snackbarState?.context.severity}
+        severity={snackbarState.context.severity ?? "success"}
       >
-        {snackbarState?.context.message}
+        {snackbarState.context.message}
       </Alert>
     </Snackbar>
   );

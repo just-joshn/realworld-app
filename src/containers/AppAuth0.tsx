@@ -34,7 +34,7 @@ const AppAuth0: React.FC = () => {
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
-    (async function waitForToken() {
+    void (async function waitForToken() {
       const token = await getAccessTokenSilently();
       authService.send("AUTH0", { user, token });
     })();

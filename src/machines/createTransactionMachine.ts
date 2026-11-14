@@ -1,8 +1,8 @@
 import { omit } from "lodash/fp";
-import { Machine, assign } from "xstate";
+import { createMachine, assign } from "xstate";
 import { dataMachine } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
-import { User, TransactionCreatePayload } from "../models";
+import type { User, TransactionCreatePayload } from "../models";
 import { authService } from "./authMachine";
 import { backendPort } from "../utils/portUtils";
 
@@ -16,9 +16,12 @@ export interface CreateTransactionMachineSchema {
 
 const transactionDataMachine = dataMachine("transactionData").withConfig({
   services: {
-    createData: async (ctx, event) => {
+    createData: async (_ctx, event) => {
       const payload = omit("type", event);
-      const resp = await httpClient.post(`http://localhost:${backendPort}/transactions`, payload);
+      const resp = await httpClient.post<unknown>(
+        `http://localhost:${String(backendPort)}/transactions`,
+        payload
+      );
       authService.send("REFRESH");
       return resp.data;
     },
@@ -26,26 +29,25 @@ const transactionDataMachine = dataMachine("transactionData").withConfig({
 });
 
 export type CreateTransactionMachineEvents =
-  | { type: "SET_USERS"; sender: User; receiver: User }
+  | { type: "SET_USERS"; sender?: User | undefined; receiver: User }
   | ({ type: "CREATE" } & TransactionCreatePayload)
   | { type: "RESET" };
 
 export interface CreateTransactionMachineContext {
-  sender: User;
-  receiver: User;
-  transactionDetails: TransactionCreatePayload;
+  sender?: User | undefined;
+  receiver?: User | undefined;
+  transactionDetails?: TransactionCreatePayload | undefined;
 }
 
-export const createTransactionMachine = Machine<
+export const createTransactionMachine = createMachine<
   CreateTransactionMachineContext,
-  CreateTransactionMachineSchema,
   CreateTransactionMachineEvents
 >(
   {
     id: "createTransaction",
     initial: "stepOne",
     // Filled by SET_USERS and CREATE before step three reads it.
-    context: {} as CreateTransactionMachineContext,
+    context: {},
     states: {
       stepOne: {
         entry: "clearContext",
@@ -75,16 +77,16 @@ export const createTransactionMachine = Machine<
   {
     actions: {
       setSenderAndReceiver: assign<CreateTransactionMachineContext, CreateTransactionMachineEvents>(
-        (ctx, event) => ({
-          sender: event.type === "SET_USERS" ? event.sender : ctx.sender,
-          receiver: event.type === "SET_USERS" ? event.receiver : ctx.receiver,
+        (_ctx, event) => ({
+          sender: event.type === "SET_USERS" ? event.sender : _ctx.sender,
+          receiver: event.type === "SET_USERS" ? event.receiver : _ctx.receiver,
         })
       ),
       setTransactionDetails: assign<
         CreateTransactionMachineContext,
         CreateTransactionMachineEvents
-      >((ctx, event) => ({
-        transactionDetails: event.type === "CREATE" ? event : ctx.transactionDetails,
+      >((_ctx, event) => ({
+        transactionDetails: event.type === "CREATE" ? event : _ctx.transactionDetails,
       })),
       clearContext: assign(() => ({})),
     },

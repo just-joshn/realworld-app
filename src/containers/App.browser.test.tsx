@@ -9,7 +9,7 @@ import App from "./App";
 
 afterEach(async () => {
   worker.use(http.post(apiUrl("/logout"), () => HttpResponse.json({})));
-  if (!authService.state.matches("unauthorized")) {
+  if (!authService.getSnapshot().matches("unauthorized")) {
     await new Promise<void>((resolve) => {
       const sub = authService.subscribe((state) => {
         if (state.matches("unauthorized")) {

@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Typography } from "@mui/material";
-import { TransactionResponseItem } from "../models";
+import type { TransactionResponseItem } from "../models";
 import { isRequestTransaction, isAcceptedRequestTransaction } from "../utils/transactionUtils";
 
 const PREFIX = "TransactionTitle";

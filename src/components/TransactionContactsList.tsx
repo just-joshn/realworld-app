@@ -1,11 +1,7 @@
-import React, { useEffect, ReactNode } from "react";
+import type { ReactNode } from "react";
+import React, { useEffect } from "react";
 import { useMachine } from "@xstate/react";
-import {
-  TransactionPagination,
-  TransactionResponseItem,
-  TransactionDateRangePayload,
-  TransactionAmountRangePayload,
-} from "../models";
+import type { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
 import TransactionList from "./TransactionList";
 import { contactsTransactionsMachine } from "../machines/contactsTransactionsMachine";
 
@@ -35,10 +31,10 @@ const TransactionContactsList: React.FC<TransactionContactListProps> = ({
       <TransactionList
         filterComponent={filterComponent}
         header="Contacts"
-        transactions={results as TransactionResponseItem[]}
+        transactions={results}
         isLoading={current.matches("loading")}
         loadNextPage={loadNextPage}
-        pagination={pageData as TransactionPagination}
+        pagination={pageData}
         showCreateButton
       />
     </>

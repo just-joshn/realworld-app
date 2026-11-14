@@ -1,3 +1,4 @@
+import { stringField, userBody, userPatchBody } from "./request-data";
 import { required } from "./required";
 import "./types";
 
@@ -13,7 +14,6 @@ import {
   searchUsers,
   removeUserFromResults,
 } from "./database";
-import { User } from "../src/models/user";
 import { ensureAuthenticated, validateMiddleware } from "./helpers";
 import {
   shortIdValidation,
@@ -29,18 +29,15 @@ router.get("/", ensureAuthenticated, (req, res) => {
 });
 
 router.get("/search", ensureAuthenticated, validateMiddleware([searchValidation]), (req, res) => {
-  const { q } = req.query;
+  const q = stringField(req.query, "q");
 
-  const users = removeUserFromResults(
-    required(req.user, "authenticated user").id,
-    searchUsers(q as string)
-  );
+  const users = removeUserFromResults(required(req.user, "authenticated user").id, searchUsers(q));
 
   res.status(200).json({ results: users });
 });
 
 router.post("/", userFieldsValidator, validateMiddleware(isUserValidator), (req, res) => {
-  const userDetails: User = req.body;
+  const userDetails = userBody.validateSync(req.body);
 
   const user = createUser(userDetails);
 
@@ -53,12 +50,13 @@ router.get(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("userId")]),
   (req, res) => {
-    const { userId } = req.params;
+    const userId = stringField(req.params, "userId");
 
     if (!isEqual(userId, required(req.user, "authenticated user").id)) {
-      return res.status(401).send({
+      res.status(401).send({
         error: "Unauthorized",
       });
+      return;
     }
 
     const user = getUserById(userId);
@@ -69,7 +67,7 @@ router.get(
 );
 
 router.get("/profile/:username", (req, res) => {
-  const { username } = req.params;
+  const username = stringField(req.params, "username");
 
   const user = pick(["firstName", "lastName", "avatar"], getUserByUsername(username));
 
@@ -83,11 +81,30 @@ router.patch(
   userFieldsValidator,
   validateMiddleware([shortIdValidation("userId"), ...isUserValidator]),
   (req, res) => {
-    const { userId } = req.params;
+    const userId = stringField(req.params, "userId");
 
-    const edits: User = req.body;
+    if (!isEqual(userId, required(req.user, "authenticated user").id)) {
+      res.status(401).send({
+        error: "Unauthorized",
+      });
+      return;
+    }
 
-    updateUserById(userId, edits);
+    const edits = userPatchBody.validateSync(req.body, { stripUnknown: true });
+
+    updateUserById(userId, {
+      ...(edits.firstName === undefined ? {} : { firstName: edits.firstName }),
+      ...(edits.lastName === undefined ? {} : { lastName: edits.lastName }),
+      ...(edits.username === undefined ? {} : { username: edits.username }),
+      ...(edits.password === undefined ? {} : { password: edits.password }),
+      ...(edits.balance === undefined ? {} : { balance: edits.balance }),
+      ...(edits.email === undefined ? {} : { email: edits.email }),
+      ...(edits.phoneNumber === undefined ? {} : { phoneNumber: edits.phoneNumber }),
+      ...(edits.avatar === undefined ? {} : { avatar: edits.avatar }),
+      ...(edits.defaultPrivacyLevel === undefined
+        ? {}
+        : { defaultPrivacyLevel: edits.defaultPrivacyLevel }),
+    });
 
     res.sendStatus(204);
   }

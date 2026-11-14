@@ -1,11 +1,7 @@
-import React, { useEffect, ReactNode } from "react";
+import type { ReactNode } from "react";
+import React, { useEffect } from "react";
 import { useMachine } from "@xstate/react";
-import {
-  TransactionPagination,
-  TransactionResponseItem,
-  TransactionDateRangePayload,
-  TransactionAmountRangePayload,
-} from "../models";
+import type { TransactionDateRangePayload, TransactionAmountRangePayload } from "../models";
 import TransactionList from "./TransactionList";
 import { publicTransactionsMachine } from "../machines/publicTransactionsMachine";
 
@@ -35,10 +31,10 @@ const TransactionPublicList: React.FC<TransactionPublicListProps> = ({
       <TransactionList
         filterComponent={filterComponent}
         header="Public"
-        transactions={results as TransactionResponseItem[]}
+        transactions={results}
         isLoading={current.matches("loading")}
         loadNextPage={loadNextPage}
-        pagination={pageData as TransactionPagination}
+        pagination={pageData}
         showCreateButton
       />
     </>

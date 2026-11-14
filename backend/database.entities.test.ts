@@ -1,3 +1,4 @@
+import { objectContaining, anyString, anyDate } from "./test-matchers";
 import bcrypt from "bcryptjs";
 import fs from "fs";
 import { describe, expect, test, vi } from "vitest";
@@ -48,7 +49,7 @@ describe("seedDatabase", () => {
       expect.stringMatching(/data[\\/]database-seed\.json$/),
       "utf-8"
     );
-    expect(getAllUsers()).toEqual([expect.objectContaining({ id: "seeded" })]);
+    expect(getAllUsers()).toEqual([objectContaining({ id: "seeded" })]);
   });
 });
 
@@ -88,17 +89,18 @@ describe("users", () => {
       ...buildUser(),
       username: "newbie",
       password: "s3cret",
-      balance: "250" as unknown as number,
+      balance: 250,
     });
 
-    expect(user).toMatchObject({ username: "newbie", balance: 250, id: expect.any(String) });
+    expect(user).toMatchObject({ username: "newbie", balance: 250, id: anyString });
     expect(bcrypt.compareSync("s3cret", user.password)).toBe(true);
     expect(getUserByUsername("newbie")).toEqual(user);
   });
 
   test("createUser defaults a missing balance to zero", () => {
     resetDatabase();
-    const details = buildUser({ password: "s3cret", balance: undefined });
+    const { balance, ...details } = buildUser({ password: "s3cret" });
+    expect(balance).toBeTypeOf("number");
 
     expect(createUser(details).balance).toBe(0);
   });
@@ -146,9 +148,7 @@ describe("contacts", () => {
   test("getContactsByUsername returns the user's contacts", () => {
     seedPeople();
 
-    expect(getContactsByUsername("ada")).toEqual([
-      expect.objectContaining({ contactUserId: "user2" }),
-    ]);
+    expect(getContactsByUsername("ada")).toEqual([objectContaining({ contactUserId: "user2" })]);
   });
 
   test("createContactForUser stores and returns the new contact", () => {
@@ -205,9 +205,9 @@ describe("bank transfers", () => {
     });
 
     expect(transfer).toMatchObject({
-      id: expect.any(String),
+      id: anyString,
       amount: 1500,
-      createdAt: expect.any(Date),
+      createdAt: anyDate,
     });
     expect(getBankTransfersByUserId("user1")).toEqual([transfer]);
     expect(getBankTransferByTransactionId("txn1")).toEqual(transfer);

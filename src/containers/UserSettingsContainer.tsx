@@ -1,10 +1,10 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper, Typography, Grid } from "@mui/material";
-import { User, UserSettingsPayload } from "../models";
+import type { User, UserSettingsPayload } from "../models";
 import UserSettingsForm from "../components/UserSettingsForm";
-import { InterpreterFrom } from "xstate";
-import { authMachine } from "../machines/authMachine";
+import type { InterpreterFrom } from "xstate";
+import { isAppUser, type authMachine } from "../machines/authMachine";
 import { useActor } from "@xstate/react";
 import PersonalSettingsIllustration from "../components/SvgUndrawPersonalSettingsKihd";
 
@@ -30,7 +30,10 @@ export interface Props {
 const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
   const [authState, sendAuth] = useActor(authService);
 
-  const currentUser = authState?.context?.user;
+  const currentUser =
+    authState.context.user && isAppUser(authState.context.user)
+      ? authState.context.user
+      : undefined;
   const updateUser = (payload: UserSettingsPayload & Pick<User, "id">) =>
     sendAuth({ type: "UPDATE", ...payload });
 

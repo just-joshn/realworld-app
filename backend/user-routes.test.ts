@@ -1,3 +1,5 @@
+import { objectContaining } from "./test-matchers";
+import * as yup from "yup";
 import { describe, expect, test, vi } from "vitest";
 import { buildUser } from "../test/factories";
 import { resetDatabase, seedPeople } from "../test/database";
@@ -10,7 +12,10 @@ vi.mock(import("lowdb/adapters/FileSync"), async () => ({
 }));
 
 const resultIds = (body: unknown) =>
-  (body as { results: { id: string }[] }).results.map((item) => item.id);
+  yup
+    .object({ results: yup.array(yup.object({ id: yup.string().defined() })).defined() })
+    .validateSync(body)
+    .results.map((item) => item.id);
 
 test("GET / lists every user except the current one", async () => {
   seedPeople();
@@ -49,7 +54,7 @@ test("POST / creates a user", async () => {
   });
 
   expect(status).toBe(201);
-  expect(body).toEqual({ user: expect.objectContaining({ username: "edsger" }) });
+  expect(body).toEqual({ user: objectContaining({ username: "edsger" }) });
   expect(getUserByUsername("edsger")).toMatchObject({ firstName: "Edsger" });
 });
 
@@ -63,7 +68,7 @@ describe("GET /:userId", () => {
       user: { id: "t45AiwidW" },
     });
 
-    expect(body).toEqual({ user: expect.objectContaining({ id: "t45AiwidW" }) });
+    expect(body).toEqual({ user: objectContaining({ id: "t45AiwidW" }) });
   });
 
   test("refuses to return another user's record", async () => {
@@ -101,4 +106,32 @@ test("PATCH /:userId updates the user", async () => {
 
   expect(result).toEqual({ status: 204 });
   expect(getUserById("t45AiwidW").firstName).toBe("Augusta");
+});
+
+test("PATCH /:userId retains a zero balance instead of omitting the edit", async () => {
+  resetDatabase({ users: [buildUser({ id: "t45AiwidW", balance: 1000 })] });
+
+  const result = await dispatch(router, {
+    method: "PATCH",
+    url: "/t45AiwidW",
+    user: { id: "t45AiwidW" },
+    body: { balance: "0" },
+  });
+
+  expect(result.status).toBe(204);
+  expect(getUserById("t45AiwidW").balance).toBe(0);
+});
+
+test("PATCH /:userId refuses to update another user", async () => {
+  resetDatabase({ users: [buildUser({ id: "t45AiwidW", firstName: "Ada" })] });
+
+  const result = await dispatch(router, {
+    method: "PATCH",
+    url: "/t45AiwidW",
+    user: { id: "someoneElse" },
+    body: { firstName: "Mallory" },
+  });
+
+  expect(result).toEqual({ status: 401, body: { error: "Unauthorized" } });
+  expect(getUserById("t45AiwidW").firstName).toBe("Ada");
 });

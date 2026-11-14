@@ -1,4 +1,5 @@
 import path from "path";
+import { parseDatabase } from "./database-schema";
 import { required } from "./required";
 import { chain } from "lodash";
 import bcrypt from "bcryptjs";
@@ -8,8 +9,6 @@ import {
   uniqBy,
   map,
   sample,
-  reject,
-  includes,
   orderBy,
   flow,
   flatMap,
@@ -24,29 +23,31 @@ import { isWithinInterval } from "date-fns";
 import low from "lowdb";
 import FileSync from "lowdb/adapters/FileSync";
 import shortid from "shortid";
-import {
+import type {
   BankAccount,
   Transaction,
   User,
   Contact,
-  TransactionStatus,
-  TransactionRequestStatus,
   Like,
   Comment,
   PaymentNotification,
-  PaymentNotificationStatus,
   LikeNotification,
   CommentNotification,
   NotificationType,
   NotificationPayloadType,
-  NotificationsType,
   TransactionResponseItem,
   TransactionPayload,
   BankTransfer,
   BankTransferPayload,
-  BankTransferType,
   NotificationResponseItem,
   TransactionQueryPayload,
+} from "../src/models";
+import {
+  TransactionStatus,
+  TransactionRequestStatus,
+  PaymentNotificationStatus,
+  NotificationsType,
+  BankTransferType,
   DefaultPrivacyLevel,
 } from "../src/models";
 import Fuse from "fuse.js";
@@ -66,7 +67,7 @@ import {
   isLikeNotification,
   isCommentNotification,
 } from "../src/utils/transactionUtils";
-import { DbSchema } from "../src/models/db-schema";
+import type { DbSchema } from "../src/models/db-schema";
 
 export type TDatabase = {
   users: User[];
@@ -94,11 +95,11 @@ const adapter = new FileSync<DbSchema>(databaseFile);
 const db = low(adapter);
 
 export const seedDatabase = () => {
-  const testSeed = JSON.parse(
+  const testSeed: unknown = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), "data", "database-seed.json"), "utf-8")
   );
 
-  db.setState(testSeed).write();
+  void db.setState(parseDatabase(testSeed)).write();
   return;
 };
 
@@ -107,7 +108,8 @@ export const getAllUsers = () => db.get(USER_TABLE).value();
 export const getAllPublicTransactions = () =>
   db.get(TRANSACTION_TABLE).filter({ privacyLevel: DefaultPrivacyLevel.public }).value();
 
-export const getAllForEntity = (entity: keyof DbSchema) => db.get(entity).value();
+export const getAllForEntity = <K extends keyof DbSchema>(entity: K): DbSchema[K] =>
+  db.getState()[entity];
 
 export function getAllBy<K extends keyof DbSchema>(
   entity: K,
@@ -145,12 +147,8 @@ export const setupSearch = curry(
   }
 );
 
-export const performSearch = (items: object[], options: Fuse.IFuseOptions<object>, query: string) =>
-  flow(
-    cleanSearchQuery,
-    setupSearch(items, options),
-    map((result) => result.item)
-  )(query);
+export const performSearch = <T>(items: T[], options: Fuse.IFuseOptions<T>, query: string): T[] =>
+  new Fuse(items, options).search(cleanSearchQuery(query)).map((result) => result.item);
 
 export const searchUsers = (query: string) => {
   const items = getAllUsers();
@@ -160,7 +158,7 @@ export const searchUsers = (query: string) => {
       keys: ["firstName", "lastName", "username", "email", "phoneNumber"],
     },
     query
-  ) as User[];
+  );
 };
 
 export const removeUserFromResults = (userId: User["id"], results: User[]) =>
@@ -207,13 +205,13 @@ export const createUser = (
 };
 
 const saveUser = (user: User) => {
-  db.get(USER_TABLE).push(user).write();
+  void db.get(USER_TABLE).push(user).write();
 };
 
 export const updateUserById = (userId: string, edits: Partial<User>) => {
   const user = getUserById(userId);
 
-  db.get(USER_TABLE).find(user).assign(edits).write();
+  void db.get(USER_TABLE).find(user).assign(edits).write();
 };
 
 export const getContactBy = (key: string, value: unknown) => getBy(CONTACT_TABLE, key, value);
@@ -226,7 +224,7 @@ export const getContactsByUsername = (username: string) =>
 export const getContactsByUserId = (userId: string): Contact[] => getContactsBy("userId", userId);
 
 export const createContact = (contact: Contact) => {
-  db.get(CONTACT_TABLE).push(contact).write();
+  void db.get(CONTACT_TABLE).push(contact).write();
 
   return getContactBy("id", contact.id);
 };
@@ -234,7 +232,7 @@ export const createContact = (contact: Contact) => {
 export const removeContactById = (contactId: string) => {
   const contact = getContactBy("id", contactId);
 
-  db.get(CONTACT_TABLE).remove(contact).write();
+  void db.get(CONTACT_TABLE).remove(contact).write();
 };
 
 export const createContactForUser = (userId: string, contactUserId: string) => {
@@ -262,7 +260,7 @@ export const getBankAccountsBy = (key: string, value: unknown) =>
   getAllBy(BANK_ACCOUNT_TABLE, key, value);
 
 export const createBankAccount = (bankaccount: BankAccount) => {
-  db.get(BANK_ACCOUNT_TABLE).push(bankaccount).write();
+  void db.get(BANK_ACCOUNT_TABLE).push(bankaccount).write();
 
   return getBankAccountBy("id", bankaccount.id);
 };
@@ -290,7 +288,7 @@ export const createBankAccountForUser = (
 };
 
 export const removeBankAccountById = (bankAccountId: string) => {
-  db.get(BANK_ACCOUNT_TABLE).find({ id: bankAccountId }).assign({ isDeleted: true }).write();
+  void db.get(BANK_ACCOUNT_TABLE).find({ id: bankAccountId }).assign({ isDeleted: true }).write();
 };
 
 export const getBankTransferBy = (key: string, value: unknown) =>
@@ -315,7 +313,7 @@ export const createBankTransfer = (bankTransferDetails: BankTransferPayload) => 
 };
 
 const saveBankTransfer = (bankTransfer: BankTransfer): BankTransfer => {
-  db.get(BANK_TRANSFER_TABLE).push(bankTransfer).write();
+  void db.get(BANK_TRANSFER_TABLE).push(bankTransfer).write();
 
   return getBankTransferBy("id", bankTransfer.id);
 };
@@ -331,7 +329,7 @@ export const getTransactionByIdForApi = (id: string) =>
   formatTransactionForApiResponse(getTransactionBy("id", id));
 
 export const getTransactionsForUserForApi = (userId: string, query?: object) =>
-  flow(getTransactionsForUserByObj(userId), formatTransactionsForApiResponse)(query);
+  formatTransactionsForApiResponse(getTransactionsForUserByObj(userId, query ?? {}));
 
 export const getFullNameForUser = (userId: User["id"]) => flow(getUserById, formatFullName)(userId);
 
@@ -386,22 +384,28 @@ export const getAllTransactionsForUserByObj = curry((userId: string, query: obje
     const { dateRangeStart, dateRangeEnd } = getDateQueryFields(query);
     const { amountMin, amountMax } = getAmountQueryFields(query);
 
-    return flow(
-      transactionsWithinDateRange(dateRangeStart, dateRangeEnd),
-      transactionsWithinAmountRange(amountMin, amountMax)
-    )(userTransactions);
+    return transactionsWithinAmountRange(
+      amountMin,
+      amountMax,
+      transactionsWithinDateRange(dateRangeStart, dateRangeEnd, userTransactions)
+    );
   }
   return userTransactions;
 });
 
 export const transactionsWithinAmountRange = curry(
-  (amountMin: number | undefined, amountMax: number | undefined, transactions: Transaction[]) => {
-    if (!amountMin || !amountMax) {
+  (
+    amountMin: number | string | undefined,
+    amountMax: number | string | undefined,
+    transactions: Transaction[]
+  ) => {
+    if (amountMin === undefined || amountMax === undefined) {
       return transactions;
     }
 
     return filter(
-      (transaction: Transaction) => inRange(amountMin, amountMax, transaction.amount),
+      (transaction: Transaction) =>
+        inRange(Number(amountMin), Number(amountMax), transaction.amount),
       transactions
     );
   }
@@ -413,7 +417,7 @@ export const transactionsWithinDateRange = curry(
     dateRangeEnd: string | undefined,
     transactions: Transaction[]
   ) => {
-    if (!dateRangeStart || !dateRangeEnd) {
+    if (dateRangeStart === undefined || dateRangeEnd === undefined) {
       return transactions;
     }
 
@@ -428,18 +432,18 @@ export const transactionsWithinDateRange = curry(
   }
 );
 
-export const getTransactionsForUserByObj = curry((userId: string, query: object) =>
-  flow(getAllTransactionsForUserByObj(userId), uniqBy("id"))(query)
+export const getTransactionsForUserByObj = curry((userId: string, query: object): Transaction[] =>
+  uniqBy("id", getAllTransactionsForUserByObj(userId, query))
 );
 
 export const getContactIdsForUser = (userId: string): Contact["id"][] =>
-  flow(getContactsByUserId, map("contactUserId"))(userId);
+  getContactsByUserId(userId).map((contact) => contact.contactUserId);
 
 export const getTransactionsForUserContacts = (userId: string, query?: object) =>
   uniqBy(
     "id",
     flatMap(
-      (contactId) => getTransactionsForUserForApi(contactId, query),
+      (contactId: string) => getTransactionsForUserForApi(contactId, query),
       getContactIdsForUser(userId)
     )
   );
@@ -451,10 +455,9 @@ export const getContactsTransactionIds = (userId: string): Transaction["id"][] =
 
 export const nonContactPublicTransactions = (userId: string): Transaction[] => {
   const contactsTransactionIds = getContactsTransactionIds(userId);
-  return flow(
-    getAllPublicTransactions,
-    reject((transaction: Transaction) => includes(transaction.id, contactsTransactionIds))
-  )();
+  return getAllPublicTransactions().filter(
+    (transaction) => !contactsTransactionIds.includes(transaction.id)
+  );
 };
 
 export const getNonContactPublicTransactionsForApi = (userId: string) =>
@@ -466,16 +469,21 @@ export const getPublicTransactionsDefaultSort = (userId: string) => ({
 });
 
 export const getPublicTransactionsByQuery = (userId: string, query: TransactionQueryPayload) => {
-  if (query && (hasDateQueryFields(query) || hasAmountQueryFields(query))) {
+  if (hasDateQueryFields(query) || hasAmountQueryFields(query)) {
     const { dateRangeStart, dateRangeEnd } = getDateQueryFields(query);
     const { amountMin, amountMax } = getAmountQueryFields(query);
 
     return {
       contactsTransactions: getTransactionsForUserContacts(userId, query),
-      publicTransactions: flow(
-        transactionsWithinDateRange(dateRangeStart, dateRangeEnd),
-        transactionsWithinAmountRange(amountMin, amountMax)
-      )(getNonContactPublicTransactionsForApi(userId)),
+      publicTransactions: transactionsWithinAmountRange(
+        amountMin,
+        amountMax,
+        transactionsWithinDateRange(
+          dateRangeStart,
+          dateRangeEnd,
+          getNonContactPublicTransactionsForApi(userId)
+        )
+      ),
     };
   } else {
     return {
@@ -500,8 +508,9 @@ export const debitPayAppBalance = (user: User, transaction: Transaction) => {
   }
 };
 
-export const creditPayAppBalance = (user: User, transaction: Transaction) =>
+export const creditPayAppBalance = (user: User, transaction: Transaction) => {
   flow(getPayAppCreditedAmount, savePayAppBalance(user))(user, transaction);
+};
 
 export const createBankTransferWithdrawal = curry(
   (sender: User, transaction: Transaction, transferAmount: number) =>
@@ -514,14 +523,15 @@ export const createBankTransferWithdrawal = curry(
     })
 );
 
-export const savePayAppBalance = curry((sender: User, balance: number) =>
-  updateUserById(get("id", sender), { balance })
-);
+export const savePayAppBalance = curry((sender: User, balance: number) => {
+  updateUserById(get("id", sender), { balance });
+});
 
 export const createTransaction = (
   userId: User["id"],
   transactionType: "payment" | "request",
-  transactionDetails: TransactionPayload
+  transactionDetails: Omit<TransactionPayload, "privacyLevel"> &
+    Partial<Pick<TransactionPayload, "privacyLevel">>
 ): Transaction => {
   const sender = getUserById(userId);
   const receiver = getUserById(transactionDetails.receiverId);
@@ -533,9 +543,9 @@ export const createTransaction = (
     description: transactionDetails.description,
     receiverId: transactionDetails.receiverId,
     senderId: userId,
-    privacyLevel: transactionDetails.privacyLevel || sender.defaultPrivacyLevel,
+    privacyLevel: transactionDetails.privacyLevel ?? sender.defaultPrivacyLevel,
     status: TransactionStatus.pending,
-    requestStatus: transactionType === "request" ? TransactionRequestStatus.pending : undefined,
+    ...(transactionType === "request" ? { requestStatus: TransactionRequestStatus.pending } : {}),
     createdAt: new Date(),
     modifiedAt: new Date(),
   };
@@ -565,7 +575,7 @@ export const createTransaction = (
 };
 
 const saveTransaction = (transaction: Transaction): Transaction => {
-  db.get(TRANSACTION_TABLE).push(transaction).write();
+  void db.get(TRANSACTION_TABLE).push(transaction).write();
 
   return getTransactionBy("id", transaction.id);
 };
@@ -595,7 +605,7 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
     );
   }
 
-  db.get(TRANSACTION_TABLE).find(transaction).assign(edits).write();
+  void db.get(TRANSACTION_TABLE).find(transaction).assign(edits).write();
 };
 
 export const getLikeBy = (key: string, value: unknown): Like => getBy(LIKE_TABLE, key, value);
@@ -634,7 +644,7 @@ export const createLikes = (userId: string, transactionId: string) => {
 };
 
 const saveLike = (like: Like): Like => {
-  db.get(LIKE_TABLE).push(like).write();
+  void db.get(LIKE_TABLE).push(like).write();
 
   return getLikeById(like.id);
 };
@@ -678,7 +688,7 @@ export const createComments = (userId: string, transactionId: string, content: s
 };
 
 const saveComment = (comment: Comment): Comment => {
-  db.get(COMMENT_TABLE).push(comment).write();
+  void db.get(COMMENT_TABLE).push(comment).write();
 
   return getCommentById(comment.id);
 };
@@ -690,7 +700,7 @@ export const getNotificationsByObj = (query: object): NotificationType[] =>
   getAllByObj(NOTIFICATION_TABLE, query);
 
 export const getUnreadNotificationsByUserId = (userId: string) =>
-  flow(getNotificationsByObj, formatNotificationsForApiResponse)({ userId, isRead: false });
+  formatNotificationsForApiResponse(getNotificationsByObj({ userId, isRead: false }));
 
 export const createPaymentNotification = (
   userId: string,
@@ -753,7 +763,7 @@ export const createCommentNotification = (
 };
 
 const saveNotification = (notification: NotificationType) => {
-  db.get(NOTIFICATION_TABLE).push(notification).write();
+  void db.get(NOTIFICATION_TABLE).push(notification).write();
 };
 
 export const createNotifications = (userId: string, notifications: NotificationPayloadType[]) =>
@@ -767,16 +777,17 @@ export const createNotifications = (userId: string, notifications: NotificationP
         return createCommentNotification(userId, item.transactionId, item.commentId);
       }
     }
+    return undefined;
   });
 
 export const updateNotificationById = (
-  userId: string,
+  _userId: string,
   notificationId: string,
   edits: Partial<NotificationType>
 ) => {
   const notification = getNotificationBy("id", notificationId);
 
-  db.get(NOTIFICATION_TABLE).find(notification).assign(edits).write();
+  void db.get(NOTIFICATION_TABLE).find(notification).assign(edits).write();
 };
 
 export const formatNotificationForApiResponse = (
@@ -806,7 +817,7 @@ export const formatNotificationForApiResponse = (
 };
 
 export const formatNotificationsForApiResponse = (
-  notifications: NotificationResponseItem[]
+  notifications: NotificationType[]
 ): NotificationResponseItem[] =>
   orderBy(
     [(notification: NotificationResponseItem) => new Date(notification.modifiedAt)],

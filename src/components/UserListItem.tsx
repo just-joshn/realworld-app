@@ -1,7 +1,7 @@
 import React from "react";
 import { ListItem, ListItemText, ListItemAvatar, Avatar, Grid } from "@mui/material";
 
-import { User } from "../models";
+import type { User } from "../models";
 
 export interface UserListItemProps {
   user: User;
@@ -11,7 +11,12 @@ export interface UserListItemProps {
 
 const UserListItem: React.FC<UserListItemProps> = ({ user, setReceiver }) => {
   return (
-    <ListItem data-test={`user-list-item-${user.id}`} onClick={() => setReceiver(user)}>
+    <ListItem
+      data-test={`user-list-item-${user.id}`}
+      onClick={() => {
+        setReceiver(user);
+      }}
+    >
       <ListItemAvatar>
         <Avatar src={user.avatar} />
       </ListItemAvatar>

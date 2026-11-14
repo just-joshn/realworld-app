@@ -2,8 +2,8 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import { Paper, Typography, Grid, Avatar, Box, Button } from "@mui/material";
-import { InterpreterFrom } from "xstate";
-import { createTransactionMachine } from "../machines/createTransactionMachine";
+import type { InterpreterFrom } from "xstate";
+import type { createTransactionMachine } from "../machines/createTransactionMachine";
 import { useActor } from "@xstate/react";
 import { formatAmount } from "../utils/transactionUtils";
 
@@ -32,8 +32,10 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
 
   const [createTransactionState, sendCreateTransaction] = useActor(createTransactionService);
 
-  const receiver = createTransactionState?.context?.receiver;
-  const transactionDetails = createTransactionState?.context?.transactionDetails;
+  const receiver = createTransactionState.context.receiver;
+  const transactionDetails = createTransactionState.context.transactionDetails;
+
+  if (!receiver || !transactionDetails) return null;
 
   return (
     <StyledPaper className={classes.paper} elevation={0}>
@@ -76,10 +78,10 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
         <Grid container direction="row" justifyContent="center" alignItems="center">
           <Grid item>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              {transactionDetails?.transactionType === "payment" ? "Paid " : "Requested "}
-              {transactionDetails?.amount &&
+              {transactionDetails.transactionType === "payment" ? "Paid " : "Requested "}
+              {transactionDetails.amount &&
                 formatAmount(Math.round(Number(transactionDetails.amount) * 100))}{" "}
-              for {transactionDetails?.description}
+              for {transactionDetails.description}
             </Typography>
           </Grid>
         </Grid>

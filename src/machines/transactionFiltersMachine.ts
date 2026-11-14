@@ -1,21 +1,4 @@
-import { Machine, assign } from "xstate";
-
-interface FilterSchema {
-  states: {
-    dateRange: {
-      states: {
-        none: Record<string, never>;
-        filter: Record<string, never>;
-      };
-    };
-    amountRange: {
-      states: {
-        none: Record<string, never>;
-        filter: Record<string, never>;
-      };
-    };
-  };
-}
+import { createMachine, assign } from "xstate";
 
 type DateFilterEvent = {
   type: "DATE_FILTER";
@@ -33,13 +16,13 @@ type FilterEvents =
   { type: "NONE" } | DateFilterEvent | AmountFilterEvent | DateResetEvent | AmountResetEvent;
 
 export interface FilterContext {
-  dateRangeStart?: string;
-  dateRangeEnd?: string;
-  amountMin?: string;
-  amountMax?: string;
+  dateRangeStart?: string | undefined;
+  dateRangeEnd?: string | undefined;
+  amountMin?: string | undefined;
+  amountMax?: string | undefined;
 }
 
-export const transactionFiltersMachine = Machine<FilterContext, FilterSchema, FilterEvents>(
+export const transactionFiltersMachine = createMachine<FilterContext, FilterEvents>(
   {
     id: "filters",
     type: "parallel",
@@ -84,7 +67,7 @@ export const transactionFiltersMachine = Machine<FilterContext, FilterSchema, Fi
   },
   {
     actions: {
-      setDateRange: assign<FilterContext, FilterEvents>((ctx, event) => ({
+      setDateRange: assign<FilterContext, FilterEvents>((_ctx, event) => ({
         dateRangeStart: "dateRangeStart" in event ? event.dateRangeStart : undefined,
         dateRangeEnd: "dateRangeEnd" in event ? event.dateRangeEnd : undefined,
       })),
@@ -92,7 +75,7 @@ export const transactionFiltersMachine = Machine<FilterContext, FilterSchema, Fi
         dateRangeStart: undefined,
         dateRangeEnd: undefined,
       })),
-      setAmountRange: assign<FilterContext, FilterEvents>((ctx, event) => ({
+      setAmountRange: assign<FilterContext, FilterEvents>((_ctx, event) => ({
         amountMin: "amountMin" in event ? event.amountMin : undefined,
         amountMax: "amountMax" in event ? event.amountMax : undefined,
       })),

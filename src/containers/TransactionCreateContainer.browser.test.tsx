@@ -86,7 +86,7 @@ test("explains required payment fields before enabling submission", async () => 
 for (const [action, summary] of [
   ["Pay", "Paid"],
   ["Request", "Requested"],
-]) {
+] as const) {
   test(`confirms a ${action.toLowerCase()} transaction and returns to transactions`, async () => {
     const screen = await renderCreate();
     const received = vi.fn();

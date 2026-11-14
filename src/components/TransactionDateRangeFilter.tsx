@@ -6,7 +6,7 @@ import { ArrowDropDown as ArrowDropDownIcon, Cancel as CancelIcon } from "@mui/i
 import Calendar from "react-calendar";
 
 import "react-calendar/dist/Calendar.css";
-import { TransactionDateRangePayload, Value } from "../models";
+import type { TransactionDateRangePayload, Value } from "../models";
 import { hasDateQueryFields, localDateToUTCISOString } from "../utils/transactionUtils";
 
 const PREFIX = "TransactionListDateRangeFilter";
@@ -41,7 +41,7 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
 }) => {
   const theme = useTheme();
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
-  const queryHasDateFields = dateRangeFilters && hasDateQueryFields(dateRangeFilters);
+  const queryHasDateFields = hasDateQueryFields(dateRangeFilters);
   const [calendarValue, setCalendarValue] = useState<Value>(null);
 
   const [dateRangeAnchorEl, setDateRangeAnchorEl] = React.useState<HTMLDivElement | null>(null);
@@ -83,6 +83,7 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
       const label = `${formatButtonDate(dateRangeStart)} - ${formatButtonDate(dateRangeEnd)}`;
       return label;
     }
+    return "ALL";
   };
 
   return (
@@ -145,7 +146,12 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
           anchor="bottom"
           data-test="date-range-filter-drawer"
         >
-          <Button data-test="date-range-filter-drawer-close" onClick={() => handleDateRangeClose()}>
+          <Button
+            data-test="date-range-filter-drawer-close"
+            onClick={() => {
+              handleDateRangeClose();
+            }}
+          >
             Close
           </Button>
           <RangeCalendar

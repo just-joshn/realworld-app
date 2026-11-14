@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import clsx from "clsx";
-import { InterpreterFrom } from "xstate";
+import type { InterpreterFrom } from "xstate";
 import { useActor } from "@xstate/react";
 import {
   AppBar,
@@ -21,7 +21,7 @@ import {
 } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
-import { notificationsMachine } from "../machines/notificationsMachine";
+import type { notificationsMachine } from "../machines/notificationsMachine";
 import TransactionNavTabs from "./TransactionNavTabs";
 import RWALogo from "./SvgRwaLogo";
 import RWALogoIcon from "./SvgRwaIconLogo";
@@ -55,7 +55,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 
   [`&.${classes.appBarShift}`]: {
     marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
+    width: `calc(100% - ${String(drawerWidth)}px)`,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
@@ -108,7 +108,7 @@ const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notifications
   const theme = useTheme();
   const [notificationsState] = useActor(notificationsService);
 
-  const allNotifications = notificationsState?.context?.results;
+  const allNotifications = notificationsState.context.results;
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
 
   return (
@@ -122,7 +122,9 @@ const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notifications
           edge="start"
           color="inherit"
           aria-label="open drawer"
-          onClick={() => toggleDrawer()}
+          onClick={() => {
+            toggleDrawer();
+          }}
           size="large"
         >
           <MenuIcon data-test="drawer-icon" />
@@ -166,7 +168,7 @@ const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notifications
           size="large"
         >
           <Badge
-            badgeContent={allNotifications ? allNotifications.length : undefined}
+            badgeContent={allNotifications.length}
             data-test="nav-top-notifications-count"
             classes={{ badge: classes.customBadge }}
           >

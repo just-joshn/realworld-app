@@ -12,7 +12,7 @@ test("saves edited profile details", async () => {
     ["Last Name", "Hopper"],
     ["Email", "grace@example.com"],
     ["Phone Number", "5559876543"],
-  ]) {
+  ] as const) {
     await screen.getByPlaceholder(placeholder).fill(value);
   }
   await screen.getByRole("button", { name: "Save" }).click();

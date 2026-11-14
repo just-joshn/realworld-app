@@ -10,7 +10,7 @@ for (const [route, endpoint, header] of [
   ["/", "/transactions/public", "Public"],
   ["/personal", "/transactions", "Personal"],
   ["/contacts", "/transactions/contacts", "Contacts"],
-]) {
+] as const) {
   test(`shows ${header.toLowerCase()} transactions and opens their details`, async () => {
     worker.use(
       http.get(apiUrl(endpoint), () =>
@@ -41,8 +41,8 @@ for (const [route, endpoint, header] of [
               ]
             : Array.from({ length: 12 }, (_, i) =>
                 buildTransactionResponseItem({
-                  id: `txn${i}`,
-                  description: `Payment ${i}`,
+                  id: `txn${String(i)}`,
+                  description: `Payment ${String(i)}`,
                 })
               ),
           pageData: {
@@ -79,7 +79,7 @@ test("offers to create a transaction when there are none", async () => {
 for (const mobile of [false, true]) {
   test(`filters and clears transaction amounts on ${mobile ? "mobile" : "desktop"}`, async () => {
     await page.viewport(mobile ? 390 : 1280, 900);
-    const queries = vi.fn();
+    const queries = vi.fn<(query: Record<string, string>) => void>();
     worker.use(
       http.get(apiUrl("/transactions/public"), ({ request }) => {
         queries(Object.fromEntries(new URL(request.url).searchParams));
@@ -100,7 +100,9 @@ for (const mobile of [false, true]) {
       .toBe(true);
     await minAmount.click({ force: true });
     await userEvent.keyboard("{ArrowRight}");
-    await expect.poll(() => queries.mock.calls.some(([q]) => Number(q.amountMin) > 0)).toBe(true);
+    await expect
+      .poll(() => queries.mock.calls.some(([q]) => Number(q["amountMin"]) > 0))
+      .toBe(true);
     await expect.element(screen.getByText(/Amount Range:/)).toBeVisible();
     await screen.getByRole("button", { name: "Clear", exact: true }).click();
     await expect.poll(() => queries.mock.lastCall?.[0]).toEqual({});
@@ -115,7 +117,7 @@ for (const mobile of [false, true]) {
 
   test(`filters and resets transaction dates on ${mobile ? "mobile" : "desktop"}`, async () => {
     await page.viewport(mobile ? 390 : 1280, 900);
-    const queries = vi.fn();
+    const queries = vi.fn<(query: Record<string, string>) => void>();
     worker.use(
       http.get(apiUrl("/transactions/public"), ({ request }) => {
         queries(Object.fromEntries(new URL(request.url).searchParams));
@@ -130,10 +132,12 @@ for (const mobile of [false, true]) {
     await screen.getByRole("button", { name: "Date: ALL" }).click();
     const month = new Date().toLocaleString("en-US", { month: "long" });
     const year = new Date().getFullYear();
-    await screen.getByRole("button", { name: `${month} 1, ${year}`, exact: true }).click();
-    await screen.getByRole("button", { name: `${month} 10, ${year}`, exact: true }).click();
+    await screen.getByRole("button", { name: `${month} 1, ${String(year)}`, exact: true }).click();
+    await screen.getByRole("button", { name: `${month} 10, ${String(year)}`, exact: true }).click();
     await expect
-      .poll(() => queries.mock.calls.some(([q]) => q.dateRangeStart && q.dateRangeEnd))
+      .poll(() =>
+        queries.mock.calls.some(([q]) => Boolean(q["dateRangeStart"] && q["dateRangeEnd"]))
+      )
       .toBe(true);
     await expect.element(screen.getByRole("button", { name: /Date: .* - / })).toBeVisible();
     await screen.getByRole("button", { name: /Date: .* - / }).click();

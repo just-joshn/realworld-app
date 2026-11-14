@@ -88,7 +88,7 @@ describe("status sanitizers", () => {
   ])("sanitizeTransactionStatus maps $status to $expected", async ({ status, expected }) => {
     const { req } = await validate([sanitizeTransactionStatus], { query: { status } });
 
-    expect(req.query.status).toBe(expected);
+    expect(req.query["status"]).toBe(expected);
   });
 
   test.for([
@@ -99,7 +99,7 @@ describe("status sanitizers", () => {
     async ({ requestStatus, expected }) => {
       const { req } = await validate([sanitizeRequestStatus], { query: { requestStatus } });
 
-      expect(req.query.requestStatus).toBe(expected);
+      expect(req.query["requestStatus"]).toBe(expected);
     }
   );
 });
@@ -115,7 +115,7 @@ test("isTransactionPayloadValidator converts the amount to a number", async () =
   });
 
   expect(errors).toEqual([]);
-  expect(req.body.amount).toBe(12.5);
+  expect(req.body).toMatchObject({ amount: 12.5 });
 });
 
 test("isNotificationsBodyValidator requires a known type and a shortid transaction", async () => {

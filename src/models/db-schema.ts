@@ -1,11 +1,11 @@
-import { User } from "./user";
-import { Contact } from "./contact";
-import { BankAccount } from "./bankaccount";
-import { Transaction } from "./transaction";
-import { Like } from "./like";
-import { BankTransfer } from "./banktransfer";
-import { NotificationType } from "./notification";
-import { Comment } from "./comment";
+import type { User } from "./user";
+import type { Contact } from "./contact";
+import type { BankAccount } from "./bankaccount";
+import type { Transaction } from "./transaction";
+import type { Like } from "./like";
+import type { BankTransfer } from "./banktransfer";
+import type { NotificationType } from "./notification";
+import type { Comment } from "./comment";
 
 export interface DbSchema {
   users: User[];
