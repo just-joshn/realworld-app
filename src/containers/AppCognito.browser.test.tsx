@@ -65,6 +65,18 @@ test("signs out of Cognito even when the app logout request fails", async () => 
   await expect.poll(() => vi.mocked(signOut).mock.calls.length).toBeGreaterThan(0);
 });
 
+test("signs out of Cognito when the user chooses Logout", async () => {
+  vi.mocked(signOut).mockClear();
+  signedInSession();
+  startProviderSession();
+  const screen = await renderWithRouter(<AppCognito />, { route: "/notifications" });
+
+  await screen.getByRole("button", { name: "open drawer" }).click();
+  await screen.getByRole("button", { name: "Logout" }).click();
+
+  await expect.poll(() => vi.mocked(signOut).mock.calls.length).toBe(1);
+});
+
 test("hides the private app when the Cognito user chooses Logout", async () => {
   signedInSession();
   startProviderSession();
