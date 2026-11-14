@@ -28,13 +28,6 @@ const Root = styled("div")(({ theme }) => ({
 
 Amplify.configure(awsConfig as ResourcesConfig);
 
-// @ts-ignore
-if (window.Cypress) {
-  // Expose authService on window for Cypress
-  // @ts-ignore
-  window.authService = authService;
-}
-
 const AppCognito: React.FC = /* istanbul ignore next */ () => {
   const [authState] = useActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);

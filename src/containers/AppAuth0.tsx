@@ -24,13 +24,6 @@ const Root = styled("div")(({ theme }) => ({
   },
 }));
 
-// @ts-ignore
-if (window.Cypress) {
-  // Expose authService on window for Cypress
-  // @ts-ignore
-  window.authService = authService;
-}
-
 /* istanbul ignore next */
 const AppAuth0: React.FC = () => {
   const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
