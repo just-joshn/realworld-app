@@ -167,7 +167,7 @@
     "build:ci": "vite build",
     "build": "vite build",
     "codesandbox:start:api": "yarn tsnode --files backend/app.ts",
-    "codesandbox:start": "NODE_ENV=development TSC_COMPILE_ON_ERROR=true concurrently \"vite\" yarn:start:api:codesandbox",
+    "codesandbox:start": "NODE_ENV=development TSC_COMPILE_ON_ERROR=true concurrently \"vite\" yarn:codesandbox:start:api",
     "postinstall": "husky install && patch-package"
   },
   "engines": {
