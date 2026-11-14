@@ -555,7 +555,7 @@ export const createTransaction = (
     id: shortid(),
     uuid: v4(),
     source: transactionDetails.source,
-    amount: transactionDetails.amount * 100,
+    amount: Math.round(transactionDetails.amount * 100),
     description: transactionDetails.description,
     receiverId: transactionDetails.receiverId,
     senderId: userId,
@@ -604,11 +604,17 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
   const sender = getUserById(senderId);
   const receiver = getUserById(receiverId);
 
-  // if payment, debit sender's balance for payment amount
   if (isRequestTransaction(transaction)) {
+    edits.status = TransactionStatus.complete;
+  }
+
+  // only an accepted request moves money: debit the payee, credit the requester
+  if (
+    isRequestTransaction(transaction) &&
+    edits.requestStatus === TransactionRequestStatus.accepted
+  ) {
     debitPayAppBalance(receiver, transaction);
     creditPayAppBalance(sender, transaction);
-    edits.status = TransactionStatus.complete;
 
     createPaymentNotification(
       transaction.senderId,

@@ -3,6 +3,7 @@ import { omit, flow } from "lodash/fp";
 import { dataMachine } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
+import { authService } from "./authMachine";
 
 export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
   "transactionData"
@@ -35,6 +36,8 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
         `http://localhost:${backendPort}/transactions/${transactionId}`,
         payload
       );
+      // accepting a request changes the current user's balance
+      authService.send("REFRESH");
       return resp.data;
     },
   },
