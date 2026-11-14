@@ -21,7 +21,7 @@ import {
 } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
-import { dataMachine } from "../machines/dataMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
 import TransactionNavTabs from "./TransactionNavTabs";
 import RWALogo from "./SvgRwaLogo";
 import RWALogoIcon from "./SvgRwaIconLogo";
@@ -99,7 +99,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 interface NavBarProps {
   drawerOpen: boolean;
   toggleDrawer: () => void;
-  notificationsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
 }
 
 const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notificationsService }) => {

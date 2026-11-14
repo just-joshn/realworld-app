@@ -5,7 +5,7 @@ import { useActor } from "@xstate/react";
 import { Paper, Typography } from "@mui/material";
 import { NotificationUpdatePayload } from "../models";
 import NotificationList from "../components/NotificationList";
-import { dataMachine } from "../machines/dataMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
 import { authMachine } from "../machines/authMachine";
 
 const PREFIX = "NotificationsContainer";
@@ -26,7 +26,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 export interface Props {
   authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
 }
 
 const NotificationsContainer: React.FC<Props> = ({ authService, notificationsService }) => {
@@ -41,10 +41,6 @@ const NotificationsContainer: React.FC<Props> = ({ authService, notificationsSer
     sendNotifications({ type: "UPDATE", ...payload });
 
   const notifications = notificationsState.context.results;
-  if (!notifications) {
-    throw new Error("Missing notification results");
-  }
-
   return (
     <StyledPaper className={classes.paper}>
       <Typography component="h2" variant="h6" color="primary" gutterBottom>

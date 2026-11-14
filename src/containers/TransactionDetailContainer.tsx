@@ -43,7 +43,7 @@ const TransactionDetailsContainer: React.FC<Props> = ({ authService }) => {
           <br />
         </div>
       )}
-      {currentUser && transactionDetailState.matches("success") && (
+      {currentUser && transaction && transactionDetailState.matches("success") && (
         <TransactionDetail
           transaction={transaction}
           transactionLike={transactionLike}

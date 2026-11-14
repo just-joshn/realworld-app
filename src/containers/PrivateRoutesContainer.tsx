@@ -9,7 +9,8 @@ import NotificationsContainer from "./NotificationsContainer";
 import BankAccountsContainer from "./BankAccountsContainer";
 import TransactionCreateContainer from "./TransactionCreateContainer";
 import TransactionDetailContainer from "./TransactionDetailContainer";
-import { dataMachine } from "../machines/dataMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
+import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import { authMachine } from "../machines/authMachine";
 import { snackbarMachine } from "../machines/snackbarMachine";
 import { useActor } from "@xstate/react";
@@ -18,9 +19,9 @@ import UserOnboardingContainer from "./UserOnboardingContainer";
 export interface Props {
   isLoggedIn: boolean;
   authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
   snackbarService: InterpreterFrom<typeof snackbarMachine>;
-  bankAccountsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
 }
 
 const PrivateRoutesContainer: React.FC<Props> = ({

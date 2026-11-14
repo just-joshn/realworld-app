@@ -7,7 +7,7 @@ import { Container, Grid, useMediaQuery, useTheme } from "@mui/material";
 import Footer from "./Footer";
 import NavBar from "./NavBar";
 import NavDrawer from "./NavDrawer";
-import { dataMachine } from "../machines/dataMachine";
+import { notificationsMachine } from "../machines/notificationsMachine";
 import { authMachine } from "../machines/authMachine";
 import { drawerMachine } from "../machines/drawerMachine";
 
@@ -54,7 +54,7 @@ const Root = styled("div")(({ theme }) => ({
 interface Props {
   children: React.ReactNode;
   authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  notificationsService: InterpreterFrom<typeof notificationsMachine>;
 }
 
 const MainLayout: React.FC<Props> = ({ children, notificationsService, authService }) => {

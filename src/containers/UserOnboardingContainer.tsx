@@ -18,14 +18,14 @@ import { useActor, useMachine } from "@xstate/react";
 import { userOnboardingMachine } from "../machines/userOnboardingMachine";
 import { BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
-import { dataMachine } from "../machines/dataMachine";
+import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import { authMachine } from "../machines/authMachine";
 import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
 import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
 
 export interface Props {
   authService: InterpreterFrom<typeof authMachine>;
-  bankAccountsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
 }
 
 const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
@@ -57,10 +57,6 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
     sendBankAccounts({ type: "CREATE", ...payload });
     nextStep();
   };
-
-  if (userOnboardingState.matches("stepTwo") && !currentUser) {
-    throw new Error("Missing onboarding user");
-  }
 
   return (
     <Dialog data-test="user-onboarding-dialog" fullScreen={fullScreen} open={dialogIsOpen}>

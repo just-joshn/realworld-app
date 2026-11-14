@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import { useMachine, useActor } from "@xstate/react";
-import { User, TransactionPayload } from "../models";
+import { User } from "../models";
 import TransactionCreateStepOne from "../components/TransactionCreateStepOne";
-import TransactionCreateStepTwo from "../components/TransactionCreateStepTwo";
+import TransactionCreateStepTwo, {
+  TransactionCreateStepTwoProps,
+} from "../components/TransactionCreateStepTwo";
 import TransactionCreateStepThree from "../components/TransactionCreateStepThree";
 import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { usersMachine } from "../machines/usersMachine";
@@ -32,14 +34,10 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
 
   const sender = authState?.context?.user;
   const setReceiver = (receiver: User) => {
-    const event: { type: "SET_USERS"; sender: typeof sender; receiver: User } = {
-      type: "SET_USERS",
-      sender,
-      receiver,
-    };
-    sendCreateTransaction(event);
+    if (!sender) return;
+    sendCreateTransaction({ type: "SET_USERS", sender, receiver });
   };
-  const createTransaction = (payload: TransactionPayload) => {
+  const createTransaction: TransactionCreateStepTwoProps["createTransaction"] = (payload) => {
     sendCreateTransaction("CREATE", payload);
   };
   const userListSearch = debounce(200, (payload: { q: string }) =>
@@ -58,10 +56,6 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
   }
 
   const users = usersState.context.results;
-  if (!users) {
-    throw new Error("Missing user search results");
-  }
-
   return (
     <>
       <Stepper activeStep={activeStep}>

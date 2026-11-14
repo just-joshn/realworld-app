@@ -6,14 +6,14 @@ import { Link as RouterLink, useRouteMatch } from "react-router-dom";
 import { Grid, Button, Paper, Typography } from "@mui/material";
 
 import { authMachine } from "../machines/authMachine";
-import { dataMachine } from "../machines/dataMachine";
+import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import { BankAccount, BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
 import BankAccountList from "../components/BankAccountList";
 
 export interface Props {
   authService: InterpreterFrom<typeof authMachine>;
-  bankAccountsService: InterpreterFrom<ReturnType<typeof dataMachine>>;
+  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
 }
 const PREFIX = "BankAccountsContainer";
 
@@ -62,10 +62,6 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
   }
 
   const bankAccounts = bankAccountsState.context.results;
-  if (!bankAccounts) {
-    throw new Error("Missing bank account results");
-  }
-
   return (
     <StyledPaper className={classes.paper}>
       <Grid container direction="row" justifyContent="space-between" alignItems="center">

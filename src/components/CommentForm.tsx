@@ -3,6 +3,7 @@ import { styled } from "@mui/material/styles";
 import { TextField } from "@mui/material";
 import { Formik, Form, Field, FieldProps } from "formik";
 import { string, object } from "yup";
+import { Comment } from "../models";
 
 const validationSchema = object({
   content: string(),
@@ -31,7 +32,7 @@ const Root = styled("div")(({ theme }) => ({
 
 export interface CommentFormProps {
   transactionId: string;
-  transactionComment: (payload: object) => void;
+  transactionComment: (payload: Pick<Comment, "transactionId" | "content">) => void;
 }
 
 const CommentForm: React.FC<CommentFormProps> = ({ transactionId, transactionComment }) => {

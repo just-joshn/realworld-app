@@ -9,10 +9,9 @@ import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
 import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
-import { Amplify, ResourcesConfig } from "aws-amplify";
+import { Amplify } from "aws-amplify";
 import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 
-// @ts-expect-error Amplify generates aws-exports locally during configuration.
 import awsConfig from "../aws-exports";
 const PREFIX = "AppCognito";
 
@@ -26,7 +25,7 @@ const Root = styled("div")(() => ({
   },
 }));
 
-Amplify.configure(awsConfig as ResourcesConfig);
+Amplify.configure(awsConfig);
 
 const AppCognito: React.FC = /* istanbul ignore next */ () => {
   const [authState] = useActor(authService);
