@@ -33,5 +33,5 @@
       "vitest/browser": ["../node_modules/vitest/browser/context.d.ts"]
     }
   },
-  "include": ["src", "backend", "scripts", "test"]
+  "include": ["src", "backend", "scripts", "test", "playwright", "playwright.config.ts"]
 }
