@@ -15,10 +15,28 @@ export default defineConfig((env) =>
         expect: { requireAssertions: true },
         coverage: {
           provider: "v8",
-          include: ["src/utils/**/*.ts", "src/machines/**/*.ts", "backend/**/*.ts"],
+          include: [
+            "src/utils/**/*.ts",
+            "src/machines/**/*.ts",
+            "backend/**/*.ts",
+            "src/components/**/*.tsx",
+            "src/containers/**/*.tsx",
+          ],
           exclude: ["**/*.d.ts", "backend/app.ts"],
           reporter: ["text", "html", "lcov"],
-          thresholds: { branches: 80 },
+          // Vite's CommonJS interop for `import React from "react"` adds a
+          // `!mod.__esModule ? mod : mod.default` branch that no test can take.
+          ignoreNode: (node, type) =>
+            type === "branch" &&
+            node.type === "ConditionalExpression" &&
+            node.test.type === "UnaryExpression" &&
+            node.test.argument.type === "MemberExpression" &&
+            node.test.argument.property.type === "Identifier" &&
+            node.test.argument.property.name === "__esModule",
+          thresholds: {
+            branches: 80,
+            "src/{components,containers}/**": { branches: 80 },
+          },
         },
         projects: [
           {
