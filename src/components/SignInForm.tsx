@@ -80,6 +80,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
   const initialValues: SignInPayload = {
     username: "",
     password: "",
+    remember: false,
   };
 
   const signInPending = (payload: SignInPayload) => sendAuth({ type: "LOGIN", ...payload });
