@@ -267,6 +267,15 @@ describe("identity provider sign-in", () => {
     expect(localStorage.getItem("authAccessToken")).toBe("cognito-token");
   });
 
+  test("COGNITO maps the profile", async () => {
+    const service = startService(authMachine);
+
+    service.send(providerEvents.COGNITO);
+
+    await expect.poll(() => service.state.value).toBe("authorized");
+    expect(service.state.context.user).toEqual({ id: "cognito-1", email: "ada@example.com" });
+  });
+
   test("a provider sign-in throws without a configured token name", () => {
     vi.stubEnv("VITE_AUTH_TOKEN_NAME", undefined);
     const service = startService(authMachine);

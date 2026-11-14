@@ -61,17 +61,18 @@ const AppCognito: React.FC = () => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    authService.onEvent(async (event) => {
+    const signOutOfCognito = async (event: { type: string }) => {
       if (
-        event.type === "done.invoke.performLogout" ||
+        event.type.startsWith("done.invoke.authentication.logout") ||
         event.type.startsWith("error.platform.authentication.logout")
       ) {
-        console.log(
-          "AppCognito authService.onEvent done.invoke.performLogout|error.platform.authentication.logout"
-        );
         await signOut();
       }
-    });
+    };
+    authService.onEvent(signOutOfCognito);
+    return () => {
+      authService.off(signOutOfCognito);
+    };
   }, []);
 
   if (!isLoggedIn) {

@@ -256,7 +256,7 @@ export const authMachine = Machine<AuthMachineContext, AuthMachineSchema, AuthMa
 
         localStorage.setItem(getAuthTokenName(), event.accessTokenJwtString);
 
-        return Promise.resolve(ourUser);
+        return Promise.resolve({ user: ourUser });
       },
     },
     actions: {
