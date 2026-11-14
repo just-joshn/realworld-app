@@ -2,17 +2,17 @@ import { Machine } from "xstate";
 
 export interface UserOnboardingMachineSchema {
   states: {
-    idle: {};
-    stepOne: {};
-    stepTwo: {};
-    stepThree: {};
-    done: {};
+    idle: Record<string, never>;
+    stepOne: Record<string, never>;
+    stepTwo: Record<string, never>;
+    stepThree: Record<string, never>;
+    done: Record<string, never>;
   };
 }
 
 export type UserOnboardingMachineEvents = { type: "PREV" } | { type: "NEXT" };
 
-export interface UserOnboardingMachineContext {}
+export type UserOnboardingMachineContext = Record<string, never>;
 
 export const userOnboardingMachine = Machine<
   UserOnboardingMachineContext,

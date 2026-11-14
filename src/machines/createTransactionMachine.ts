@@ -8,15 +8,15 @@ import { backendPort } from "../utils/portUtils";
 
 export interface CreateTransactionMachineSchema {
   states: {
-    stepOne: {};
-    stepTwo: {};
-    stepThree: {};
+    stepOne: Record<string, never>;
+    stepTwo: Record<string, never>;
+    stepThree: Record<string, never>;
   };
 }
 
 const transactionDataMachine = dataMachine("transactionData").withConfig({
   services: {
-    createData: async (ctx, event: any) => {
+    createData: async (ctx, event) => {
       const payload = omit("type", event);
       const resp = await httpClient.post(`http://localhost:${backendPort}/transactions`, payload);
       authService.send("REFRESH");
@@ -26,8 +26,8 @@ const transactionDataMachine = dataMachine("transactionData").withConfig({
 });
 
 export type CreateTransactionMachineEvents =
-  | { type: "SET_USERS" }
-  | { type: "CREATE" }
+  | { type: "SET_USERS"; sender: User; receiver: User }
+  | ({ type: "CREATE" } & TransactionCreatePayload)
   | { type: "RESET" };
 
 export interface CreateTransactionMachineContext {
@@ -72,14 +72,19 @@ export const createTransactionMachine = Machine<
   },
   {
     actions: {
-      setSenderAndReceiver: assign((ctx, event: any) => ({
-        sender: event.sender,
-        receiver: event.receiver,
+      setSenderAndReceiver: assign<CreateTransactionMachineContext, CreateTransactionMachineEvents>(
+        (ctx, event) => ({
+          sender: event.type === "SET_USERS" ? event.sender : ctx.sender,
+          receiver: event.type === "SET_USERS" ? event.receiver : ctx.receiver,
+        })
+      ),
+      setTransactionDetails: assign<
+        CreateTransactionMachineContext,
+        CreateTransactionMachineEvents
+      >((ctx, event) => ({
+        transactionDetails: event.type === "CREATE" ? event : ctx.transactionDetails,
       })),
-      setTransactionDetails: assign((ctx, event: any) => ({
-        transactionDetails: event,
-      })),
-      clearContext: assign((ctx, event: any) => ({})),
+      clearContext: assign(() => ({})),
     },
   }
 );

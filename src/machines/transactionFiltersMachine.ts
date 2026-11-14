@@ -4,14 +4,14 @@ interface FilterSchema {
   states: {
     dateRange: {
       states: {
-        none: {};
-        filter: {};
+        none: Record<string, never>;
+        filter: Record<string, never>;
       };
     };
     amountRange: {
       states: {
-        none: {};
-        filter: {};
+        none: Record<string, never>;
+        filter: Record<string, never>;
       };
     };
   };
@@ -36,7 +36,12 @@ type FilterEvents =
   | DateResetEvent
   | AmountResetEvent;
 
-export interface FilterContext {}
+export interface FilterContext {
+  dateRangeStart?: string;
+  dateRangeEnd?: string;
+  amountMin?: string;
+  amountMax?: string;
+}
 
 export const transactionFiltersMachine = Machine<FilterContext, FilterSchema, FilterEvents>(
   {
@@ -83,19 +88,19 @@ export const transactionFiltersMachine = Machine<FilterContext, FilterSchema, Fi
   },
   {
     actions: {
-      setDateRange: assign((ctx: FilterContext, event: any) => ({
-        dateRangeStart: event.dateRangeStart,
-        dateRangeEnd: event.dateRangeEnd,
+      setDateRange: assign<FilterContext, FilterEvents>((ctx, event) => ({
+        dateRangeStart: "dateRangeStart" in event ? event.dateRangeStart : undefined,
+        dateRangeEnd: "dateRangeEnd" in event ? event.dateRangeEnd : undefined,
       })),
-      resetDateRange: assign((ctx: FilterContext, event: any) => ({
+      resetDateRange: assign(() => ({
         dateRangeStart: undefined,
         dateRangeEnd: undefined,
       })),
-      setAmountRange: assign((ctx: FilterContext, event: any) => ({
-        amountMin: event.amountMin,
-        amountMax: event.amountMax,
+      setAmountRange: assign<FilterContext, FilterEvents>((ctx, event) => ({
+        amountMin: "amountMin" in event ? event.amountMin : undefined,
+        amountMax: "amountMax" in event ? event.amountMax : undefined,
       })),
-      resetAmountRange: assign((ctx: FilterContext, event: any) => ({
+      resetAmountRange: assign(() => ({
         amountMin: undefined,
         amountMax: undefined,
       })),
