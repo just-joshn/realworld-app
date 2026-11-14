@@ -1,3 +1,4 @@
+import { stringField } from "./request-data";
 import { required } from "./required";
 import "./types";
 
@@ -9,7 +10,7 @@ import { shortIdValidation } from "./validators";
 const router = express.Router();
 
 router.get("/:username", (req, res) => {
-  const { username } = req.params;
+  const username = stringField(req.params, "username");
 
   const contacts = getContactsByUsername(username);
 
@@ -22,7 +23,7 @@ router.post(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("contactUserId")]),
   (req, res) => {
-    const { contactUserId } = req.body;
+    const contactUserId = stringField(req.body, "contactUserId");
     const contact = createContactForUser(
       required(req.user, "authenticated user").id,
       contactUserId
@@ -37,9 +38,10 @@ router.delete(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("contactId")]),
   (req, res) => {
-    const { contactId } = req.params;
+    const contactId = stringField(req.params, "contactId");
 
-    const contacts = removeContactById(contactId);
+    removeContactById(contactId);
+    const contacts = undefined;
 
     res.status(200);
     res.json({ contacts });

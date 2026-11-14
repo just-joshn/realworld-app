@@ -1,26 +1,30 @@
 import bcrypt from "bcryptjs";
 import passport from "passport";
-import express, { Request, Response } from "express";
-import { User } from "../src/models/user";
-import { getUserBy, getUserById } from "./database";
+import * as yup from "yup";
+import type { RequestHandler, Request, Response } from "express";
+import express from "express";
+import type { User } from "../src/models/user";
+import { getAllUsers, getUserById } from "./database";
 
 import { Strategy as LocalStrategy } from "passport-local";
 const router = express.Router();
 
 passport.use(
   new LocalStrategy(function (username: string, password: string, done) {
-    const user = getUserBy("username", username);
+    const user = getAllUsers().find((candidate) => candidate.username === username);
 
     const failureMessage = "Incorrect username or password.";
     if (!user) {
-      return done(null, false, { message: failureMessage });
+      done(null, false, { message: failureMessage });
+      return;
     }
 
     if (!bcrypt.compareSync(password, user.password)) {
-      return done(null, false, { message: failureMessage });
+      done(null, false, { message: failureMessage });
+      return;
     }
 
-    return done(null, user);
+    done(null, user);
   })
 );
 
@@ -33,11 +37,13 @@ passport.deserializeUser(function (id: string, done) {
   done(null, user);
 });
 
-router.post("/login", passport.authenticate("local"), (req: Request, res: Response): void => {
-  if (req.body.remember) {
+const typedPassport: passport.Authenticator<RequestHandler, RequestHandler> = passport;
+const authenticate = typedPassport.authenticate("local");
+router.post("/login", authenticate, (req: Request, res: Response): void => {
+  if (yup.object({ remember: yup.boolean().default(false) }).validateSync(req.body).remember) {
     req.session.cookie.maxAge = 24 * 60 * 60 * 1000 * 30;
   } else {
-    req.session.cookie.expires = undefined;
+    req.session.cookie.maxAge = undefined;
   }
 
   res.send({ user: req.user });
@@ -45,7 +51,9 @@ router.post("/login", passport.authenticate("local"), (req: Request, res: Respon
 
 router.post("/logout", (req: Request, res: Response): void => {
   res.clearCookie("connect.sid");
-  req.logout(() => res.redirect("/"));
+  req.logout(() => {
+    res.redirect("/");
+  });
   req.session.destroy(function () {
     res.redirect("/");
   });

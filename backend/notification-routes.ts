@@ -1,3 +1,4 @@
+import { stringField, notificationsBody, notificationPatch } from "./request-data";
 import { required } from "./required";
 import "./types";
 
@@ -27,7 +28,7 @@ router.post(
   ensureAuthenticated,
   validateMiddleware([...isNotificationsBodyValidator]),
   (req, res) => {
-    const { items } = req.body;
+    const { items } = notificationsBody.validateSync(req.body);
     const notifications = createNotifications(required(req.user, "authenticated user").id, items);
 
     res.status(200);
@@ -40,8 +41,12 @@ router.patch(
   ensureAuthenticated,
   validateMiddleware([shortIdValidation("notificationId"), ...isNotificationPatchValidator]),
   (req, res) => {
-    const { notificationId } = req.params;
-    updateNotificationById(required(req.user, "authenticated user").id, notificationId, req.body);
+    const notificationId = stringField(req.params, "notificationId");
+    updateNotificationById(
+      required(req.user, "authenticated user").id,
+      notificationId,
+      notificationPatch.validateSync(req.body)
+    );
 
     res.sendStatus(204);
   }

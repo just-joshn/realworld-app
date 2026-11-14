@@ -8,7 +8,10 @@ const app = express();
 
 setupProxy(app);
 
-app.use(history());
+const historyMiddleware = history();
+app.use((req, res, next) => {
+  void historyMiddleware(req, res, next);
+});
 app.use(express.static(path.join(__dirname, "../build")));
 
 app.listen(frontendPort);

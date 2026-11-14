@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { buildComment, buildLike, buildTransaction } from "../test/factories";
 import { seedPeople } from "../test/database";
+import { transactionQuery } from "./request-data";
 import {
   DefaultPrivacyLevel,
   PaymentNotificationStatus,
@@ -140,12 +141,32 @@ describe("range filters", () => {
     expect(transactionsWithinAmountRange(undefined, 500, transactions)).toBe(transactions);
   });
 
+  test.for([
+    { amountMin: "0", amountMax: "1000", expected: ["small"] },
+    { amountMin: "-100", amountMax: "0", expected: [] },
+    { amountMin: "0", amountMax: "0", expected: [] },
+  ])(
+    "parsed bounds $amountMin to $amountMax still filter",
+    ({ amountMin, amountMax, expected }) => {
+      const query = transactionQuery.validateSync({ amountMin, amountMax });
+
+      expect(
+        ids(transactionsWithinAmountRange(query.amountMin, query.amountMax, transactions))
+      ).toEqual(expected);
+    }
+  );
+
   test("transactionsWithinAmountRange keeps amounts in [min, max)", () => {
     expect(ids(transactionsWithinAmountRange(100, 9000, transactions))).toEqual(["small"]);
   });
 
   test("transactionsWithinDateRange ignores a half-open range", () => {
     expect(transactionsWithinDateRange("2026-01-01", undefined, transactions)).toBe(transactions);
+  });
+
+  test("transactionsWithinDateRange does not treat an invalid empty bound as absent", () => {
+    expect(transactionsWithinDateRange("", "2026-07-01", transactions)).toEqual([]);
+    expect(transactionsWithinDateRange("2026-01-01", "", transactions)).toEqual([]);
   });
 
   test("transactionsWithinDateRange keeps transactions created inside the range", () => {
@@ -199,7 +220,6 @@ describe("createTransaction", () => {
     description: "Lunch",
     receiverId: "user2",
     senderId: "user1",
-    privacyLevel: undefined as unknown as DefaultPrivacyLevel,
     status: TransactionStatus.pending,
     ...overrides,
   });
@@ -212,7 +232,6 @@ describe("createTransaction", () => {
     expect(transaction).toMatchObject({
       amount: 2500,
       privacyLevel: DefaultPrivacyLevel.public,
-      requestStatus: undefined,
     });
     expect(getTransactionById(transaction.id).status).toBe(TransactionStatus.complete);
     expect(getUserById("user1").balance).toBe(7500);

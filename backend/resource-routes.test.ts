@@ -1,3 +1,4 @@
+import { objectContaining } from "./test-matchers";
 import { describe, expect, test, vi } from "vitest";
 import fs from "fs";
 import {
@@ -46,7 +47,7 @@ describe("bank account routes", () => {
       user: currentUser,
     });
 
-    expect(body).toEqual({ results: [expect.objectContaining({ id: "bank1" })] });
+    expect(body).toEqual({ results: [objectContaining({ id: "bank1" })] });
   });
 
   test("GET /:bankAccountId returns the account", async () => {
@@ -58,7 +59,7 @@ describe("bank account routes", () => {
       user: currentUser,
     });
 
-    expect(body).toEqual({ account: expect.objectContaining({ id: shortId }) });
+    expect(body).toEqual({ account: objectContaining({ id: shortId }) });
   });
 
   test("POST / creates an account for the user", async () => {
@@ -72,7 +73,7 @@ describe("bank account routes", () => {
     });
 
     expect(body).toEqual({
-      account: expect.objectContaining({ userId: "user1", bankName: "First Bank" }),
+      account: objectContaining({ userId: "user1", bankName: "First Bank" }),
     });
   });
 
@@ -101,7 +102,7 @@ test("GET /bankTransfers lists the user's transfers", async () => {
     user: currentUser,
   });
 
-  expect(body).toEqual({ transfers: [expect.objectContaining({ amount: 100 })] });
+  expect(body).toEqual({ transfers: [objectContaining({ amount: 100 })] });
 });
 
 describe("comment routes", () => {
@@ -114,7 +115,7 @@ describe("comment routes", () => {
       user: currentUser,
     });
 
-    expect(body).toEqual({ comments: [expect.objectContaining({ content: "Nice!" })] });
+    expect(body).toEqual({ comments: [objectContaining({ content: "Nice!" })] });
   });
 
   test("POST /:transactionId adds a comment", async () => {
@@ -129,7 +130,7 @@ describe("comment routes", () => {
 
     expect(result).toEqual({ status: 200 });
     expect(getCommentsByTransactionId(shortId)).toEqual([
-      expect.objectContaining({ userId: "user1", content: "Thanks!" }),
+      objectContaining({ userId: "user1", content: "Thanks!" }),
     ]);
   });
 });
@@ -144,7 +145,7 @@ describe("like routes", () => {
       user: currentUser,
     });
 
-    expect(body).toEqual({ likes: [expect.objectContaining({ id: "like1" })] });
+    expect(body).toEqual({ likes: [objectContaining({ id: "like1" })] });
   });
 
   test("POST /:transactionId adds a like", async () => {
@@ -157,9 +158,7 @@ describe("like routes", () => {
     });
 
     expect(result).toEqual({ status: 200 });
-    expect(getLikesByTransactionId(shortId)).toEqual([
-      expect.objectContaining({ userId: "user1" }),
-    ]);
+    expect(getLikesByTransactionId(shortId)).toEqual([objectContaining({ userId: "user1" })]);
   });
 });
 
@@ -169,7 +168,7 @@ describe("contact routes", () => {
 
     const { body } = await dispatch(contactRoutes, { method: "GET", url: "/ada" });
 
-    expect(body).toEqual({ contacts: [expect.objectContaining({ contactUserId: "user2" })] });
+    expect(body).toEqual({ contacts: [objectContaining({ contactUserId: "user2" })] });
   });
 
   test("POST / adds a contact", async () => {
@@ -182,7 +181,7 @@ describe("contact routes", () => {
       body: { contactUserId: shortId },
     });
 
-    expect(body).toEqual({ contact: expect.objectContaining({ contactUserId: shortId }) });
+    expect(body).toEqual({ contact: objectContaining({ contactUserId: shortId }) });
   });
 
   test("DELETE /:contactId removes the contact", async () => {
@@ -208,7 +207,7 @@ describe("notification routes", () => {
     });
 
     expect(body).toEqual({
-      results: [expect.objectContaining({ id: "notif1", userFullName: "Ada Lovelace" })],
+      results: [objectContaining({ id: "notif1", userFullName: "Ada Lovelace" })],
     });
   });
 
@@ -222,21 +221,21 @@ describe("notification routes", () => {
       body: { items: [{ type: "like", transactionId: shortId, likeId: "like1" }] },
     });
 
-    expect(body).toEqual({ results: [expect.objectContaining({ userId: "user1" })] });
+    expect(body).toEqual({ results: [objectContaining({ userId: "user1" })] });
   });
 
-  test("PATCH /:notificationId marks a notification read", async () => {
-    resetDatabase({ notifications: [buildPaymentNotification({ id: shortId })] });
+  test.for([true, false])("PATCH /:notificationId sets isRead to %s", async (isRead) => {
+    resetDatabase({ notifications: [buildPaymentNotification({ id: shortId, isRead: !isRead })] });
 
     const result = await dispatch(notificationRoutes, {
       method: "PATCH",
       url: `/${shortId}`,
       user: currentUser,
-      body: { isRead: true },
+      body: { isRead: String(isRead) },
     });
 
     expect(result).toEqual({ status: 204 });
-    expect(getNotificationById(shortId).isRead).toBe(true);
+    expect(getNotificationById(shortId).isRead).toBe(isRead);
   });
 });
 

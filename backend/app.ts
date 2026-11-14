@@ -1,4 +1,5 @@
 import express from "express";
+import type { RequestHandler } from "express";
 import { required } from "./required";
 import { join } from "path";
 import logger from "morgan";
@@ -10,7 +11,7 @@ import paginate from "express-paginate";
 import { createHandler as graphqlHandler } from "graphql-http/lib/use/express";
 import { loadSchemaSync } from "@graphql-tools/load";
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
-import { addResolversToSchema } from "@graphql-tools/schema";
+import { addResolversToSchema } from "@graphql-tools/schema/index.js";
 
 import auth from "./auth";
 import userRoutes from "./user-routes";
@@ -32,7 +33,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const corsOption = {
-  origin: `http://localhost:${frontendPort}`,
+  origin: `http://localhost:${frontendPort ?? "3000"}`,
   credentials: true,
 };
 
@@ -52,42 +53,47 @@ app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const sessionMiddleware = session({
+  secret: "session secret",
+  resave: false,
+  saveUninitialized: false,
+  unset: "destroy",
+});
+app.use((req, res, next) => {
+  void sessionMiddleware(req, res, next);
+});
+const typedPassport: passport.Authenticator<RequestHandler, RequestHandler> = passport;
+app.use(typedPassport.initialize());
+const passportSession = typedPassport.session();
+app.use(passportSession);
+
 app.use(
-  session({
-    secret: "session secret",
-    resave: false,
-    saveUninitialized: false,
-    unset: "destroy",
-  })
+  paginate.middleware(+required(process.env["PAGINATION_PAGE_SIZE"], "PAGINATION_PAGE_SIZE"))
 );
-app.use(passport.initialize());
-app.use(passport.session());
 
-app.use(paginate.middleware(+required(process.env.PAGINATION_PAGE_SIZE, "PAGINATION_PAGE_SIZE")));
-
-if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+if (process.env["NODE_ENV"] === "test" || process.env["NODE_ENV"] === "development") {
   app.use("/testData", testDataRoutes);
 }
 
 app.use(auth);
 
-if (process.env.VITE_AUTH0) {
+if (process.env["VITE_AUTH0"]) {
   app.use(checkAuth0Jwt);
 }
 
-if (process.env.VITE_OKTA) {
+if (process.env["VITE_OKTA"]) {
   app.use(verifyOktaToken);
 }
 
-if (process.env.VITE_AWS_COGNITO) {
+if (process.env["VITE_AWS_COGNITO"]) {
   app.use(checkCognitoJwt);
 }
 
-if (process.env.VITE_GOOGLE) {
+if (process.env["VITE_GOOGLE"]) {
   app.use(checkGoogleJwt);
 }
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.send("Cypress Realworld App - backend");
 });
 app.use("/graphql", gqlPlaygroundRoutes);
@@ -95,7 +101,7 @@ app.use(
   "/graphql",
   graphqlHandler({
     schema: schemaWithResolvers,
-    context: async (req) => {
+    context: (req) => {
       return { user: req.raw.user };
     },
   })
@@ -111,6 +117,6 @@ app.use("/bankTransfers", bankTransferRoutes);
 
 app.use(express.static(join(__dirname, "../public")));
 
-getBackendPort().then((port) => {
+void getBackendPort().then((port) => {
   app.listen(port);
 });
