@@ -63,9 +63,8 @@ test("likes a transaction and prevents liking it again", async () => {
     })
   );
   const screen = await renderDetail(transaction);
-  // The thumb-up icon is the only icon-only button; the app gives it no accessible name.
-  await screen.getByRole("button", { name: "", exact: true }).click();
-  await expect.element(screen.getByRole("button", { name: "", exact: true })).toBeDisabled();
+  await screen.getByRole("button", { name: "Like" }).click();
+  await expect.element(screen.getByRole("button", { name: "Like" })).toBeDisabled();
   expect(received).toHaveBeenCalledExactlyOnceWith({ transactionId: "txn1" });
 });
 

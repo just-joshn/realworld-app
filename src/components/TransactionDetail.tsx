@@ -179,6 +179,7 @@ const TransactionDetail: React.FC<TransactionProps> = ({
                 disabled={currentUserLikesTransaction(currentUser, transaction)}
                 onClick={() => transactionLike(transaction.id)}
                 data-test={`transaction-like-button-${transaction.id}`}
+                aria-label="Like"
                 size="large"
               >
                 <LikeIcon />
