@@ -174,7 +174,8 @@
     "test": "vitest",
     "test:unit": "vitest run --project unit",
     "coverage": "vitest run --coverage --project unit --project \"browser (chromium)\"",
-    "test:browser": "vitest run --project browser"
+    "test:browser": "vitest run --project browser",
+    "test:integration": "vitest run --project integration"
   },
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
