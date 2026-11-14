@@ -127,9 +127,7 @@ describe("verifyOktaToken", () => {
 });
 
 describe("checkAuth0Jwt", () => {
-  // Known bug: express-unless compares string paths exactly, so "/testData/*" never matches
-  // and test data routes still require a token. Remove .fails once the path is a RegExp.
-  test.fails("skips token verification for test data routes", () => {
+  test("skips token verification for test data routes", () => {
     const next = buildNext();
 
     checkAuth0Jwt(
