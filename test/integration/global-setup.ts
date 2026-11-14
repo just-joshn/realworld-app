@@ -28,7 +28,7 @@ export default async function setup(project: TestProject) {
     stdio: ["ignore", "ignore", "inherit"],
   });
 
-  const apiUrl = `http://localhost:${BACKEND_PORT}`;
+  const apiUrl = `http://localhost:${String(BACKEND_PORT)}`;
   await waitForApi(apiUrl, () => api.exitCode);
 
   project.provide("apiUrl", apiUrl);
@@ -44,7 +44,7 @@ export default async function setup(project: TestProject) {
 async function waitForApi(apiUrl: string, exitCode: () => number | null) {
   const deadline = Date.now() + 20_000;
   for (;;) {
-    if (exitCode() !== null) throw new Error(`API exited with code ${exitCode()}`);
+    if (exitCode() !== null) throw new Error(`API exited with code ${String(exitCode())}`);
     const ready = await fetch(apiUrl).then(
       (response) => response.ok,
       () => false

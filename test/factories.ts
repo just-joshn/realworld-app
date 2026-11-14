@@ -1,19 +1,17 @@
-import {
+import type {
   BankAccount,
   Comment,
   CommentNotification,
   Contact,
-  DefaultPrivacyLevel,
   Like,
   LikeNotification,
   PaymentNotification,
-  PaymentNotificationStatus,
   Transaction,
   TransactionResponseItem,
-  TransactionStatus,
   User,
 } from "../src/models";
-import { DbSchema } from "../src/models/db-schema";
+import { DefaultPrivacyLevel, PaymentNotificationStatus, TransactionStatus } from "../src/models";
+import type { DbSchema } from "../src/models/db-schema";
 
 const createdAt = new Date("2026-01-01T00:00:00.000Z");
 

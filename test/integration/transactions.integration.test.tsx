@@ -3,7 +3,7 @@ import { userEvent } from "vitest/browser";
 import { history, mobile, renderSignedIn } from "./app";
 
 const emptyMonth = new Date().toLocaleString("en-US", { month: "long" });
-const emptyYear = new Date().getFullYear();
+const emptyYear = String(new Date().getFullYear());
 
 test("a user browses everyone's, friends', and their own transactions", async () => {
   const screen = await renderSignedIn();

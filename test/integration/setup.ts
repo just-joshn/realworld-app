@@ -6,7 +6,7 @@ const initialUrl = window.location.pathname + window.location.search;
 
 beforeEach(async () => {
   const response = await fetch(`${inject("apiUrl")}/testData/seed`, { method: "POST" });
-  if (!response.ok) throw new Error(`Seeding the API database failed: ${response.status}`);
+  if (!response.ok) throw new Error(`Seeding the API database failed: ${String(response.status)}`);
 });
 
 afterEach(async () => {
