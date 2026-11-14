@@ -1,7 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { interpret } from "xstate";
-import { userEvent } from "vitest/browser";
 import { authMachine } from "../machines/authMachine";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { history, renderWithRouter } from "../../test/browser/render";
@@ -75,6 +74,5 @@ test("links existing users to sign in", async () => {
     route: "/signup",
   });
   await screen.getByRole("link", { name: "Have an account? Sign In" }).click();
-  await userEvent.keyboard("{Enter}");
   await expect.poll(() => history.location.pathname).toBe("/signin");
 });
