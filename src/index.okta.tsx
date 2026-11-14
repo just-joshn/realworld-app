@@ -35,8 +35,10 @@ if (process.env.VITE_OKTA) {
   });
 
   const AppWithRouter = withRouter(({ history }) => {
-    const restoreOriginalUri = (_oktaAuth, originalUri) =>
-      history.replace(toRelativeUrl(originalUri || "/", window.location.origin));
+    const restoreOriginalUri: React.ComponentProps<typeof Security>["restoreOriginalUri"] = (
+      _oktaAuth,
+      originalUri
+    ) => history.replace(toRelativeUrl(originalUri || "/", window.location.origin));
 
     return (
       <Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>

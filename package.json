@@ -128,6 +128,9 @@
     "vite-plugin-eslint": "^1.8.1",
     "vitest": "^3.2.4"
   },
+  "resolutions": {
+    "@types/react": "18.3.17"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",
     "dev:auth0": "cross-env VITE_AUTH0=true NODE_ENV=development concurrently yarn:start:react yarn:start:api:watch",

@@ -38,7 +38,7 @@ const AppOkta: React.FC = () => {
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
-    if (oktaAuthState.isAuthenticated) {
+    if (oktaAuthState?.isAuthenticated) {
       oktaAuthService.getUser().then((user: any) => {
         authService.send("OKTA", { user, token: oktaAuthState.accessToken });
       });
