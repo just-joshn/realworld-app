@@ -6,7 +6,6 @@ import jwt from "express-jwt";
 import jwksRsa from "jwks-rsa";
 
 import OktaJwtVerifier from "@okta/jwt-verifier";
-// @ts-expect-error Amplify generates this optional configuration outside the repository.
 import awsConfig from "../src/aws-exports";
 
 dotenv.config();
