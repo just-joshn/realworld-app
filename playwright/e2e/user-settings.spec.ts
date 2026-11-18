@@ -22,7 +22,12 @@ test.describe("user settings", { tag: ["@e2e", "@settings"] }, () => {
   }) => {
     await expect(settings.firstName).toHaveValue(user.firstName);
 
-    for (const field of [settings.firstName, settings.lastName, settings.email, settings.phoneNumber]) {
+    for (const field of [
+      settings.firstName,
+      settings.lastName,
+      settings.email,
+      settings.phoneNumber,
+    ]) {
       await field.clear();
     }
     await settings.firstName.focus();

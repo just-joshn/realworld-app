@@ -6,15 +6,7 @@ test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
   test(
     "a user finds someone and pays them",
     { tag: "@smoke" },
-    async ({
-      page,
-      navBar,
-      newTransactionPage,
-      transactionFeedPage,
-      createUser,
-      apiAs,
-      fake,
-    }) => {
+    async ({ page, navBar, newTransactionPage, transactionFeedPage, createUser, apiAs, fake }) => {
       const payee = await createUser({ balance: 0 });
       const note = fake.lorem.words(3);
       await transactionFeedPage.goto();
