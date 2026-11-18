@@ -1,24 +1,31 @@
 import { test, expect } from "../fixtures/auth";
 
 test.describe("user settings", { tag: ["@e2e", "@settings"] }, () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/user/settings");
+  test.beforeEach(async ({ userSettingsPage }) => {
+    await userSettingsPage.goto();
   });
 
-  test("the settings form shows the user's current details", async ({ page, user }) => {
-    await expect(page.getByPlaceholder("First Name")).toHaveValue(user.firstName);
-    await expect(page.getByPlaceholder("Last Name")).toHaveValue(user.lastName);
-    await expect(page.getByPlaceholder("Email")).toHaveValue(user.email);
-    await expect(page.getByPlaceholder("Phone Number")).toHaveValue(user.phoneNumber);
+  test("the settings form shows the user's current details", async ({
+    userSettingsPage: settings,
+    user,
+  }) => {
+    await expect(settings.firstName).toHaveValue(user.firstName);
+    await expect(settings.lastName).toHaveValue(user.lastName);
+    await expect(settings.email).toHaveValue(user.email);
+    await expect(settings.phoneNumber).toHaveValue(user.phoneNumber);
   });
 
-  test("the settings form explains missing details", async ({ page, user }) => {
-    await expect(page.getByPlaceholder("First Name")).toHaveValue(user.firstName);
+  test("the settings form explains missing details", async ({
+    page,
+    userSettingsPage: settings,
+    user,
+  }) => {
+    await expect(settings.firstName).toHaveValue(user.firstName);
 
-    for (const placeholder of ["First Name", "Last Name", "Email", "Phone Number"]) {
-      await page.getByPlaceholder(placeholder).clear();
+    for (const field of [settings.firstName, settings.lastName, settings.email, settings.phoneNumber]) {
+      await field.clear();
     }
-    await page.getByPlaceholder("First Name").focus();
+    await settings.firstName.focus();
 
     for (const message of [
       "Enter a first name",
@@ -28,18 +35,22 @@ test.describe("user settings", { tag: ["@e2e", "@settings"] }, () => {
     ]) {
       await expect(page.getByText(message)).toBeVisible();
     }
-    await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+    await expect(settings.saveButton).toBeDisabled();
   });
 
-  test("the settings form explains invalid details", async ({ page, user }) => {
-    await expect(page.getByPlaceholder("Email")).toHaveValue(user.email);
+  test("the settings form explains invalid details", async ({
+    page,
+    userSettingsPage: settings,
+    user,
+  }) => {
+    await expect(settings.email).toHaveValue(user.email);
 
-    await page.getByPlaceholder("Email").fill("not-an-email");
-    await page.getByPlaceholder("Phone Number").fill("not-a-phone");
-    await page.getByPlaceholder("First Name").focus();
+    await settings.email.fill("not-an-email");
+    await settings.phoneNumber.fill("not-a-phone");
+    await settings.firstName.focus();
 
     await expect(page.getByText("Must contain a valid email address")).toBeVisible();
     await expect(page.getByText("Phone number is not valid")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
+    await expect(settings.saveButton).toBeDisabled();
   });
 });

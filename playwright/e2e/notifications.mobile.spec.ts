@@ -4,7 +4,7 @@ import { required } from "../../backend/required";
 
 test.describe("notifications on a phone", { tag: ["@e2e", "@notifications"] }, () => {
   test("a user marks a notification as read", async ({
-    page,
+    notificationsPage,
     user,
     userApi,
     createUser,
@@ -22,12 +22,11 @@ test.describe("notifications on a phone", { tag: ["@e2e", "@notifications"] }, (
       ),
       "payment notification"
     );
-    const item = page.getByTestId(`notification-list-item-${notification.id}`);
-    await page.goto("/notifications");
+    await notificationsPage.goto();
 
-    await item.getByRole("button", { name: "mark as read" }).click();
+    await notificationsPage.markAsReadButton(notification.id).click();
 
-    await expect(item).toHaveCount(0);
+    await expect(notificationsPage.notification(notification.id)).toHaveCount(0);
     expect(await getUnreadNotifications(userApi)).not.toContainEqual(
       expect.objectContaining({ id: notification.id })
     );

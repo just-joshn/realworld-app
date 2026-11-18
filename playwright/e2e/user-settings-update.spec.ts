@@ -7,6 +7,8 @@ test.describe("updating user settings", { tag: ["@e2e", "@settings"] }, () => {
   test("a user updates their profile and sees the new name in the side navigation", async ({
     page,
     signInPage,
+    navDrawer,
+    userSettingsPage,
     onboardedUser,
     apiAs,
     fake,
@@ -19,19 +21,15 @@ test.describe("updating user settings", { tag: ["@e2e", "@settings"] }, () => {
     };
     await signInPage.goto();
     await signInPage.signIn(onboardedUser);
-    await page.getByRole("link", { name: "My Account" }).click();
-    await expect(page.getByPlaceholder("First Name")).toHaveValue(onboardedUser.firstName);
+    await navDrawer.myAccountLink.click();
+    await expect(userSettingsPage.firstName).toHaveValue(onboardedUser.firstName);
 
-    await page.getByPlaceholder("First Name").fill(edits.firstName);
-    await page.getByPlaceholder("Last Name").fill(edits.lastName);
-    await page.getByPlaceholder("Email").fill(edits.email);
-    await page.getByPlaceholder("Phone Number").fill(edits.phoneNumber);
-    await page.getByRole("button", { name: "Save" }).click();
+    await userSettingsPage.save(edits);
 
     await expect(
       page.getByText(`${edits.firstName} ${edits.lastName.charAt(0)}`, { exact: true })
     ).toBeVisible();
-    await expect(page.getByPlaceholder("Email")).toHaveValue(edits.email);
+    await expect(userSettingsPage.email).toHaveValue(edits.email);
     expect(await getCurrentUser(await apiAs(onboardedUser))).toMatchObject(edits);
   });
 });

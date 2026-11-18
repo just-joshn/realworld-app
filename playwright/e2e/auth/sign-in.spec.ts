@@ -12,7 +12,7 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
   test(
     "a user signs in and lands on the home feed with their name and balance",
     { tag: "@smoke" },
-    async ({ page, signInPage, onboardedUser }) => {
+    async ({ page, signInPage, navDrawer, transactionFeedPage, onboardedUser }) => {
       await signInPage.goto();
 
       await signInPage.signIn(onboardedUser);
@@ -24,13 +24,8 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
         })
       ).toBeVisible();
       await expect(page.getByText(`@${onboardedUser.username}`)).toBeVisible();
-      await expect(page.getByTestId("sidenav-user-balance")).toHaveText(
-        formatCents(onboardedUser.balance)
-      );
-      await expect(page.getByRole("tab", { name: "Everyone" })).toHaveAttribute(
-        "aria-selected",
-        "true"
-      );
+      await expect(navDrawer.balance).toHaveText(formatCents(onboardedUser.balance));
+      await expect(transactionFeedPage.everyoneTab).toHaveAttribute("aria-selected", "true");
     }
   );
 
@@ -53,17 +48,18 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
     });
   });
 
-  test("the sign in form explains missing fields before submitting", async ({ signInPage }) => {
+  test("the sign in form explains missing fields before submitting", async ({
+    page,
+    signInPage,
+  }) => {
     await signInPage.goto();
 
     await signInPage.username.focus();
     await signInPage.password.fill("abc");
     await signInPage.username.focus();
 
-    await expect(signInPage.page.getByText("Username is required")).toBeVisible();
-    await expect(
-      signInPage.page.getByText("Password must contain at least 4 characters")
-    ).toBeVisible();
+    await expect(page.getByText("Username is required")).toBeVisible();
+    await expect(page.getByText("Password must contain at least 4 characters")).toBeVisible();
     await expect(signInPage.signInButton).toBeDisabled();
   });
 
@@ -84,12 +80,17 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
     expect(daysLeft).toBeLessThanOrEqual(30);
   });
 
-  test("a user signs out from the side navigation", async ({ page, signInPage, onboardedUser }) => {
+  test("a user signs out from the side navigation", async ({
+    page,
+    signInPage,
+    navDrawer,
+    onboardedUser,
+  }) => {
     await signInPage.goto();
     await signInPage.signIn(onboardedUser);
     await expect(page).toHaveURL("/");
 
-    await page.getByRole("button", { name: "Logout" }).click();
+    await navDrawer.logoutButton.click();
 
     await expect(page).toHaveURL("/signin");
     await expect(signInPage.signInButton).toBeVisible();

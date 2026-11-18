@@ -10,6 +10,9 @@ import { fullName } from "../helpers/data";
 test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
   test("a user reads who paid, liked, commented on, and requested money from them", async ({
     page,
+    navDrawer,
+    notificationsPage,
+    transactionFeedPage,
     user,
     createUser,
     apiAs,
@@ -31,10 +34,10 @@ test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
       description: "Your share",
     });
 
-    await page.goto("/");
-    await page.getByRole("link", { name: "Notifications", exact: true }).click();
+    await transactionFeedPage.goto();
+    await navDrawer.notificationsLink.click();
 
-    await expect(page.getByRole("heading", { name: "Notifications", exact: true })).toBeVisible();
+    await expect(notificationsPage.heading).toBeVisible();
     for (const text of [
       `${fullName(friend)} liked a transaction.`,
       `${fullName(friend)} commented on a transaction.`,
@@ -47,6 +50,7 @@ test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
 
   test("dismissing every notification leaves an empty inbox", async ({
     page,
+    notificationsPage,
     user,
     userApi,
     createUser,
@@ -61,8 +65,8 @@ test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
         description: "Gift",
       });
     }
-    await page.goto("/notifications");
-    const dismiss = page.getByRole("button", { name: "Dismiss" });
+    await notificationsPage.goto();
+    const dismiss = notificationsPage.dismissButtons;
     await expect(dismiss.first()).toBeVisible();
 
     for (let remaining = await dismiss.count(); remaining > 0; remaining--) {
@@ -70,9 +74,9 @@ test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
       await expect(dismiss).toHaveCount(remaining - 1);
     }
 
-    await expect(page.getByRole("heading", { name: "No Notifications" })).toBeVisible();
+    await expect(notificationsPage.emptyHeading).toBeVisible();
     expect(await getUnreadNotifications(userApi)).toEqual([]);
     await page.reload();
-    await expect(page.getByRole("heading", { name: "No Notifications" })).toBeVisible();
+    await expect(notificationsPage.emptyHeading).toBeVisible();
   });
 });

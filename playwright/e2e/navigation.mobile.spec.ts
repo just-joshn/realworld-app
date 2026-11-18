@@ -1,40 +1,44 @@
 import { test, expect } from "../fixtures/auth";
 
 test.describe("navigation on a phone", { tag: ["@e2e", "@navigation"] }, () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+  test.beforeEach(async ({ transactionFeedPage }) => {
+    await transactionFeedPage.goto();
   });
 
-  test("the menu starts closed and closes after the user picks a page", async ({ page }) => {
-    const menu = page.getByRole("button", { name: "open drawer" });
-    const balance = page.getByText("Account Balance");
-    await expect(balance).toBeHidden();
+  test("the menu starts closed and closes after the user picks a page", async ({
+    page,
+    navDrawer,
+    userSettingsPage,
+    bankAccountsPage,
+    notificationsPage,
+  }) => {
+    await expect(navDrawer.balanceLabel).toBeHidden();
 
     for (const [link, heading, url] of [
-      ["My Account", "User Settings", "/user/settings"],
-      ["Bank Accounts", "Bank Accounts", "/bankaccounts"],
-      ["Notifications", "Notifications", "/notifications"],
+      [navDrawer.myAccountLink, userSettingsPage.heading, "/user/settings"],
+      [navDrawer.bankAccountsLink, bankAccountsPage.heading, "/bankaccounts"],
+      [navDrawer.notificationsLink, notificationsPage.heading, "/notifications"],
     ] as const) {
-      await menu.click();
-      await expect(balance).toBeVisible();
-      await page.getByRole("link", { name: link, exact: true }).click();
+      await navDrawer.toggleButton.click();
+      await expect(navDrawer.balanceLabel).toBeVisible();
+      await link.click();
 
       await expect(page).toHaveURL(url);
-      await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
-      await expect(balance).toBeHidden();
+      await expect(heading).toBeVisible();
+      await expect(navDrawer.balanceLabel).toBeHidden();
     }
 
-    await menu.click();
-    await page.getByRole("link", { name: "Home" }).click();
+    await navDrawer.toggleButton.click();
+    await navDrawer.homeLink.click();
     await expect(page).toHaveURL("/");
   });
 
-  test("Escape closes the menu", async ({ page }) => {
-    await page.getByRole("button", { name: "open drawer" }).click();
-    await expect(page.getByText("Account Balance")).toBeVisible();
+  test("Escape closes the menu", async ({ page, navDrawer }) => {
+    await navDrawer.toggleButton.click();
+    await expect(navDrawer.balanceLabel).toBeVisible();
 
     await page.keyboard.press("Escape");
 
-    await expect(page.getByText("Account Balance")).toBeHidden();
+    await expect(navDrawer.balanceLabel).toBeHidden();
   });
 });

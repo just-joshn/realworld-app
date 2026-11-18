@@ -1,27 +1,35 @@
 import { test, expect } from "../fixtures/auth";
 import { createTransaction } from "../helpers/api";
-import { FUTURE, pickDateRange, raiseMinimumAmount } from "../helpers/feed";
+import { FUTURE } from "../pages/transaction-feed.page";
 
 test.describe("transaction feed on a phone", { tag: ["@e2e", "@transactions"] }, () => {
-  test("a user filters by date in a full-screen picker", async ({ page }) => {
+  test("a user filters by date in a full-screen picker", async ({
+    page,
+    transactionFeedPage: feed,
+  }) => {
     await page.clock.install({ time: FUTURE });
-    await page.goto("/");
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await feed.goto();
+    await expect(feed.transactions.first()).toBeVisible();
 
-    await pickDateRange(page, new Date("2030-01-01"), new Date("2030-01-10"));
+    await feed.pickDateRange(new Date("2030-01-01"), new Date("2030-01-10"));
 
-    await expect(page.getByRole("heading", { name: "No Transactions" })).toBeVisible();
-    const dateChip = page.getByRole("button", { name: "Date: Jan, 1 2030 - Jan, 10 2030" });
+    await expect(feed.emptyHeading).toBeVisible();
+    const dateChip = feed.dateFilter("Jan, 1 2030 - Jan, 10 2030");
     await dateChip.click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await feed.closeButton.click();
     await dateChip.focus();
     await page.keyboard.press("Delete");
 
-    await expect(page.getByRole("button", { name: "Date: ALL" })).toBeVisible();
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await expect(feed.dateFilter("ALL")).toBeVisible();
+    await expect(feed.transactions.first()).toBeVisible();
   });
 
-  test("a user narrows the feed by amount", async ({ page, userApi, createUser }) => {
+  test("a user narrows the feed by amount", async ({
+    page,
+    transactionFeedPage: feed,
+    userApi,
+    createUser,
+  }) => {
     const payee = await createUser();
     const small = await createTransaction(userApi, {
       transactionType: "payment",
@@ -35,21 +43,21 @@ test.describe("transaction feed on a phone", { tag: ["@e2e", "@transactions"] },
       amount: 50,
       description: "Large",
     });
-    await page.goto("/personal");
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toBeVisible();
+    await feed.goto("mine");
+    await expect(feed.transaction(small.id)).toBeVisible();
 
-    await raiseMinimumAmount(page);
+    await feed.raiseMinimumAmount();
 
     await expect(page.getByText("Amount Range: $10 - $1,000")).toBeVisible();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
-    await expect(page.getByTestId(`transaction-item-${large.id}`)).toBeVisible();
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toHaveCount(0);
+    await feed.closeButton.click();
+    await expect(feed.transaction(large.id)).toBeVisible();
+    await expect(feed.transaction(small.id)).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Amount: $10 - $1,000" }).click();
-    await page.getByRole("button", { name: "Clear", exact: true }).click();
-    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await feed.amountFilter("$10 - $1,000").click();
+    await feed.clearButton.click();
+    await feed.closeButton.click();
 
-    await expect(page.getByRole("button", { name: "Amount: $0 - $1,000" })).toBeVisible();
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toBeVisible();
+    await expect(feed.amountFilter("$0 - $1,000")).toBeVisible();
+    await expect(feed.transaction(small.id)).toBeVisible();
   });
 });
