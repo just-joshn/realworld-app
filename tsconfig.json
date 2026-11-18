@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
     "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -10,7 +9,8 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    // "node" is node10, which oxlint's TypeScript 7 checker rejects. bundler matches Vite.
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -27,10 +27,11 @@
     "allowUnusedLabels": false,
     "types": ["node"],
     "paths": {
-      "msw/node": ["../node_modules/msw/lib/node/index.d.ts"],
-      "msw/graphql": ["../node_modules/msw/lib/graphql/index.d.ts"],
-      "msw/browser": ["../node_modules/msw/lib/browser/index.d.ts"],
-      "vitest/browser": ["../node_modules/vitest/browser/context.d.ts"]
+      "msw/node": ["./node_modules/msw/lib/node/index.d.ts"],
+      "msw/graphql": ["./node_modules/msw/lib/graphql/index.d.ts"],
+      "msw/browser": ["./node_modules/msw/lib/browser/index.d.ts"],
+      "vitest/browser": ["./node_modules/vitest/browser/context.d.ts"],
+      "@graphql-tools/schema/index.js": ["./node_modules/@graphql-tools/schema/index.d.ts"]
     }
   },
   "include": ["src", "backend", "scripts", "test", "playwright", "playwright.config.ts"]

@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/auth";
 import { addContact, createTransaction } from "../helpers/api";
+import { routes, transactionPath } from "../helpers/contracts";
 import { FUTURE } from "../pages/transaction-feed.page";
 import { required } from "../../backend/required";
 
@@ -38,14 +39,14 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
       await test.step("open the friends feed", async () => {
         await feed.friendsTab.click();
-        await expect(page).toHaveURL("/contacts");
+        await expect(page).toHaveURL(routes.feeds.friends);
         await expect(page.getByText("Contacts", { exact: true })).toBeVisible();
         await expect(feed.transaction(friendsPayment.id)).toBeVisible();
       });
 
       await test.step("open their own feed", async () => {
         await feed.mineTab.click();
-        await expect(page).toHaveURL("/personal");
+        await expect(page).toHaveURL(routes.feeds.mine);
         await expect(page.getByText("Personal", { exact: true })).toBeVisible();
         const mine = feed.transaction(myPayment.id);
         await expect(mine).toContainText(`${user.firstName} ${user.lastName}`);
@@ -56,7 +57,7 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
       await test.step("return to everyone's feed", async () => {
         await feed.everyoneTab.click();
-        await expect(page).toHaveURL("/");
+        await expect(page).toHaveURL(routes.feeds.everyone);
       });
     }
   );
@@ -108,7 +109,7 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
     await feed.transaction(payment.id).click();
 
-    await expect(page).toHaveURL(`/transaction/${payment.id}`);
+    await expect(page).toHaveURL(transactionPath(payment.id));
     await expect(transactionDetailPage.heading).toBeVisible();
     await expect(page.getByText("Detail check")).toBeVisible();
     await expect(transactionDetailPage.likeButton).toBeVisible();
@@ -148,7 +149,7 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
     await feed.createTransactionLink.click();
 
-    await expect(page).toHaveURL("/transaction/new");
+    await expect(page).toHaveURL(routes.transactionNew);
     await expect(newTransactionPage.search).toBeVisible();
   });
 

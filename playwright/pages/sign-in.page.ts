@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { routes } from "../helpers/contracts";
 
 export class SignInPage {
   readonly page: Page;
@@ -20,7 +21,7 @@ export class SignInPage {
   }
 
   async goto() {
-    await this.page.goto("/signin");
+    await this.page.goto(routes.signIn);
   }
 
   async signIn(user: { username: string; password: string }, { remember = false } = {}) {

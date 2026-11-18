@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import eslint from "vite-plugin-eslint";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE");
@@ -14,7 +13,7 @@ export default defineConfig(({ mode }) => {
       outDir: "build",
       sourcemap: true,
     },
-    plugins: [react(), eslint()],
+    plugins: [react()],
     // to get aws amplify to work with vite
     resolve: {
       alias: [

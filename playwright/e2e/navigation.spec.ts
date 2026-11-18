@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/auth";
 import { createTransaction, getUnreadNotifications } from "../helpers/api";
+import { routes } from "../helpers/contracts";
 
 test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
   test.beforeEach(async ({ transactionFeedPage }) => {
@@ -25,19 +26,19 @@ test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
     transactionFeedPage,
   }) => {
     await navDrawer.myAccountLink.click();
-    await expect(page).toHaveURL("/user/settings");
+    await expect(page).toHaveURL(routes.userSettings);
     await expect(userSettingsPage.heading).toBeVisible();
 
     await navDrawer.bankAccountsLink.click();
-    await expect(page).toHaveURL("/bankaccounts");
+    await expect(page).toHaveURL(routes.bankAccounts);
     await expect(bankAccountsPage.heading).toBeVisible();
 
     await navDrawer.notificationsLink.click();
-    await expect(page).toHaveURL("/notifications");
+    await expect(page).toHaveURL(routes.notifications);
     await expect(notificationsPage.heading).toBeVisible();
 
     await navDrawer.homeLink.click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(routes.home);
     await expect(transactionFeedPage.everyoneTab).toBeVisible();
   });
 
@@ -61,14 +62,14 @@ test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
 
     await navBar.notificationsBell(unread).click();
 
-    await expect(page).toHaveURL("/notifications");
+    await expect(page).toHaveURL(routes.notifications);
     await expect(notificationsPage.heading).toBeVisible();
   });
 
   test("the New button starts a transaction", async ({ page, navBar, newTransactionPage }) => {
     await navBar.newTransactionLink.click();
 
-    await expect(page).toHaveURL("/transaction/new");
+    await expect(page).toHaveURL(routes.transactionNew);
     await expect(newTransactionPage.search).toBeVisible();
   });
 });

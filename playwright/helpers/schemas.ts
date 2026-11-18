@@ -1,5 +1,6 @@
 import type { APIResponse } from "@playwright/test";
 import * as yup from "yup";
+import { transactionRequestStatuses, transactionStatuses } from "./contracts";
 
 // Wire shapes the API sends back. Dates arrive as ISO strings, so these differ from src/models.
 
@@ -40,13 +41,10 @@ const transactionFields = {
   receiverId: text(),
   amount: yup.number().defined(),
   description: text(),
-  status: yup
-    .mixed<"pending" | "incomplete" | "complete">()
-    .oneOf(["pending", "incomplete", "complete"])
-    .defined(),
+  status: yup.mixed<(typeof transactionStatuses)[number]>().oneOf(transactionStatuses).defined(),
   requestStatus: yup
-    .mixed<"pending" | "accepted" | "rejected">()
-    .oneOf(["pending", "accepted", "rejected"]),
+    .mixed<(typeof transactionRequestStatuses)[number]>()
+    .oneOf(transactionRequestStatuses),
   privacyLevel: yup.string(),
   createdAt: text(),
   modifiedAt: text(),

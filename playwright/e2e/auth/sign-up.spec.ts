@@ -1,4 +1,5 @@
 import { test, expect } from "../../fixtures/browser";
+import { routes } from "../../helpers/contracts";
 import { buildBankAccount, buildUser } from "../../helpers/data";
 
 test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
@@ -17,7 +18,7 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
 
       await test.step("submit the new account", async () => {
         await signUpPage.signUp(user);
-        await expect(page).toHaveURL("/signin");
+        await expect(page).toHaveURL(routes.signIn);
       });
 
       await test.step("sign in", async () => {
@@ -61,7 +62,7 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
 
     await onboardingDialog.logoutButton.click();
 
-    await expect(page).toHaveURL("/signin");
+    await expect(page).toHaveURL(routes.signIn);
     await expect(signInPage.signInButton).toBeVisible();
   });
 
@@ -88,7 +89,7 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
 
     await signUpPage.signInLink.click();
 
-    await expect(page).toHaveURL("/signin");
+    await expect(page).toHaveURL(routes.signIn);
     await expect(signInPage.signInButton).toBeVisible();
   });
 });
