@@ -75,9 +75,9 @@
       "matchPackageNames": ["xstate", "@xstate/react"]
     },
     {
-      "groupName": "ESLint",
-      "matchPackageNames": ["eslint"],
-      "matchPackagePatterns": ["^eslint-config-", "^eslint-plugin-"]
+      "groupName": "Oxlint",
+      "matchPackageNames": ["oxlint", "oxlint-tsgolint"],
+      "matchPackagePatterns": ["^@oxlint/"]
     },
     {
       "groupName": "Express",

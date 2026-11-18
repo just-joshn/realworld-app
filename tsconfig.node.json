@@ -1,11 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "moduleResolution": "bundler",
-    "paths": {
-      "vite-plugin-eslint": ["./node_modules/vite-plugin-eslint/dist/index.d.ts"]
-    }
+    "moduleResolution": "bundler"
   },
   "include": ["vite.config.ts", "vitest.config.ts"]
 }
