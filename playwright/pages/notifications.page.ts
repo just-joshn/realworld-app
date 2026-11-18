@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { routes } from "../helpers/contracts";
 
 export class NotificationsPage {
   readonly heading: Locator;
@@ -12,7 +13,7 @@ export class NotificationsPage {
   }
 
   async goto() {
-    await this.page.goto("/notifications");
+    await this.page.goto(routes.notifications);
   }
 
   notification(id: string) {

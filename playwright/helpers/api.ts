@@ -1,6 +1,7 @@
 import { expect, type APIRequestContext } from "@playwright/test";
 import * as yup from "yup";
 import { recordDelete } from "./cleanup";
+import type { PrivacyLevel, TransactionType } from "./contracts";
 import type { NewBankAccount, NewUser, TestUser } from "./data";
 import {
   bankAccountSchema,
@@ -19,11 +20,11 @@ import {
 } from "./schemas";
 
 export type NewTransaction = {
-  transactionType: "payment" | "request";
+  transactionType: TransactionType;
   receiverId: string;
   amount: number;
   description: string;
-  privacyLevel?: "public" | "private" | "contacts";
+  privacyLevel?: PrivacyLevel;
 };
 
 export async function createUser(api: APIRequestContext, details: NewUser): Promise<TestUser> {

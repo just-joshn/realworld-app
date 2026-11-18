@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { transactionPath } from "../helpers/contracts";
 
 export class TransactionDetailPage {
   readonly heading: Locator;
@@ -18,7 +19,7 @@ export class TransactionDetailPage {
   }
 
   async goto(transactionId: string) {
-    await this.page.goto(`/transaction/${transactionId}`);
+    await this.page.goto(transactionPath(transactionId));
   }
 
   likeCount(transactionId: string) {

@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { routes } from "../helpers/contracts";
 import type { TestUser } from "../helpers/data";
 
 type Profile = Pick<TestUser, "firstName" | "lastName" | "email" | "phoneNumber">;
@@ -21,7 +22,7 @@ export class UserSettingsPage {
   }
 
   async goto() {
-    await this.page.goto("/user/settings");
+    await this.page.goto(routes.userSettings);
   }
 
   async save(profile: Profile) {

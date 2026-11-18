@@ -1,11 +1,12 @@
 import { test, expect } from "../../fixtures/browser";
+import { routes } from "../../helpers/contracts";
 import { formatCents } from "../../helpers/data";
 
 test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
   test("a visitor opening a private page is sent to sign in", async ({ page, signInPage }) => {
-    await page.goto("/notifications");
+    await page.goto(routes.notifications);
 
-    await expect(page).toHaveURL("/signin");
+    await expect(page).toHaveURL(routes.signIn);
     await expect(signInPage.signInButton).toBeVisible();
   });
 
@@ -17,7 +18,7 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
 
       await signInPage.signIn(onboardedUser);
 
-      await expect(page).toHaveURL("/");
+      await expect(page).toHaveURL(routes.home);
       await expect(
         page.getByText(`${onboardedUser.firstName} ${onboardedUser.lastName.charAt(0)}`, {
           exact: true,
@@ -44,7 +45,7 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
       await signInPage.signIn({ ...onboardedUser, password: `${onboardedUser.password}-wrong` });
 
       await expect(signInPage.error).toHaveText("Username or password is invalid");
-      await expect(page).toHaveURL("/signin");
+      await expect(page).toHaveURL(routes.signIn);
     });
   });
 
@@ -73,7 +74,7 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
 
     await signInPage.signIn(onboardedUser, { remember: true });
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(routes.home);
     const session = (await context.cookies()).find(({ name }) => name === "connect.sid");
     const daysLeft = ((session?.expires ?? 0) * 1000 - Date.now()) / (24 * 60 * 60 * 1000);
     expect(daysLeft).toBeGreaterThan(29.9);
@@ -88,13 +89,13 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
   }) => {
     await signInPage.goto();
     await signInPage.signIn(onboardedUser);
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(routes.home);
 
     await navDrawer.logoutButton.click();
 
-    await expect(page).toHaveURL("/signin");
+    await expect(page).toHaveURL(routes.signIn);
     await expect(signInPage.signInButton).toBeVisible();
-    await page.goto("/");
-    await expect(page).toHaveURL("/signin");
+    await page.goto(routes.home);
+    await expect(page).toHaveURL(routes.signIn);
   });
 });

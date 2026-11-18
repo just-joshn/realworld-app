@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { routes } from "../helpers/contracts";
 import { fullName, type TestUser } from "../helpers/data";
 
 export class NewTransactionPage {
@@ -25,7 +26,7 @@ export class NewTransactionPage {
   }
 
   async goto() {
-    await this.page.goto("/transaction/new");
+    await this.page.goto(routes.transactionNew);
   }
 
   user(user: TestUser) {

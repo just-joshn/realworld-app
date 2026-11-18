@@ -1,4 +1,5 @@
 import { test, expect } from "../fixtures/auth";
+import { routes } from "../helpers/contracts";
 
 test.describe("navigation on a phone", { tag: ["@e2e", "@navigation"] }, () => {
   test.beforeEach(async ({ transactionFeedPage }) => {
@@ -15,9 +16,9 @@ test.describe("navigation on a phone", { tag: ["@e2e", "@navigation"] }, () => {
     await expect(navDrawer.balanceLabel).toBeHidden();
 
     for (const [link, heading, url] of [
-      [navDrawer.myAccountLink, userSettingsPage.heading, "/user/settings"],
-      [navDrawer.bankAccountsLink, bankAccountsPage.heading, "/bankaccounts"],
-      [navDrawer.notificationsLink, notificationsPage.heading, "/notifications"],
+      [navDrawer.myAccountLink, userSettingsPage.heading, routes.userSettings],
+      [navDrawer.bankAccountsLink, bankAccountsPage.heading, routes.bankAccounts],
+      [navDrawer.notificationsLink, notificationsPage.heading, routes.notifications],
     ] as const) {
       await navDrawer.toggleButton.click();
       await expect(navDrawer.balanceLabel).toBeVisible();
@@ -30,7 +31,7 @@ test.describe("navigation on a phone", { tag: ["@e2e", "@navigation"] }, () => {
 
     await navDrawer.toggleButton.click();
     await navDrawer.homeLink.click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(routes.home);
   });
 
   test("Escape closes the menu", async ({ page, navDrawer }) => {

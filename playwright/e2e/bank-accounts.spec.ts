@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/auth";
 import { createBankAccount } from "../helpers/api";
+import { routes } from "../helpers/contracts";
 import { buildBankAccount } from "../helpers/data";
 import { readJson } from "../helpers/schemas";
 
@@ -12,7 +13,7 @@ test.describe("bank accounts", { tag: ["@e2e", "@bank-accounts"] }, () => {
 
     await bankAccountsPage.form.save(account);
 
-    await expect(page).toHaveURL("/bankaccounts");
+    await expect(page).toHaveURL(routes.bankAccounts);
     await expect(page.getByText(account.bankName, { exact: true })).toBeVisible();
     expect(await readJson(await userApi.get("/bankAccounts"))).toEqual({
       results: expect.arrayContaining([expect.objectContaining({ ...account, isDeleted: false })]),

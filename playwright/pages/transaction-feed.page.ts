@@ -1,9 +1,8 @@
 import type { Locator, Page } from "@playwright/test";
+import { routes, type FeedName } from "../helpers/contracts";
 
 /** A date long after any data a run creates, so feeds filtered around it are empty. */
 export const FUTURE = new Date("2030-01-15T12:00:00Z");
-
-const feedPaths = { everyone: "/", friends: "/contacts", mine: "/personal" } as const;
 
 const calendarDay = (date: Date) =>
   date.toLocaleDateString("en-US", {
@@ -38,8 +37,8 @@ export class TransactionFeedPage {
     this.closeButton = page.getByRole("button", { name: "Close", exact: true });
   }
 
-  async goto(feed: keyof typeof feedPaths = "everyone") {
-    await this.page.goto(feedPaths[feed]);
+  async goto(feed: FeedName = "everyone") {
+    await this.page.goto(routes.feeds[feed]);
   }
 
   transaction(id: string) {

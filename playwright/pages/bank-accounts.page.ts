@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { BankAccountForm } from "../components/bank-account-form.component";
+import { routes } from "../helpers/contracts";
 
 export class BankAccountsPage {
   readonly heading: Locator;
@@ -15,11 +16,11 @@ export class BankAccountsPage {
   }
 
   async goto() {
-    await this.page.goto("/bankaccounts");
+    await this.page.goto(routes.bankAccounts);
   }
 
   async gotoCreate() {
-    await this.page.goto("/bankaccounts/new");
+    await this.page.goto(routes.bankAccountsNew);
   }
 
   account(id: string) {

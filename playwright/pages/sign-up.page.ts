@@ -1,4 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
+import { routes } from "../helpers/contracts";
 import type { NewUser } from "../helpers/data";
 
 export class SignUpPage {
@@ -23,7 +24,7 @@ export class SignUpPage {
   }
 
   async goto() {
-    await this.page.goto("/signup");
+    await this.page.goto(routes.signUp);
   }
 
   async signUp(user: NewUser) {

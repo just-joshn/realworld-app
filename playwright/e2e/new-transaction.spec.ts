@@ -1,5 +1,6 @@
 import { test, expect } from "../fixtures/auth";
 import { getCurrentUser, getUnreadNotifications } from "../helpers/api";
+import { routes } from "../helpers/contracts";
 import { fullName } from "../helpers/data";
 
 test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
@@ -11,7 +12,7 @@ test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
       const note = fake.lorem.words(3);
       await transactionFeedPage.goto();
       await navBar.newTransactionLink.click();
-      await expect(page).toHaveURL("/transaction/new");
+      await expect(page).toHaveURL(routes.transactionNew);
 
       await newTransactionPage.pickRecipient(payee);
       await newTransactionPage.amount.fill("12.50");
@@ -51,7 +52,7 @@ test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
     );
 
     await newTransactionPage.createAnotherButton.click();
-    await expect(page).toHaveURL("/transaction/new");
+    await expect(page).toHaveURL(routes.transactionNew);
     await expect(newTransactionPage.search).toBeVisible();
   });
 
