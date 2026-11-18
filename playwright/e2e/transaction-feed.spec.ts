@@ -1,13 +1,13 @@
 import { test, expect } from "../fixtures/auth";
 import { addContact, createTransaction } from "../helpers/api";
-import { FUTURE, pickDateRange, raiseMinimumAmount } from "../helpers/feed";
+import { FUTURE } from "../pages/transaction-feed.page";
 import { required } from "../../backend/required";
 
 test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
   test(
     "a user browses everyone's, friends', and their own transactions",
     { tag: "@smoke" },
-    async ({ page, user, userApi, createUser, apiAs }) => {
+    async ({ page, transactionFeedPage: feed, user, userApi, createUser, apiAs }) => {
       const friend = await test.step("create a friend", async () => {
         const created = await createUser({ balance: 10_000 });
         await addContact(userApi, created.id);
@@ -31,31 +31,31 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
         }));
 
       await test.step("open everyone's feed", async () => {
-        await page.goto("/");
+        await feed.goto();
         await expect(page.getByText("Public", { exact: true })).toBeVisible();
-        await expect(page.getByRole("listitem").first()).toBeVisible();
+        await expect(feed.transactions.first()).toBeVisible();
       });
 
       await test.step("open the friends feed", async () => {
-        await page.getByRole("tab", { name: "Friends" }).click();
+        await feed.friendsTab.click();
         await expect(page).toHaveURL("/contacts");
         await expect(page.getByText("Contacts", { exact: true })).toBeVisible();
-        await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toBeVisible();
+        await expect(feed.transaction(friendsPayment.id)).toBeVisible();
       });
 
       await test.step("open their own feed", async () => {
-        await page.getByRole("tab", { name: "Mine" }).click();
+        await feed.mineTab.click();
         await expect(page).toHaveURL("/personal");
         await expect(page.getByText("Personal", { exact: true })).toBeVisible();
-        const mine = page.getByTestId(`transaction-item-${myPayment.id}`);
+        const mine = feed.transaction(myPayment.id);
         await expect(mine).toContainText(`${user.firstName} ${user.lastName}`);
         await expect(mine).toContainText("My coffee");
         await expect(mine).toContainText("-$4.00");
-        await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toHaveCount(0);
+        await expect(feed.transaction(friendsPayment.id)).toHaveCount(0);
       });
 
       await test.step("return to everyone's feed", async () => {
-        await page.getByRole("tab", { name: "Everyone" }).click();
+        await feed.everyoneTab.click();
         await expect(page).toHaveURL("/");
       });
     }
@@ -63,6 +63,7 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
   test("scrolling to the end of a feed loads the next page", async ({
     page,
+    transactionFeedPage: feed,
     userApi,
     createUser,
   }) => {
@@ -78,16 +79,12 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
         })
       );
     }
-    const oldest = page.getByTestId(
-      `transaction-item-${required(payments[0], "oldest payment").id}`
-    );
-    await page.goto("/personal");
-    await expect(
-      page.getByTestId(`transaction-item-${required(payments[10], "newest payment").id}`)
-    ).toBeVisible();
+    const oldest = feed.transaction(required(payments[0], "oldest payment").id);
+    await feed.goto("mine");
+    await expect(feed.transaction(required(payments[10], "newest payment").id)).toBeVisible();
     await expect(oldest).toHaveCount(0);
 
-    await page.getByRole("grid").hover();
+    await feed.list.hover();
     await expect(async () => {
       await page.mouse.wheel(0, 300);
       await expect(oldest).toBeVisible({ timeout: 1_000 });
@@ -96,6 +93,8 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
 
   test("opening a transaction from the feed shows its details", async ({
     page,
+    transactionFeedPage: feed,
+    transactionDetailPage,
     userApi,
     createUser,
   }) => {
@@ -105,50 +104,60 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
       amount: 9,
       description: "Detail check",
     });
-    await page.goto("/personal");
+    await feed.goto("mine");
 
-    await page.getByTestId(`transaction-item-${payment.id}`).click();
+    await feed.transaction(payment.id).click();
 
     await expect(page).toHaveURL(`/transaction/${payment.id}`);
-    await expect(page.getByRole("heading", { name: "Transaction Detail" })).toBeVisible();
+    await expect(transactionDetailPage.heading).toBeVisible();
     await expect(page.getByText("Detail check")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Like" })).toBeVisible();
+    await expect(transactionDetailPage.likeButton).toBeVisible();
   });
 
   test("filtering to a date range with no activity shows an empty feed until cleared", async ({
     page,
+    transactionFeedPage: feed,
   }) => {
     await page.clock.install({ time: FUTURE });
-    await page.goto("/");
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await feed.goto();
+    await expect(feed.transactions.first()).toBeVisible();
 
-    await pickDateRange(page, new Date("2030-01-01"), new Date("2030-01-10"));
+    await feed.pickDateRange(new Date("2030-01-01"), new Date("2030-01-10"));
 
-    await expect(page.getByRole("heading", { name: "No Transactions" })).toBeVisible();
-    const dateChip = page.getByRole("button", { name: "Date: Jan, 1 2030 - Jan, 10 2030" });
+    await expect(feed.emptyHeading).toBeVisible();
+    const dateChip = feed.dateFilter("Jan, 1 2030 - Jan, 10 2030");
     await expect(dateChip).toBeVisible();
 
     await page.keyboard.press("Escape");
     await dateChip.focus();
     await page.keyboard.press("Delete");
 
-    await expect(page.getByRole("button", { name: "Date: ALL" })).toBeVisible();
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await expect(feed.dateFilter("ALL")).toBeVisible();
+    await expect(feed.transactions.first()).toBeVisible();
   });
 
-  test("an empty feed offers to create a transaction", async ({ page }) => {
+  test("an empty feed offers to create a transaction", async ({
+    page,
+    transactionFeedPage: feed,
+    newTransactionPage,
+  }) => {
     await page.clock.install({ time: FUTURE });
-    await page.goto("/");
-    await pickDateRange(page, new Date("2030-01-01"), new Date("2030-01-02"));
+    await feed.goto();
+    await feed.pickDateRange(new Date("2030-01-01"), new Date("2030-01-02"));
     await page.keyboard.press("Escape");
 
-    await page.getByRole("link", { name: "Create A Transaction" }).click();
+    await feed.createTransactionLink.click();
 
     await expect(page).toHaveURL("/transaction/new");
-    await expect(page.getByPlaceholder("Search...")).toBeVisible();
+    await expect(newTransactionPage.search).toBeVisible();
   });
 
-  test("a user narrows the feed by amount", async ({ page, userApi, createUser }) => {
+  test("a user narrows the feed by amount", async ({
+    page,
+    transactionFeedPage: feed,
+    userApi,
+    createUser,
+  }) => {
     const payee = await createUser();
     const small = await createTransaction(userApi, {
       transactionType: "payment",
@@ -162,19 +171,19 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
       amount: 50,
       description: "Large",
     });
-    await page.goto("/personal");
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toBeVisible();
+    await feed.goto("mine");
+    await expect(feed.transaction(small.id)).toBeVisible();
 
-    await raiseMinimumAmount(page);
+    await feed.raiseMinimumAmount();
 
     await expect(page.getByText("Amount Range: $10 - $1,000")).toBeVisible();
-    await expect(page.getByTestId(`transaction-item-${large.id}`)).toBeVisible();
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toHaveCount(0);
+    await expect(feed.transaction(large.id)).toBeVisible();
+    await expect(feed.transaction(small.id)).toHaveCount(0);
 
-    await page.getByRole("button", { name: "Clear", exact: true }).click();
-    await page.getByRole("slider").first().press("Escape");
+    await feed.clearButton.click();
+    await feed.amountSlider.press("Escape");
 
-    await expect(page.getByRole("button", { name: "Amount: $0 - $1,000" })).toBeVisible();
-    await expect(page.getByTestId(`transaction-item-${small.id}`)).toBeVisible();
+    await expect(feed.amountFilter("$0 - $1,000")).toBeVisible();
+    await expect(feed.transaction(small.id)).toBeVisible();
   });
 });

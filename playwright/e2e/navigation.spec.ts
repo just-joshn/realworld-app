@@ -2,41 +2,49 @@ import { test, expect } from "../fixtures/auth";
 import { createTransaction, getUnreadNotifications } from "../helpers/api";
 
 test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+  test.beforeEach(async ({ transactionFeedPage }) => {
+    await transactionFeedPage.goto();
   });
 
-  test("a user hides and shows the side navigation", async ({ page }) => {
-    const balance = page.getByText("Account Balance");
-    await expect(balance).toBeVisible();
+  test("a user hides and shows the side navigation", async ({ navDrawer }) => {
+    await expect(navDrawer.balanceLabel).toBeVisible();
 
-    await page.getByRole("button", { name: "open drawer" }).click();
-    await expect(balance).toBeHidden();
+    await navDrawer.toggleButton.click();
+    await expect(navDrawer.balanceLabel).toBeHidden();
 
-    await page.getByRole("button", { name: "open drawer" }).click();
-    await expect(balance).toBeVisible();
+    await navDrawer.toggleButton.click();
+    await expect(navDrawer.balanceLabel).toBeVisible();
   });
 
-  test("the side navigation links open each page", async ({ page }) => {
-    await page.getByRole("link", { name: "My Account" }).click();
+  test("the side navigation links open each page", async ({
+    page,
+    navDrawer,
+    userSettingsPage,
+    bankAccountsPage,
+    notificationsPage,
+    transactionFeedPage,
+  }) => {
+    await navDrawer.myAccountLink.click();
     await expect(page).toHaveURL("/user/settings");
-    await expect(page.getByRole("heading", { name: "User Settings", exact: true })).toBeVisible();
+    await expect(userSettingsPage.heading).toBeVisible();
 
-    await page.getByRole("link", { name: "Bank Accounts" }).click();
+    await navDrawer.bankAccountsLink.click();
     await expect(page).toHaveURL("/bankaccounts");
-    await expect(page.getByRole("heading", { name: "Bank Accounts", exact: true })).toBeVisible();
+    await expect(bankAccountsPage.heading).toBeVisible();
 
-    await page.getByRole("link", { name: "Notifications", exact: true }).click();
+    await navDrawer.notificationsLink.click();
     await expect(page).toHaveURL("/notifications");
-    await expect(page.getByRole("heading", { name: "Notifications", exact: true })).toBeVisible();
+    await expect(notificationsPage.heading).toBeVisible();
 
-    await page.getByRole("link", { name: "Home" }).click();
+    await navDrawer.homeLink.click();
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("tab", { name: "Everyone" })).toBeVisible();
+    await expect(transactionFeedPage.everyoneTab).toBeVisible();
   });
 
   test("the notification bell shows the unread count and opens notifications", async ({
     page,
+    navBar,
+    notificationsPage,
     user,
     userApi,
     createUser,
@@ -51,16 +59,16 @@ test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
     const unread = (await getUnreadNotifications(userApi)).length;
     await page.reload();
 
-    await page.getByRole("link", { name: String(unread), exact: true }).click();
+    await navBar.notificationsBell(unread).click();
 
     await expect(page).toHaveURL("/notifications");
-    await expect(page.getByRole("heading", { name: "Notifications", exact: true })).toBeVisible();
+    await expect(notificationsPage.heading).toBeVisible();
   });
 
-  test("the New button starts a transaction", async ({ page }) => {
-    await page.getByRole("link", { name: "New" }).click();
+  test("the New button starts a transaction", async ({ page, navBar, newTransactionPage }) => {
+    await navBar.newTransactionLink.click();
 
     await expect(page).toHaveURL("/transaction/new");
-    await expect(page.getByPlaceholder("Search...")).toBeVisible();
+    await expect(newTransactionPage.search).toBeVisible();
   });
 });

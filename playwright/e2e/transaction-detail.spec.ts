@@ -3,25 +3,33 @@ import { createTransaction, getCurrentUser, getTransaction } from "../helpers/ap
 import { fullName } from "../helpers/data";
 
 test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
-  test("a user likes a transaction once", async ({ page, userApi, createUser }) => {
+  test("a user likes a transaction once", async ({
+    transactionDetailPage,
+    userApi,
+    createUser,
+  }) => {
     const payment = await createTransaction(userApi, {
       transactionType: "payment",
       receiverId: (await createUser()).id,
       amount: 3,
       description: "Likeable",
     });
-    await page.goto(`/transaction/${payment.id}`);
-    const likeCount = page.getByTestId(`transaction-like-count-${payment.id}`);
-    const like = page.getByRole("button", { name: "Like" });
+    await transactionDetailPage.goto(payment.id);
+    const likeCount = transactionDetailPage.likeCount(payment.id);
     await expect(likeCount).toHaveText("0");
 
-    await like.click();
+    await transactionDetailPage.likeButton.click();
 
     await expect(likeCount).toHaveText("1");
-    await expect(like).toBeDisabled();
+    await expect(transactionDetailPage.likeButton).toBeDisabled();
   });
 
-  test("a user comments on a transaction", async ({ page, userApi, createUser, fake }) => {
+  test("a user comments on a transaction", async ({
+    transactionDetailPage,
+    userApi,
+    createUser,
+    fake,
+  }) => {
     const payment = await createTransaction(userApi, {
       transactionType: "payment",
       receiverId: (await createUser()).id,
@@ -29,19 +37,19 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
       description: "Talkative",
     });
     const comment = fake.lorem.sentence();
-    await page.goto(`/transaction/${payment.id}`);
-    await expect(page.getByRole("heading", { name: "Transaction Detail" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Comments" })).toBeHidden();
+    await transactionDetailPage.goto(payment.id);
+    await expect(transactionDetailPage.heading).toBeVisible();
+    await expect(transactionDetailPage.commentsHeading).toBeHidden();
 
-    await page.getByPlaceholder("Write a comment...").fill(comment);
-    await page.getByPlaceholder("Write a comment...").press("Enter");
+    await transactionDetailPage.addComment(comment);
 
-    await expect(page.getByRole("heading", { name: "Comments" })).toBeVisible();
-    await expect(page.getByRole("listitem").filter({ hasText: comment })).toBeVisible();
+    await expect(transactionDetailPage.commentsHeading).toBeVisible();
+    await expect(transactionDetailPage.comment(comment)).toBeVisible();
   });
 
   test("only the person asked for money can answer a request", async ({
     page,
+    transactionDetailPage,
     user,
     userApi,
     createUser,
@@ -54,17 +62,17 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
       description: "Pay me back",
     });
 
-    await page.goto(`/transaction/${request.id}`);
+    await transactionDetailPage.goto(request.id);
 
     await expect(page.getByText(`${fullName(user)} requested ${fullName(payer)}`)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Accept Request" })).toBeHidden();
-    await expect(page.getByRole("button", { name: "Reject Request" })).toBeHidden();
+    await expect(transactionDetailPage.acceptButton).toBeHidden();
+    await expect(transactionDetailPage.rejectButton).toBeHidden();
   });
 
   test(
     "the person asked for money accepts the request",
     { tag: "@critical" },
-    async ({ page, user, userApi, createUser, apiAs }) => {
+    async ({ page, transactionDetailPage, user, userApi, createUser, apiAs }) => {
       const requester = await createUser({ balance: 0 });
       const requesterApi = await apiAs(requester);
       const request = await createTransaction(requesterApi, {
@@ -74,18 +82,18 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
         description: "Pay me back",
       });
       const balanceBefore = (await getCurrentUser(userApi)).balance;
-      await page.goto(`/transaction/${request.id}`);
+      await transactionDetailPage.goto(request.id);
       await expect(
         page.getByText(`${fullName(requester)} requested ${fullName(user)}`)
       ).toBeVisible();
 
-      await page.getByRole("button", { name: "Accept Request" }).click();
+      await transactionDetailPage.acceptButton.click();
 
       await expect(
         page.getByText(`${fullName(requester)} charged ${fullName(user)}`)
       ).toBeVisible();
-      await expect(page.getByRole("button", { name: "Accept Request" })).toBeHidden();
-      await expect(page.getByRole("button", { name: "Reject Request" })).toBeHidden();
+      await expect(transactionDetailPage.acceptButton).toBeHidden();
+      await expect(transactionDetailPage.rejectButton).toBeHidden();
       expect((await getCurrentUser(requesterApi)).balance).toBe(1_000);
       expect((await getCurrentUser(userApi)).balance).toBe(balanceBefore - 1_000);
     }
@@ -93,6 +101,7 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
 
   test("the person asked for money rejects the request", async ({
     page,
+    transactionDetailPage,
     user,
     userApi,
     createUser,
@@ -106,12 +115,12 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
       amount: 10,
       description: "Pay me back",
     });
-    await page.goto(`/transaction/${request.id}`);
+    await transactionDetailPage.goto(request.id);
 
-    await page.getByRole("button", { name: "Reject Request" }).click();
+    await transactionDetailPage.rejectButton.click();
 
-    await expect(page.getByRole("button", { name: "Reject Request" })).toBeHidden();
-    await expect(page.getByRole("button", { name: "Accept Request" })).toBeHidden();
+    await expect(transactionDetailPage.rejectButton).toBeHidden();
+    await expect(transactionDetailPage.acceptButton).toBeHidden();
     await expect(
       page.getByText(`${fullName(requester)} requested ${fullName(user)}`)
     ).toBeVisible();

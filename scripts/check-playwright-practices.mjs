@@ -133,6 +133,20 @@ check(
     : `browser specs still import base: ${e2eImports.map(rel).join(", ")}`
 );
 
+// Specs may still read text they expect with getByText. Every other locator lives in a page object.
+const specSelector = /\.(getByRole|getByLabel|getByPlaceholder|getByTestId)\s*\(/;
+const specSelectors = walk(join(root, "playwright/e2e")).flatMap((file) =>
+  readFileSync(file, "utf8")
+    .split("\n")
+    .flatMap((line, index) => (specSelector.test(line) ? [`${rel(file)}:${index + 1}`] : []))
+);
+check(
+  specSelectors.length === 0,
+  specSelectors.length === 0
+    ? "e2e specs locate elements through page objects"
+    : `e2e specs locate elements directly at ${specSelectors.join(", ")}`
+);
+
 const failed = findings.filter((line) => line.startsWith("gap"));
 console.log(findings.join("\n"));
 console.log(`\n${findings.length - failed.length} passed, ${failed.length} failed`);

@@ -9,7 +9,6 @@ import {
   type NewUser,
   type TestUser,
 } from "../helpers/data";
-import { SignInPage } from "../pages/sign-in.page";
 
 export type AppOptions = {
   /** Where the Express API listens. Browser projects use `baseURL` for the web app. */
@@ -27,7 +26,6 @@ type BaseFixtures = {
   apiAs: (user: TestUser) => Promise<APIRequestContext>;
   /** A new user who already has a bank account, so they skip onboarding. */
   onboardedUser: TestUser;
-  signInPage: SignInPage;
 };
 
 // The runner gives `playwright.request.newContext()` the project's `use` options, including the
@@ -79,10 +77,6 @@ export const test = base.extend<BaseFixtures, AppOptions>({
     const user = await createUser({ balance: 10_000 });
     await createBankAccount(await apiAs(user), buildBankAccount(fake));
     await use(user);
-  },
-
-  signInPage: async ({ page }, use) => {
-    await use(new SignInPage(page));
   },
 });
 
