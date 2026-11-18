@@ -86,12 +86,15 @@ const ciNeeds = [
   ["cancel-in-progress: true", "cancels superseded runs"],
   ["!cancelled()", "uploads the report unless cancelled"],
   ["retention-days:", "sets artifact retention-days"],
-  ["--grep @smoke", "pull requests run @smoke"],
-  ["--grep-invert @flaky", "full run excludes @flaky"],
+  ["npx playwright test --grep-invert @flaky", "runs the stable suite"],
+  ["test-results/**/trace.zip", "uploads traces"],
+  ["test-results/**/*.png", "uploads screenshots"],
+  ["test-results/**/*.webm", "uploads videos"],
 ];
 for (const [needle, label] of ciNeeds) {
   check(ci.includes(needle), `ci ${label}`);
 }
+check(!ci.includes("--grep @smoke"), "ci does not limit pull requests to @smoke");
 const retention = [...ci.matchAll(/retention-days:\s*(\d+)/g)].map((match) => Number(match[1]));
 if (retention.length === 0) check(false, "ci retention-days is 7 to 14");
 else
