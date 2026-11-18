@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures/base";
 import { readJson } from "../helpers/schemas";
-import { createBankAccount } from "../helpers/api";
+import { createBankAccount, scheduleBankAccountCreated } from "../helpers/api";
 import { buildBankAccount } from "../helpers/data";
 
 test.describe("POST /bankAccounts", { tag: ["@api", "@bank-accounts"] }, () => {
@@ -12,7 +12,8 @@ test.describe("POST /bankAccounts", { tag: ["@api", "@bank-accounts"] }, () => {
     const response = await api.post("/bankAccounts", { data: details });
 
     expect(response.status()).toBe(200);
-    expect(await readJson(response)).toMatchObject({
+    const body = await readJson(response);
+    expect(body).toMatchObject({
       account: {
         id: expect.any(String),
         uuid: expect.any(String),
@@ -23,6 +24,7 @@ test.describe("POST /bankAccounts", { tag: ["@api", "@bank-accounts"] }, () => {
         modifiedAt: expect.any(String),
       },
     });
+    scheduleBankAccountCreated(api, body);
   });
 
   test("422 — missing account details", async ({ createUser, apiAs }) => {

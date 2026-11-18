@@ -1,4 +1,4 @@
-import { test, expect } from "../../fixtures/base";
+import { test, expect } from "../../fixtures/browser";
 
 test.describe("sign out on a phone", { tag: ["@e2e", "@auth"] }, () => {
   test("a user signs out from the menu", async ({ page, signInPage, onboardedUser }) => {

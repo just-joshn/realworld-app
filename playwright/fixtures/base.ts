@@ -1,6 +1,7 @@
 import { test as base, expect, type APIRequestContext } from "@playwright/test";
 import type { Faker } from "@faker-js/faker";
 import { createBankAccount, createUser } from "../helpers/api";
+import { runRecordedDeletes, startRecordedDeletes, stopRecordedDeletes } from "../helpers/cleanup";
 import {
   buildBankAccount,
   buildUser,
@@ -49,20 +50,29 @@ export const test = base.extend<BaseFixtures, AppOptions>({
 
   apiAs: async ({ playwright, apiURL }, use) => {
     const contexts: APIRequestContext[] = [];
-    await use(async (user) => {
-      const api = await playwright.request.newContext({
-        baseURL: apiURL,
-        storageState: NO_SESSION,
-        extraHTTPHeaders: { Accept: "application/json" },
+    startRecordedDeletes();
+    try {
+      await use(async (user) => {
+        const api = await playwright.request.newContext({
+          baseURL: apiURL,
+          storageState: NO_SESSION,
+          extraHTTPHeaders: { Accept: "application/json" },
+        });
+        contexts.push(api);
+        const response = await api.post("/login", {
+          data: { username: user.username, password: user.password },
+        });
+        await expect(response).toBeOK();
+        return api;
       });
-      contexts.push(api);
-      const response = await api.post("/login", {
-        data: { username: user.username, password: user.password },
-      });
-      await expect(response).toBeOK();
-      return api;
-    });
-    await Promise.all(contexts.map((api) => api.dispose()));
+    } finally {
+      try {
+        await runRecordedDeletes();
+      } finally {
+        stopRecordedDeletes();
+        await Promise.all(contexts.map((api) => api.dispose()));
+      }
+    }
   },
 
   onboardedUser: async ({ createUser, apiAs, fake }, use) => {

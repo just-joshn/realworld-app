@@ -1,4 +1,4 @@
-import { test, expect } from "../../fixtures/base";
+import { test, expect } from "../../fixtures/browser";
 import { formatCents } from "../../helpers/data";
 
 test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
@@ -34,17 +34,23 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
     }
   );
 
-  test("a user with the wrong password is told the credentials are invalid", async ({
-    page,
-    signInPage,
-    onboardedUser,
-  }) => {
-    await signInPage.goto();
+  test.describe("rejected credentials", () => {
+    test.use({
+      allowedBrowserErrors: [/401 \(Unauthorized\).*\/login/],
+    });
 
-    await signInPage.signIn({ ...onboardedUser, password: `${onboardedUser.password}-wrong` });
+    test("a user with the wrong password is told the credentials are invalid", async ({
+      page,
+      signInPage,
+      onboardedUser,
+    }) => {
+      await signInPage.goto();
 
-    await expect(signInPage.error).toHaveText("Username or password is invalid");
-    await expect(page).toHaveURL("/signin");
+      await signInPage.signIn({ ...onboardedUser, password: `${onboardedUser.password}-wrong` });
+
+      await expect(signInPage.error).toHaveText("Username or password is invalid");
+      await expect(page).toHaveURL("/signin");
+    });
   });
 
   test("the sign in form explains missing fields before submitting", async ({ signInPage }) => {
