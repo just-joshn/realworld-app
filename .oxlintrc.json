@@ -22,10 +22,7 @@
   ],
   "overrides": [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx"
-      ],
+      "files": ["**/*.ts", "**/*.tsx"],
       "rules": {
         "constructor-super": "off",
         "for-direction": "error",
@@ -196,10 +193,7 @@
             "allowRegExp": false
           }
         ],
-        "typescript/return-await": [
-          "error",
-          "error-handling-correctness-only"
-        ],
+        "typescript/return-await": ["error", "error-handling-correctness-only"],
         "typescript/triple-slash-reference": "error",
         "typescript/unbound-method": "error",
         "typescript/unified-signatures": "error",
@@ -213,9 +207,7 @@
         "typescript/consistent-type-imports": "error",
         "typescript/switch-exhaustiveness-check": "error"
       },
-      "plugins": [
-        "typescript"
-      ],
+      "plugins": ["typescript"],
       "env": {
         "node": true,
         "browser": true

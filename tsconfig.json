@@ -31,7 +31,6 @@
       "msw/graphql": ["./node_modules/msw/lib/graphql/index.d.ts"],
       "msw/browser": ["./node_modules/msw/lib/browser/index.d.ts"],
       "vitest/browser": ["./node_modules/vitest/browser/context.d.ts"],
-      "@faker-js/faker": ["./node_modules/@faker-js/faker/dist/types/index.d.ts"],
       "@graphql-tools/schema/index.js": ["./node_modules/@graphql-tools/schema/index.d.ts"]
     }
   },

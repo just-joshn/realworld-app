@@ -12,10 +12,8 @@ export const transactionStatuses: [TransactionStatus, ...TransactionStatus[]] = 
 ];
 
 export type TransactionRequestStatus = "pending" | "accepted" | "rejected";
-export const transactionRequestStatuses: [
-  TransactionRequestStatus,
-  ...TransactionRequestStatus[],
-] = ["pending", "accepted", "rejected"];
+export const transactionRequestStatuses: [TransactionRequestStatus, ...TransactionRequestStatus[]] =
+  ["pending", "accepted", "rejected"];
 
 export const routes = {
   home: "/",
