@@ -1,6 +1,6 @@
 import { test, expect } from "../fixtures/base";
 import { readJson } from "../helpers/schemas";
-import { addContact } from "../helpers/api";
+import { addContact, scheduleContactCreated } from "../helpers/api";
 
 test.describe("POST /contacts", { tag: ["@api", "@contacts"] }, () => {
   test("adds a contact for the signed-in user", async ({ createUser, apiAs }) => {
@@ -11,7 +11,8 @@ test.describe("POST /contacts", { tag: ["@api", "@contacts"] }, () => {
     const response = await api.post("/contacts", { data: { contactUserId: friend.id } });
 
     expect(response.status()).toBe(200);
-    expect(await readJson(response)).toMatchObject({
+    const body = await readJson(response);
+    expect(body).toMatchObject({
       contact: {
         id: expect.any(String),
         uuid: expect.any(String),
@@ -21,6 +22,7 @@ test.describe("POST /contacts", { tag: ["@api", "@contacts"] }, () => {
         modifiedAt: expect.any(String),
       },
     });
+    scheduleContactCreated(api, body);
   });
 
   test("422 — malformed contact user id", async ({ createUser, apiAs }) => {

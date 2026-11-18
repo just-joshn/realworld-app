@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { test, expect } from "../../fixtures/base";
+import { test, expect } from "../../fixtures/browser";
 import { buildBankAccount, buildUser, type NewUser } from "../../helpers/data";
 
 async function signUp(page: Page, user: NewUser) {
@@ -19,30 +19,48 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
     async ({ page, signInPage, fake }) => {
       const user = buildUser(fake);
       const bankAccount = buildBankAccount(fake);
-      await page.goto("/signin");
-      await signInPage.signUpLink.click();
-      await expect(page.getByRole("heading", { name: "Sign Up" })).toBeVisible();
 
-      await signUp(page, user);
-      await expect(page).toHaveURL("/signin");
-      await signInPage.signIn(user);
+      await test.step("open the sign up form", async () => {
+        await page.goto("/signin");
+        await signInPage.signUpLink.click();
+        await expect(page.getByRole("heading", { name: "Sign Up" })).toBeVisible();
+      });
 
-      const dialog = page.getByRole("dialog");
-      await expect(dialog.getByText("Get Started with Real World App")).toBeVisible();
-      await dialog.getByRole("button", { name: "Next" }).click();
-      await expect(dialog.getByText("Create Bank Account")).toBeVisible();
-      await dialog.getByPlaceholder("Bank Name").fill(bankAccount.bankName);
-      await dialog.getByPlaceholder("Routing Number").fill(bankAccount.routingNumber);
-      await dialog.getByPlaceholder("Account Number").fill(bankAccount.accountNumber);
-      await dialog.getByRole("button", { name: "Save" }).click();
-      await expect(dialog.getByText("You're all set!")).toBeVisible();
-      await dialog.getByRole("button", { name: "Done" }).click();
-      await expect(dialog).toBeHidden();
+      await test.step("submit the new account", async () => {
+        await signUp(page, user);
+        await expect(page).toHaveURL("/signin");
+      });
 
-      await page.getByRole("link", { name: "Bank Accounts" }).click();
-      await expect(page.getByText(bankAccount.bankName)).toBeVisible();
-      await expect(page.getByText(`@${user.username}`)).toBeVisible();
-      await expect(page.getByTestId("sidenav-user-balance")).toHaveText("$0.00");
+      await test.step("sign in", async () => {
+        await signInPage.signIn(user);
+        await expect(
+          page.getByRole("dialog").getByText("Get Started with Real World App")
+        ).toBeVisible();
+      });
+
+      await test.step("add a bank account", async () => {
+        const dialog = page.getByRole("dialog");
+        await dialog.getByRole("button", { name: "Next" }).click();
+        await expect(dialog.getByText("Create Bank Account")).toBeVisible();
+        await dialog.getByPlaceholder("Bank Name").fill(bankAccount.bankName);
+        await dialog.getByPlaceholder("Routing Number").fill(bankAccount.routingNumber);
+        await dialog.getByPlaceholder("Account Number").fill(bankAccount.accountNumber);
+        await dialog.getByRole("button", { name: "Save" }).click();
+        await expect(dialog.getByText("You're all set!")).toBeVisible();
+      });
+
+      await test.step("finish onboarding", async () => {
+        const dialog = page.getByRole("dialog");
+        await dialog.getByRole("button", { name: "Done" }).click();
+        await expect(dialog).toBeHidden();
+      });
+
+      await test.step("see the new account", async () => {
+        await page.getByRole("link", { name: "Bank Accounts" }).click();
+        await expect(page.getByText(bankAccount.bankName)).toBeVisible();
+        await expect(page.getByText(`@${user.username}`)).toBeVisible();
+        await expect(page.getByTestId("sidenav-user-balance")).toHaveText("$0.00");
+      });
     }
   );
 

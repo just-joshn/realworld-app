@@ -1,5 +1,5 @@
 import { test, expect } from "../fixtures/base";
-import { createBankAccount } from "../helpers/api";
+import { createBankAccount, scheduleBankAccountDelete } from "../helpers/api";
 import { buildBankAccount } from "../helpers/data";
 import { bankAccountSchema, readBody, readJson } from "../helpers/schemas";
 import * as yup from "yup";
@@ -110,6 +110,7 @@ test.describe("POST /graphql createBankAccount", { tag: ["@api", "@graphql"] }, 
     expect(await readJson(await api.get("/bankAccounts"))).toEqual({
       results: [expect.objectContaining({ id: body.data.createBankAccount.id })],
     });
+    scheduleBankAccountDelete(api, body.data.createBankAccount.id);
   });
 
   test("rejects a mutation missing required variables", async ({ createUser, apiAs }) => {

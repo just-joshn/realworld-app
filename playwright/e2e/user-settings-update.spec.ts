@@ -1,4 +1,4 @@
-import { test, expect } from "../fixtures/base";
+import { test, expect } from "../fixtures/browser";
 import { getCurrentUser } from "../helpers/api";
 
 // Renaming the shared worker account would break other tests' assertions, so this test signs in

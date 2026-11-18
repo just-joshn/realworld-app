@@ -8,43 +8,56 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     "a user browses everyone's, friends', and their own transactions",
     { tag: "@smoke" },
     async ({ page, user, userApi, createUser, apiAs }) => {
-      const friend = await createUser({ balance: 10_000 });
-      await addContact(userApi, friend.id);
-      const friendsPayment = await createTransaction(await apiAs(friend), {
-        transactionType: "payment",
-        receiverId: (await createUser()).id,
-        amount: 3,
-        description: "Friend's coffee",
-        privacyLevel: "public",
+      const friend = await test.step("create a friend", async () => {
+        const created = await createUser({ balance: 10_000 });
+        await addContact(userApi, created.id);
+        return created;
       });
-      const myPayment = await createTransaction(userApi, {
-        transactionType: "payment",
-        receiverId: friend.id,
-        amount: 4,
-        description: "My coffee",
-        privacyLevel: "public",
+      const friendsPayment = await test.step("pay someone as the friend", async () =>
+        createTransaction(await apiAs(friend), {
+          transactionType: "payment",
+          receiverId: (await createUser()).id,
+          amount: 3,
+          description: "Friend's coffee",
+          privacyLevel: "public",
+        }));
+      const myPayment = await test.step("pay the friend", async () =>
+        createTransaction(userApi, {
+          transactionType: "payment",
+          receiverId: friend.id,
+          amount: 4,
+          description: "My coffee",
+          privacyLevel: "public",
+        }));
+
+      await test.step("open everyone's feed", async () => {
+        await page.goto("/");
+        await expect(page.getByText("Public", { exact: true })).toBeVisible();
+        await expect(page.getByRole("listitem").first()).toBeVisible();
       });
-      await page.goto("/");
 
-      await expect(page.getByText("Public", { exact: true })).toBeVisible();
-      await expect(page.getByRole("listitem").first()).toBeVisible();
+      await test.step("open the friends feed", async () => {
+        await page.getByRole("tab", { name: "Friends" }).click();
+        await expect(page).toHaveURL("/contacts");
+        await expect(page.getByText("Contacts", { exact: true })).toBeVisible();
+        await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toBeVisible();
+      });
 
-      await page.getByRole("tab", { name: "Friends" }).click();
-      await expect(page).toHaveURL("/contacts");
-      await expect(page.getByText("Contacts", { exact: true })).toBeVisible();
-      await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toBeVisible();
+      await test.step("open their own feed", async () => {
+        await page.getByRole("tab", { name: "Mine" }).click();
+        await expect(page).toHaveURL("/personal");
+        await expect(page.getByText("Personal", { exact: true })).toBeVisible();
+        const mine = page.getByTestId(`transaction-item-${myPayment.id}`);
+        await expect(mine).toContainText(`${user.firstName} ${user.lastName}`);
+        await expect(mine).toContainText("My coffee");
+        await expect(mine).toContainText("-$4.00");
+        await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toHaveCount(0);
+      });
 
-      await page.getByRole("tab", { name: "Mine" }).click();
-      await expect(page).toHaveURL("/personal");
-      await expect(page.getByText("Personal", { exact: true })).toBeVisible();
-      const mine = page.getByTestId(`transaction-item-${myPayment.id}`);
-      await expect(mine).toContainText(`${user.firstName} ${user.lastName}`);
-      await expect(mine).toContainText("My coffee");
-      await expect(mine).toContainText("-$4.00");
-      await expect(page.getByTestId(`transaction-item-${friendsPayment.id}`)).toHaveCount(0);
-
-      await page.getByRole("tab", { name: "Everyone" }).click();
-      await expect(page).toHaveURL("/");
+      await test.step("return to everyone's feed", async () => {
+        await page.getByRole("tab", { name: "Everyone" }).click();
+        await expect(page).toHaveURL("/");
+      });
     }
   );
 

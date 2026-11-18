@@ -1,7 +1,13 @@
 import path from "node:path";
 import type { APIRequestContext } from "@playwright/test";
-import { test as base, expect, NO_SESSION } from "./base";
-import { createBankAccount, createUser } from "../helpers/api";
+import { NO_SESSION } from "./base";
+import { test as base, expect } from "./browser";
+import {
+  createBankAccount,
+  createUser,
+  deleteBankAccount,
+  listBankAccountIds,
+} from "../helpers/api";
 import { buildBankAccount, buildUser, seededFaker, type TestUser } from "../helpers/data";
 import { AUTH_DIR } from "../helpers/paths";
 import { required } from "../../backend/required";
@@ -18,6 +24,7 @@ type AuthFixtures = {
   user: TestUser;
   /** An API client signed in as `user`, for arranging data and checking side effects. */
   userApi: APIRequestContext;
+  discardAccountsCreatedInTheTest: undefined;
 };
 
 export const test = base.extend<AuthFixtures, WorkerAuthFixtures>({
@@ -34,9 +41,16 @@ export const test = base.extend<AuthFixtures, WorkerAuthFixtures>({
       await expect(
         await api.post("/login", { data: { username: user.username, password: user.password } })
       ).toBeOK();
-      await createBankAccount(api, buildBankAccount(fake));
-      await api.dispose();
-      await use(user);
+      const account = await createBankAccount(api, buildBankAccount(fake), { record: false });
+      try {
+        await use(user);
+      } finally {
+        try {
+          await deleteBankAccount(api, account.id);
+        } finally {
+          await api.dispose();
+        }
+      }
     },
     { scope: "worker" },
   ],
@@ -68,6 +82,17 @@ export const test = base.extend<AuthFixtures, WorkerAuthFixtures>({
   userApi: async ({ apiAs, workerUser }, use) => {
     await use(await apiAs(workerUser));
   },
+
+  discardAccountsCreatedInTheTest: [
+    async ({ userApi }, use) => {
+      const before = new Set(await listBankAccountIds(userApi));
+      await use(undefined);
+      for (const id of await listBankAccountIds(userApi)) {
+        if (!before.has(id)) await deleteBankAccount(userApi, id);
+      }
+    },
+    { auto: true },
+  ],
 });
 
 export { expect };

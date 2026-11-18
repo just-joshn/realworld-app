@@ -74,7 +74,7 @@ export default defineConfig<object, AppOptions>({
 
   webServer: [
     {
-      command: "bun backend/app.ts",
+      command: "bun run predev:cognito:ci && bun backend/app.ts",
       url: API_URL,
       reuseExistingServer: !isCI,
       timeout: 60_000,
