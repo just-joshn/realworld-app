@@ -8,7 +8,7 @@ import AppOkta from "./AppOkta";
 const sdk = vi.hoisted(() => ({
   authenticated: { isAuthenticated: true, accessToken: { accessToken: "okta-token" } },
   signedOut: { isAuthenticated: false, accessToken: { accessToken: "okta-token" } },
-  authState: vi.fn(),
+  authState: vi.fn<() => { isAuthenticated: boolean; accessToken: { accessToken: string } }>(),
   auth: {
     getUser: vi.fn(() =>
       Promise.resolve({
