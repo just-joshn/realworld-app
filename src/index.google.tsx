@@ -1,9 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { Router } from "react-router-dom";
 import { createTheme, ThemeProvider, StyledEngineProvider } from "@mui/material";
 
 import AppGoogle from "./containers/AppGoogle";
-import { history } from "./utils/historyUtils";
+import { history, HistoryRouter } from "./utils/historyUtils";
 
 const theme = createTheme({
   palette: {
@@ -21,13 +20,13 @@ const root = createRoot(rootElement);
 
 if (process.env["VITE_GOOGLE"]) {
   root.render(
-    <Router history={history}>
+    <HistoryRouter history={history}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={theme}>
           <AppGoogle />
         </ThemeProvider>
       </StyledEngineProvider>
-    </Router>
+    </HistoryRouter>
   );
 } else {
   console.error("Google is not configured.");

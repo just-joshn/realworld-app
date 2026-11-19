@@ -5,7 +5,7 @@ import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object } from "yup";
 import type { BankAccountPayload, User } from "../models";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 
 const validationSchema = object({
   bankName: string().min(5, "Must contain at least 5 characters").required("Enter a bank name"),
@@ -55,7 +55,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
   createBankAccount,
   onboarding,
 }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const initialValues: BankAccountPayload = {
     userId,
@@ -74,7 +74,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
         createBankAccount({ ...values, userId });
 
         if (!onboarding) {
-          history.push("/bankaccounts");
+          void navigate("/bankaccounts");
         }
       }}
     >

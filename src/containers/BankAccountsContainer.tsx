@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import type { ActorRefFrom } from "xstate";
-import { Link as RouterLink, useRouteMatch } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router";
 import { Grid, Button, Paper, Typography } from "@mui/material";
 
 import type { authMachine } from "../machines/authMachine";
@@ -31,7 +31,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
-  const match = useRouteMatch();
+  const location = useLocation();
 
   const [authState] = useSharedActor(authService);
   const [bankAccountsState, sendBankAccounts] = useSharedActor(bankAccountsService);
@@ -50,7 +50,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
     sendBankAccounts({ type: "FETCH" });
   }, [sendBankAccounts]);
 
-  if (match.url === "/bankaccounts/new" && currentUser?.id) {
+  if (location.pathname === "/bankaccounts/new" && currentUser?.id) {
     return (
       <StyledPaper className={classes.paper}>
         <Typography component="h2" variant="h6" color="primary" gutterBottom>

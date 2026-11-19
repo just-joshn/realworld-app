@@ -19,7 +19,7 @@ import {
   Notifications as NotificationsIcon,
   AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router";
 
 import type { notificationsMachine } from "../machines/notificationsMachine";
 import TransactionNavTabs from "./TransactionNavTabs";

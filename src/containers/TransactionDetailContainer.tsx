@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import TransactionDetail from "../components/TransactionDetail";
 import type { Transaction, Comment, TransactionUpdateActionPayload } from "../models";
 import { transactionDetailMachine } from "../machines/transactionDetailMachine";
@@ -12,12 +12,9 @@ import { isAppUser, type authMachine } from "../machines/authMachine";
 export interface Props {
   authService: ActorRefFrom<typeof authMachine>;
 }
-interface Params {
-  transactionId: string;
-}
-
 const TransactionDetailsContainer: React.FC<Props> = ({ authService }) => {
-  const { transactionId }: Params = useParams();
+  const transactionId = useParams()["transactionId"];
+  if (transactionId === undefined) throw new Error("Missing transactionId route parameter");
   const [authState] = useSharedActor(authService);
   const [transactionDetailState, sendTransactionDetail] = useMachine(transactionDetailMachine);
   useEffect(() => {

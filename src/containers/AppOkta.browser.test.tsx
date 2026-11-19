@@ -18,6 +18,8 @@ const sdk = vi.hoisted(() => ({
       })
     ),
     signOut: vi.fn(() => Promise.resolve(true)),
+    setOriginalUri: vi.fn(),
+    signInWithRedirect: vi.fn(() => Promise.resolve()),
   },
 }));
 
@@ -30,7 +32,6 @@ vi.mock("@okta/okta-react", async (importOriginal) => {
       authState: sdk.state,
       oktaAuth: sdk.auth,
     })),
-    SecureRoute: () => <a href="/provider-login">Sign in with Okta</a>,
     LoginCallback: () => <p>Completing Okta sign in</p>,
   };
 });
@@ -45,12 +46,14 @@ test("shows the signed-in Okta user's name and username", async () => {
   await expect.element(screen.getByText("@ada")).toBeVisible();
 });
 
-test("offers Okta sign-in when the user is signed out", async () => {
+test("sends a signed-out visitor to Okta sign-in", async () => {
   sdk.state.isAuthenticated = false;
+  sdk.auth.signInWithRedirect.mockClear();
   startProviderSession();
-  const screen = await renderWithRouter(<AppOkta />);
+  await renderWithRouter(<AppOkta />);
 
-  await expect.element(screen.getByRole("link", { name: "Sign in with Okta" })).toBeVisible();
+  await expect.poll(() => sdk.auth.signInWithRedirect.mock.calls.length).toBe(1);
+  expect(sdk.auth.setOriginalUri).toHaveBeenCalledWith("/");
 });
 
 test("shows the provider callback while completing Okta sign-in", async () => {

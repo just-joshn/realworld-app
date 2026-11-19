@@ -14,8 +14,8 @@ await vi.hoisted(async () => {
 });
 
 vi.mock(import("../utils/historyUtils"), async () => {
-  const { createMemoryHistory } = await import("history");
-  return { history: createMemoryHistory() };
+  const { UNSAFE_createMemoryHistory } = await import("react-router");
+  return { history: UNSAFE_createMemoryHistory({ v5Compat: true }) };
 });
 
 const api = "http://localhost:3001";

@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import type { ActorRefFrom } from "xstate";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Button, Container, CssBaseline, TextField, Grid, Box, Typography } from "@mui/material";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";

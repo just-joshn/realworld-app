@@ -1,6 +1,6 @@
 import { object, string } from "yup";
 import { http, HttpResponse } from "msw";
-import { Route } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import { expect, test, vi } from "vitest";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { history, renderWithRouter } from "../../test/browser/render";
@@ -28,9 +28,17 @@ test("creates an account from the account list", async () => {
   const authService = await login();
   const bankAccountsService = startBankAccounts();
   const screen = await renderWithRouter(
-    <Route path="/bankaccounts/new" exact>
-      <BankAccountsContainer authService={authService} bankAccountsService={bankAccountsService} />
-    </Route>,
+    <Routes>
+      <Route
+        path="/bankaccounts/new"
+        element={
+          <BankAccountsContainer
+            authService={authService}
+            bankAccountsService={bankAccountsService}
+          />
+        }
+      />
+    </Routes>,
     { route: "/bankaccounts/new" }
   );
   await expect.element(screen.getByRole("heading", { name: "Create Bank Account" })).toBeVisible();
@@ -81,9 +89,17 @@ test("offers creation when the user has no accounts", async () => {
     http.post(apiUrl("/graphql"), () => HttpResponse.json({ data: { listBankAccount: [] } }))
   );
   const screen = await renderWithRouter(
-    <Route path="/bankaccounts">
-      <BankAccountsContainer authService={startAuth()} bankAccountsService={startBankAccounts()} />
-    </Route>,
+    <Routes>
+      <Route
+        path="/bankaccounts/*"
+        element={
+          <BankAccountsContainer
+            authService={startAuth()}
+            bankAccountsService={startBankAccounts()}
+          />
+        }
+      />
+    </Routes>,
     { route: "/bankaccounts/new" }
   );
   await expect.element(screen.getByRole("heading", { name: "No Bank Accounts" })).toBeVisible();

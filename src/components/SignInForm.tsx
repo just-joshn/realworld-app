@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import type { ActorRefFrom } from "xstate";
 import { useSharedActor } from "../utils/useSharedActor";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import {
   Button,
   CssBaseline,

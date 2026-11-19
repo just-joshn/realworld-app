@@ -1,6 +1,6 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { useHistory } from "react-router";
+import { useNavigate } from "react-router";
 import type { Theme } from "@mui/material";
 import { ListItem, Typography, Grid, Avatar, ListItemAvatar, Paper, Badge } from "@mui/material";
 import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
@@ -65,10 +65,10 @@ const SmallAvatar = styled(Avatar)(({ theme }: { theme: Theme }) => {
 });
 
 const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const showTransactionDetail = (transactionId: string) => {
-    history.push(`/transaction/${transactionId}`);
+    void navigate(`/transaction/${transactionId}`);
   };
 
   return (

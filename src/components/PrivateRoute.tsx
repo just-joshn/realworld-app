@@ -1,30 +1,15 @@
 import React from "react";
-import type { RouteProps } from "react-router-dom";
-import { Route, Redirect } from "react-router-dom";
+import { Navigate, useLocation } from "react-router";
 
-interface IPrivateRouteProps extends Omit<RouteProps, "children" | "render"> {
+interface IPrivateRouteProps {
   isLoggedIn: boolean;
   children: React.ReactNode;
 }
 
-function PrivateRoute({ isLoggedIn, children, ...rest }: IPrivateRouteProps) {
-  return (
-    <Route
-      {...rest}
-      render={({ location }) =>
-        isLoggedIn ? (
-          children
-        ) : (
-          <Redirect
-            to={{
-              pathname: "/signin",
-              state: { from: location },
-            }}
-          />
-        )
-      }
-    />
-  );
+function PrivateRoute({ isLoggedIn, children }: IPrivateRouteProps) {
+  const location = useLocation();
+
+  return isLoggedIn ? children : <Navigate to="/signin" state={{ from: location }} replace />;
 }
 
 export default PrivateRoute;

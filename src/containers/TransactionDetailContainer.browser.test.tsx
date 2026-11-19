@@ -1,6 +1,6 @@
 import { object, string } from "yup";
 import { http, HttpResponse } from "msw";
-import { Route } from "react-router-dom";
+import { Route, Routes } from "react-router";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { createActor } from "xstate";
@@ -36,9 +36,12 @@ async function renderDetail(transaction: TransactionResponseItem, user = buildUs
     authService.send({ type: "LOGIN" });
   });
   return renderWithRouter(
-    <Route path="/transaction/:transactionId">
-      <TransactionDetailContainer authService={authService} />
-    </Route>,
+    <Routes>
+      <Route
+        path="/transaction/:transactionId"
+        element={<TransactionDetailContainer authService={authService} />}
+      />
+    </Routes>,
     { route: "/transaction/txn1" }
   );
 }

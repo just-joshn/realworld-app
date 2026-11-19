@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Paper, Button, ListSubheader, Grid } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router";
 import { isEmpty } from "lodash/fp";
 
 import SkeletonList from "./SkeletonList";
