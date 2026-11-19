@@ -13,7 +13,7 @@ The test suite is split across five layers in this checkout.
 | Unit tests                | `src/**/*.test.ts`                        | 7 files  |
 | Browser component tests   | `src/**/*.browser.test.tsx`               | 25 files |
 | Browser integration tests | `test/integration/*.integration.test.tsx` | 8 files  |
-| Playwright E2E specs      | `playwright/e2e/*.spec.ts`                | 14 files |
+| Playwright E2E specs      | `playwright/e2e/**/*.spec.ts`             | 14 files |
 | Playwright API specs      | `playwright/api/*.spec.ts`                | 13 files |
 
 The Playwright E2E suite uses 8 page objects in `playwright/pages/` and 4 UI components in `playwright/components/`.
