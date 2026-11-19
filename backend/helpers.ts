@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import { set } from "lodash";
 import type { Request, Response, NextFunction } from "express";
-import type { ValidationChain, SanitizationChain } from "express-validator";
+import type { ValidationChain } from "express-validator";
 import { required } from "./required";
 import { validationResult } from "express-validator";
-import jwt from "express-jwt";
+import { expressjwt, type Params } from "express-jwt";
 import jwksRsa from "jwks-rsa";
 
 import OktaJwtVerifier from "@okta/jwt-verifier";
@@ -12,7 +12,7 @@ import awsConfig from "../src/aws-exports";
 
 dotenv.config();
 
-const auth0JwtConfig = {
+const auth0JwtConfig: Params = {
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
@@ -33,7 +33,7 @@ const oktaJwtVerifier = new OktaJwtVerifier({
     cid: process.env["VITE_OKTA_CLIENTID"] ?? "",
   },
 });
-const googleJwtConfig = {
+const googleJwtConfig: Params = {
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
@@ -72,7 +72,7 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
 // https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html#amazon-cognito-user-pools-using-tokens-step-2
 const userPoolId = awsConfig.Auth.Cognito.userPoolId;
 const region = required(userPoolId.split("_")[0], "Cognito region");
-const awsCognitoJwtConfig = {
+const awsCognitoJwtConfig: Params = {
   secret: jwksRsa.expressJwtSecret({
     jwksUri: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`,
   }),
@@ -81,8 +81,8 @@ const awsCognitoJwtConfig = {
   algorithms: ["RS256"],
 };
 
-const skipTestData = (config: jwt.Options) => {
-  const verify = jwt(config);
+const skipTestData = (config: Params) => {
+  const verify = expressjwt({ ...config, requestProperty: "user" });
   return (req: Request, res: Response, next: NextFunction) => {
     if (/^\/testData\//.test(req.originalUrl)) {
       next();
@@ -108,7 +108,7 @@ export const ensureAuthenticated = (req: Request, res: Response, next: NextFunct
   });
 };
 
-export const validateMiddleware = (validations: (ValidationChain | SanitizationChain)[]) => {
+export const validateMiddleware = (validations: ValidationChain[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     void Promise.all(validations.map((validation) => validation.run(req)))
       .then(() => {

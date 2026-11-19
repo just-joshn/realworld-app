@@ -20,7 +20,6 @@ import {
   isEqual,
   flattenDepth,
   find,
-  intersectionWith,
   compact,
   differenceBy,
   sampleSize,
@@ -470,22 +469,16 @@ export const createFakeCommentNotification = (
 });
 
 const getTransactionsWithLikes = (transactions: Transaction[], seedLikes: Like[]) =>
-  intersectionWith(
-    ({ id: transactionId }, { transactionId: likeTransactionId }) =>
-      isEqual(transactionId, likeTransactionId),
-    transactions,
-    seedLikes
+  transactions.filter((transaction) =>
+    seedLikes.some((like) => isEqual(transaction.id, like.transactionId))
   );
 
 const getLikeByTransactionId = (transactionId: Transaction["id"], seedLikes: Like[]) =>
   required(find({ transactionId }, seedLikes), "like");
 
 const getTransactionsWithComments = (transactions: Transaction[], seedComments: Comment[]) =>
-  intersectionWith(
-    ({ id: transactionId }, { transactionId: commentTransactionId }) =>
-      isEqual(transactionId, commentTransactionId),
-    transactions,
-    seedComments
+  transactions.filter((transaction) =>
+    seedComments.some((comment) => isEqual(transaction.id, comment.transactionId))
   );
 
 const getCommentByTransactionId = (transactionId: Transaction["id"], seedComments: Comment[]) =>

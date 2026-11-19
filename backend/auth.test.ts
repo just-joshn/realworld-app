@@ -7,10 +7,6 @@ import { resetDatabase } from "../test/database";
 import { dispatch } from "../test/router";
 import router from "./auth";
 
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
-
 const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
 function seedAda() {
@@ -72,7 +68,9 @@ describe("POST /login", () => {
       request,
     });
 
-    expect(request.session.cookie.maxAge).toBe(thirtyDays);
+    const ttl = request.session.cookie.originalMaxAge;
+    expect(ttl).toBeLessThanOrEqual(thirtyDays);
+    expect(ttl).toBeGreaterThan(thirtyDays - 10);
   });
 
   test.for([

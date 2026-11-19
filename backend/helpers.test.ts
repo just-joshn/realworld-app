@@ -70,7 +70,7 @@ describe("validateMiddleware", () => {
       expect(res.status).toHaveBeenCalledWith(422);
     });
     expect(res.json).toHaveBeenCalledWith({
-      errors: [expect.objectContaining({ param: "username" })],
+      errors: [expect.objectContaining({ path: "username" })],
     });
     expect(next).not.toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe("checkAuth0Jwt", () => {
     expect(next).toHaveBeenCalledExactlyOnceWith();
   });
 
-  test("rejects a request that carries no token", () => {
+  test("rejects a request that carries no token", async () => {
     const next = buildNext();
 
     checkAuth0Jwt(
@@ -154,8 +154,10 @@ describe("checkAuth0Jwt", () => {
       next
     );
 
-    expect(next).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({ name: "UnauthorizedError" })
-    );
+    await vi.waitFor(() => {
+      expect(next).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ name: "UnauthorizedError" })
+      );
+    });
   });
 });

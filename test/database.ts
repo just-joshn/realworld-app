@@ -1,16 +1,12 @@
-import db from "../backend/database";
+import { replaceDatabase } from "../backend/database";
 import type { DbSchema } from "../src/models/db-schema";
 import { buildContact, buildDbState, buildTransaction, buildUser } from "./factories";
 import { DefaultPrivacyLevel } from "../src/models";
 
-// Test files that import this module must replace the file adapter with the in-memory one:
-// vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-//   default: (await import("lowdb/adapters/Memory")).default,
-// }));
-
-export function resetDatabase(overrides: Partial<DbSchema> = {}) {
-  db.setState(buildDbState(overrides));
-  return db;
+export function resetDatabase(overrides: Partial<DbSchema> = {}): DbSchema {
+  const state = buildDbState(overrides);
+  replaceDatabase(state);
+  return state;
 }
 
 export const ada = () =>

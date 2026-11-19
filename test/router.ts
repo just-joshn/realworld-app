@@ -3,7 +3,8 @@ import type { RequestHandler, Router } from "express";
 import passport from "passport";
 import type { User } from "../src/models";
 import { buildUser } from "./factories";
-import { buildExchange } from "./express";
+import { buildExchange, withQuery } from "./express";
+import { materializeQuery } from "../backend/writable-query";
 import { vi } from "vitest";
 
 type DispatchOptions = {
@@ -24,6 +25,7 @@ export function dispatch(
 ): Promise<DispatchResult> {
   return new Promise((resolve, reject) => {
     const app = express();
+    app.use(materializeQuery);
     const typedPassport: passport.Authenticator<RequestHandler, RequestHandler> = passport;
     app.use(typedPassport.initialize());
     app.use((req, res, next) => {
@@ -43,10 +45,9 @@ export function dispatch(
 
     const { req, res } = buildExchange();
     req.method = method;
-    req.url = url;
-    req.originalUrl = url;
+    req.url = withQuery(url, query);
+    req.originalUrl = req.url;
     req.body = body;
-    Object.assign(req.query, query);
     req.cookies = {};
     res.json = (payload: unknown) => {
       resolve({ status: res.statusCode, body: payload });

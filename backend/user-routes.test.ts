@@ -1,15 +1,12 @@
 import { objectContaining } from "./test-matchers";
 import * as yup from "yup";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { buildUser } from "../test/factories";
 import { resetDatabase, seedPeople } from "../test/database";
 import { dispatch } from "../test/router";
 import { getUserById, getUserByUsername } from "./database";
 import router from "./user-routes";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
+import { required } from "./required";
 
 const resultIds = (body: unknown) =>
   yup
@@ -105,7 +102,7 @@ test("PATCH /:userId updates the user", async () => {
   });
 
   expect(result).toEqual({ status: 204 });
-  expect(getUserById("t45AiwidW").firstName).toBe("Augusta");
+  expect(required(getUserById("t45AiwidW"), "t45AiwidW").firstName).toBe("Augusta");
 });
 
 test("PATCH /:userId retains a zero balance instead of omitting the edit", async () => {
@@ -119,7 +116,7 @@ test("PATCH /:userId retains a zero balance instead of omitting the edit", async
   });
 
   expect(result.status).toBe(204);
-  expect(getUserById("t45AiwidW").balance).toBe(0);
+  expect(required(getUserById("t45AiwidW"), "t45AiwidW").balance).toBe(0);
 });
 
 test("PATCH /:userId refuses to update another user", async () => {
@@ -133,5 +130,5 @@ test("PATCH /:userId refuses to update another user", async () => {
   });
 
   expect(result).toEqual({ status: 401, body: { error: "Unauthorized" } });
-  expect(getUserById("t45AiwidW").firstName).toBe("Ada");
+  expect(required(getUserById("t45AiwidW"), "t45AiwidW").firstName).toBe("Ada");
 });

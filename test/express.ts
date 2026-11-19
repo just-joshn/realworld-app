@@ -4,6 +4,7 @@ import { IncomingMessage, ServerResponse } from "node:http";
 import { Socket } from "node:net";
 import { vi } from "vitest";
 import { required } from "../backend/required";
+import { writableQuery } from "../backend/writable-query";
 
 export function buildExchange() {
   const app = express();
@@ -19,19 +20,53 @@ export function buildExchange() {
   return required(exchange, "Express test exchange");
 }
 
+function queryText(value: unknown): string | undefined {
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return undefined;
+}
+
+function isQueryRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function withQuery(url: string, query: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const text = queryText(item);
+        if (text !== undefined) params.append(key, text);
+      }
+      continue;
+    }
+    const text = queryText(value);
+    if (text !== undefined) params.append(key, text);
+  }
+  const search = params.toString();
+  if (!search) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}${search}`;
+}
+
 export function buildRequest(overrides: Record<string, unknown> = {}): Request {
+  const { query, ...rest } = overrides;
   const { req } = buildExchange();
-  return Object.assign(
+  Object.assign(
     req,
     {
       body: {},
-      query: {},
       params: {},
       cookies: {},
       isAuthenticated: () => true,
     },
-    overrides
+    rest
   );
+  if (isQueryRecord(query)) {
+    req.url = withQuery(req.url, query);
+  }
+  writableQuery(req);
+  return req;
 }
 
 export function buildResponse() {

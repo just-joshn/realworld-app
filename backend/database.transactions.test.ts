@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { buildComment, buildLike, buildTransaction } from "../test/factories";
 import { seedPeople } from "../test/database";
 import { transactionQuery } from "./request-data";
@@ -8,6 +8,7 @@ import {
   TransactionRequestStatus,
   TransactionStatus,
 } from "../src/models";
+import { required } from "./required";
 import {
   createTransaction,
   getAllTransactions,
@@ -25,10 +26,6 @@ import {
   transactionsWithinDateRange,
   updateTransactionById,
 } from "./database";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
 
 const at = (isoDate: string) => new Date(isoDate);
 
@@ -233,9 +230,9 @@ describe("createTransaction", () => {
       amount: 2500,
       privacyLevel: DefaultPrivacyLevel.public,
     });
-    expect(getTransactionById(transaction.id).status).toBe(TransactionStatus.complete);
-    expect(getUserById("user1").balance).toBe(7500);
-    expect(getUserById("user2").balance).toBe(7500);
+    expect(required(getTransactionById(transaction.id), "transaction").status).toBe(TransactionStatus.complete);
+    expect(required(getUserById("user1"), "user1").balance).toBe(7500);
+    expect(required(getUserById("user2"), "user2").balance).toBe(7500);
     expect(getNotificationsByUserId("user2")).toEqual([
       expect.objectContaining({
         transactionId: transaction.id,
@@ -253,8 +250,8 @@ describe("createTransaction", () => {
       details({ receiverId: "user1", amount: 10 })
     );
 
-    expect(getUserById("user3").balance).toBe(0);
-    expect(getUserById("user1").balance).toBe(11000);
+    expect(required(getUserById("user3"), "user3").balance).toBe(0);
+    expect(required(getUserById("user1"), "user1").balance).toBe(11000);
     expect(getBankTransfersByUserId("user3")).toEqual([
       expect.objectContaining({ amount: 1000, type: "withdrawal", transactionId: transaction.id }),
     ]);
@@ -274,7 +271,7 @@ describe("createTransaction", () => {
       requestStatus: TransactionRequestStatus.pending,
       privacyLevel: DefaultPrivacyLevel.contacts,
     });
-    expect(getUserById("user1").balance).toBe(10000);
+    expect(required(getUserById("user1"), "user1").balance).toBe(10000);
     expect(getNotificationsByUserId("user1")).toEqual([
       expect.objectContaining({ status: PaymentNotificationStatus.requested }),
     ]);
@@ -287,12 +284,12 @@ describe("updateTransactionById", () => {
 
     updateTransactionById("txn3", { requestStatus: TransactionRequestStatus.accepted });
 
-    expect(getTransactionById("txn3")).toMatchObject({
+    expect(required(getTransactionById("txn3"), "transaction")).toMatchObject({
       status: TransactionStatus.complete,
       requestStatus: TransactionRequestStatus.accepted,
     });
-    expect(getUserById("user1").balance).toBe(5000);
-    expect(getUserById("user3").balance).toBe(5000);
+    expect(required(getUserById("user1"), "user1").balance).toBe(5000);
+    expect(required(getUserById("user3"), "user3").balance).toBe(5000);
     expect(getNotificationsByUserId("user3")).toEqual([
       expect.objectContaining({ status: PaymentNotificationStatus.received }),
     ]);
@@ -303,9 +300,9 @@ describe("updateTransactionById", () => {
 
     updateTransactionById("txn3", { requestStatus: TransactionRequestStatus.rejected });
 
-    expect(getTransactionById("txn3").status).toBe(TransactionStatus.complete);
-    expect(getUserById("user1").balance).toBe(10000);
-    expect(getUserById("user3").balance).toBe(0);
+    expect(required(getTransactionById("txn3"), "transaction").status).toBe(TransactionStatus.complete);
+    expect(required(getUserById("user1"), "user1").balance).toBe(10000);
+    expect(required(getUserById("user3"), "user3").balance).toBe(0);
   });
 
   test("editing a payment applies the edits as given", () => {
