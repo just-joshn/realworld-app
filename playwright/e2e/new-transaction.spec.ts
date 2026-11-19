@@ -28,7 +28,9 @@ test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
       await expect(page.getByText(note, { exact: true })).toBeVisible();
     }
   );
+});
 
+test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
   test("a user requests money and then starts another transaction", async ({
     page,
     newTransactionPage,
@@ -70,7 +72,9 @@ test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
 
     await expect(newTransactionPage.users).toHaveCount(0);
   });
+});
 
+test.describe("new transaction", { tag: ["@e2e", "@transactions"] }, () => {
   test("the payment form explains what is missing before it can be sent", async ({
     page,
     newTransactionPage,

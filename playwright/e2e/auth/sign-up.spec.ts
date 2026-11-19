@@ -46,7 +46,9 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
       });
     }
   );
+});
 
+test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
   test("a new user can log out from the onboarding dialog", async ({
     page,
     signInPage,
@@ -83,7 +85,9 @@ test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
     await expect(page.getByText("Password does not match")).toBeVisible();
     await expect(signUpPage.signUpButton).toBeDisabled();
   });
+});
 
+test.describe("sign up and onboarding", { tag: ["@e2e", "@auth"] }, () => {
   test("a visitor goes from sign up back to sign in", async ({ page, signInPage, signUpPage }) => {
     await signUpPage.goto();
 

@@ -1,5 +1,7 @@
 import { test, expect } from "../fixtures/auth";
+import type { APIRequestContext } from "@playwright/test";
 import { addContact, createTransaction } from "../helpers/api";
+import type { NewUser, TestUser } from "../helpers/data";
 import { routes, transactionPath } from "../helpers/contracts";
 import { FUTURE } from "../pages/transaction-feed.page";
 import { required } from "../../backend/required";
@@ -9,27 +11,11 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     "a user browses everyone's, friends', and their own transactions",
     { tag: "@smoke" },
     async ({ page, transactionFeedPage: feed, user, userApi, createUser, apiAs }) => {
-      const friend = await test.step("create a friend", async () => {
-        const created = await createUser({ balance: 10_000 });
-        await addContact(userApi, created.id);
-        return created;
+      const { friendsPayment, myPayment } = await seedFriendFeed({
+        userApi,
+        createUser,
+        apiAs,
       });
-      const friendsPayment = await test.step("pay someone as the friend", async () =>
-        createTransaction(await apiAs(friend), {
-          transactionType: "payment",
-          receiverId: (await createUser()).id,
-          amount: 3,
-          description: "Friend's coffee",
-          privacyLevel: "public",
-        }));
-      const myPayment = await test.step("pay the friend", async () =>
-        createTransaction(userApi, {
-          transactionType: "payment",
-          receiverId: friend.id,
-          amount: 4,
-          description: "My coffee",
-          privacyLevel: "public",
-        }));
 
       await test.step("open everyone's feed", async () => {
         await feed.goto();
@@ -61,7 +47,9 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
       });
     }
   );
+});
 
+test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
   test("scrolling to the end of a feed loads the next page", async ({
     page,
     transactionFeedPage: feed,
@@ -69,17 +57,7 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     createUser,
   }) => {
     const payee = await createUser();
-    const payments = [];
-    for (let i = 1; i <= 11; i++) {
-      payments.push(
-        await createTransaction(userApi, {
-          transactionType: "payment",
-          receiverId: payee.id,
-          amount: i,
-          description: `Payment ${String(i)}`,
-        })
-      );
-    }
+    const payments = await createNumberedPayments(userApi, payee.id, 11);
     const oldest = feed.transaction(required(payments[0], "oldest payment").id);
     await feed.goto("mine");
     await expect(feed.transaction(required(payments[10], "newest payment").id)).toBeVisible();
@@ -91,7 +69,9 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
       await expect(oldest).toBeVisible({ timeout: 1_000 });
     }).toPass();
   });
+});
 
+test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
   test("opening a transaction from the feed shows its details", async ({
     page,
     transactionFeedPage: feed,
@@ -114,7 +94,9 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     await expect(page.getByText("Detail check")).toBeVisible();
     await expect(transactionDetailPage.likeButton).toBeVisible();
   });
+});
 
+test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
   test("filtering to a date range with no activity shows an empty feed until cleared", async ({
     page,
     transactionFeedPage: feed,
@@ -152,7 +134,9 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     await expect(page).toHaveURL(routes.transactionNew);
     await expect(newTransactionPage.search).toBeVisible();
   });
+});
 
+test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
   test("a user narrows the feed by amount", async ({
     page,
     transactionFeedPage: feed,
@@ -188,3 +172,52 @@ test.describe("transaction feed", { tag: ["@e2e", "@transactions"] }, () => {
     await expect(feed.transaction(small.id)).toBeVisible();
   });
 });
+
+type FeedApis = {
+  userApi: APIRequestContext;
+  createUser: (overrides?: Partial<NewUser>) => Promise<TestUser>;
+  apiAs: (user: TestUser) => Promise<APIRequestContext>;
+};
+
+async function seedFriendFeed({ userApi, createUser, apiAs }: FeedApis) {
+  const friend = await test.step("create a friend", async () => {
+    const created = await createUser({ balance: 10_000 });
+    await addContact(userApi, created.id);
+    return created;
+  });
+  const friendsPayment = await test.step("pay someone as the friend", async () =>
+    createTransaction(await apiAs(friend), {
+      transactionType: "payment",
+      receiverId: (await createUser()).id,
+      amount: 3,
+      description: "Friend's coffee",
+      privacyLevel: "public",
+    }));
+  const myPayment = await test.step("pay the friend", async () =>
+    createTransaction(userApi, {
+      transactionType: "payment",
+      receiverId: friend.id,
+      amount: 4,
+      description: "My coffee",
+      privacyLevel: "public",
+    }));
+  return { friendsPayment, myPayment };
+}
+
+type CreatedTransaction = Awaited<ReturnType<typeof createTransaction>>;
+
+// Created one after another so each payment's timestamp orders the feed.
+function createNumberedPayments(api: APIRequestContext, receiverId: string, count: number) {
+  return Array.from({ length: count }, (_, index) => index + 1).reduce(
+    async (created, amount) => [
+      ...(await created),
+      await createTransaction(api, {
+        transactionType: "payment",
+        receiverId,
+        amount,
+        description: `Payment ${String(amount)}`,
+      }),
+    ],
+    Promise.resolve<CreatedTransaction[]>([])
+  );
+}

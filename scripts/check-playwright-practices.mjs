@@ -40,7 +40,10 @@ function bannedFindings() {
   const suite = walk(join(root, "playwright"));
   return banned.map(([pattern, label]) => {
     const where = suite.flatMap((file) => lineRefs(file, (line) => pattern.test(line)));
-    return check(where.length === 0, where.length === 0 ? `no ${label}` : `${label} at ${where.join(", ")}`);
+    return check(
+      where.length === 0,
+      where.length === 0 ? `no ${label}` : `${label} at ${where.join(", ")}`
+    );
   });
 }
 
@@ -118,7 +121,10 @@ function fixtureFindings() {
   return [
     check(browserFixture.includes('page.on("console"'), "browser tests listen for console"),
     check(browserFixture.includes('page.on("pageerror"'), "browser tests listen for pageerror"),
-    check(read("playwright/e2e/auth/sign-up.spec.ts").includes("test.step("), "sign-up journey uses test.step"),
+    check(
+      read("playwright/e2e/auth/sign-up.spec.ts").includes("test.step("),
+      "sign-up journey uses test.step"
+    ),
     check(
       read("playwright/e2e/transaction-feed.spec.ts").includes("test.step("),
       "transaction feed journey uses test.step"
@@ -134,8 +140,12 @@ const specSelector = /\.(getByRole|getByLabel|getByPlaceholder|getByTestId)\s*\(
 
 function specFindings() {
   const e2eFiles = walk(join(root, "playwright/e2e"));
-  const e2eImports = e2eFiles.filter((file) => readFileSync(file, "utf8").includes("fixtures/base"));
-  const specSelectors = e2eFiles.flatMap((file) => lineRefs(file, (line) => specSelector.test(line)));
+  const e2eImports = e2eFiles.filter((file) =>
+    readFileSync(file, "utf8").includes("fixtures/base")
+  );
+  const specSelectors = e2eFiles.flatMap((file) =>
+    lineRefs(file, (line) => specSelector.test(line))
+  );
   return [
     check(
       e2eImports.length === 0,

@@ -42,7 +42,9 @@ test.describe("GET /transactions/public", { tag: ["@api", "@transactions"] }, ()
     expect(ids).toContain(shared.id);
     expect(ids).not.toContain(secret.id);
   });
+});
 
+test.describe("GET /transactions/public", { tag: ["@api", "@transactions"] }, () => {
   test("422 — unknown sort order", async ({ createUser, apiAs }) => {
     const api = await apiAs(await createUser());
 

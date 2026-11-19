@@ -36,7 +36,9 @@ test.describe("POST /users", { tag: ["@api", "@users"] }, () => {
       errors: expect.arrayContaining([expect.objectContaining({ msg: "Invalid value(s)" })]),
     });
   });
+});
 
+test.describe("POST /users", { tag: ["@api", "@users"] }, () => {
   test("422 — invalid avatar URL and privacy level", async ({ request, fake }) => {
     const response = await request.post("/users", {
       data: { ...buildUser(fake), avatar: "not a url", defaultPrivacyLevel: "everyone" },
@@ -196,7 +198,9 @@ test.describe("PATCH /users/:userId", { tag: ["@api", "@users"] }, () => {
       errors: [expect.objectContaining({ path: "defaultPrivacyLevel" })],
     });
   });
+});
 
+test.describe("PATCH /users/:userId", { tag: ["@api", "@users"] }, () => {
   test("401 — someone else's settings", async ({ createUser, apiAs }) => {
     const api = await apiAs(await createUser());
     const victim = await createUser();

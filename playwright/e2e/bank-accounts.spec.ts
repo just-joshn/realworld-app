@@ -35,7 +35,9 @@ test.describe("bank accounts", { tag: ["@e2e", "@bank-accounts"] }, () => {
     );
     await expect(bankAccountsPage.deleteButton(account.id)).toBeHidden();
   });
+});
 
+test.describe("bank accounts", { tag: ["@e2e", "@bank-accounts"] }, () => {
   test("the bank account form explains missing details", async ({ page, bankAccountsPage }) => {
     const { form } = bankAccountsPage;
     await bankAccountsPage.gotoCreate();

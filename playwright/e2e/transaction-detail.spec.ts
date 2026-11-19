@@ -46,7 +46,9 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
     await expect(transactionDetailPage.commentsHeading).toBeVisible();
     await expect(transactionDetailPage.comment(comment)).toBeVisible();
   });
+});
 
+test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
   test("only the person asked for money can answer a request", async ({
     page,
     transactionDetailPage,
@@ -68,7 +70,9 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
     await expect(transactionDetailPage.acceptButton).toBeHidden();
     await expect(transactionDetailPage.rejectButton).toBeHidden();
   });
+});
 
+test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
   test(
     "the person asked for money accepts the request",
     { tag: "@critical" },
@@ -98,7 +102,9 @@ test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
       expect((await getCurrentUser(userApi)).balance).toBe(balanceBefore - 1_000);
     }
   );
+});
 
+test.describe("transaction detail", { tag: ["@e2e", "@transactions"] }, () => {
   test("the person asked for money rejects the request", async ({
     page,
     transactionDetailPage,

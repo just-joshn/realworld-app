@@ -23,7 +23,9 @@ test.describe("transaction feed on a phone", { tag: ["@e2e", "@transactions"] },
     await expect(feed.dateFilter("ALL")).toBeVisible();
     await expect(feed.transactions.first()).toBeVisible();
   });
+});
 
+test.describe("transaction feed on a phone", { tag: ["@e2e", "@transactions"] }, () => {
   test("a user narrows the feed by amount", async ({
     page,
     transactionFeedPage: feed,

@@ -16,11 +16,7 @@ export const buildDatabase = () => {
     seedLikes,
     seedComments
   );
-  const seedBankTransfers = createSeedBankTransfers(
-    seedUsers,
-    seedTransactions,
-    seedBankAccounts
-  );
+  const seedBankTransfers = createSeedBankTransfers(seedUsers, seedTransactions, seedBankAccounts);
 
   return {
     users: seedUsers,

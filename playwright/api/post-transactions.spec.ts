@@ -40,7 +40,9 @@ test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
     expect((await getCurrentUser(senderApi)).balance).toBe(8_750);
     expect((await getCurrentUser(await apiAs(receiver))).balance).toBe(1_250);
   });
+});
 
+test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
   test("a request leaves balances alone until it is answered", async ({ createUser, apiAs }) => {
     const requester = await createUser({ balance: 0 });
     const payer = await createUser({ balance: 10_000 });
@@ -68,7 +70,9 @@ test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
     expect((await getCurrentUser(requesterApi)).balance).toBe(0);
     expect((await getCurrentUser(await apiAs(payer))).balance).toBe(10_000);
   });
+});
 
+test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
   test("422 — invalid payload", async ({ createUser, apiAs }) => {
     const api = await apiAs(await createUser());
 

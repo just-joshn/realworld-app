@@ -26,7 +26,9 @@ test.describe("PATCH /transactions/:transactionId", { tag: ["@api", "@transactio
     expect((await getCurrentUser(payerApi)).balance).toBe(7_500);
     expect((await getCurrentUser(await apiAs(requester))).balance).toBe(2_500);
   });
+});
 
+test.describe("PATCH /transactions/:transactionId", { tag: ["@api", "@transactions"] }, () => {
   test("rejecting a request leaves balances alone", async ({ createUser, apiAs }) => {
     const requester = await createUser({ balance: 0 });
     const payer = await createUser({ balance: 10_000 });
@@ -70,7 +72,9 @@ test.describe("PATCH /transactions/:transactionId", { tag: ["@api", "@transactio
       errors: [expect.objectContaining({ path: "requestStatus" })],
     });
   });
+});
 
+test.describe("PATCH /transactions/:transactionId", { tag: ["@api", "@transactions"] }, () => {
   test("401 — no session", async ({ request }) => {
     const response = await request.patch("/transactions/abc123", {
       data: { requestStatus: "accepted" },

@@ -47,7 +47,9 @@ test.describe("GET /transactions", { tag: ["@api", "@transactions"] }, () => {
       ],
     });
   });
+});
 
+test.describe("GET /transactions", { tag: ["@api", "@transactions"] }, () => {
   test("filters by request status, amount, and date", async ({ createUser, apiAs }) => {
     const me = await createUser({ balance: 10_000 });
     const friend = await createUser();
@@ -84,7 +86,9 @@ test.describe("GET /transactions", { tag: ["@api", "@transactions"] }, () => {
       })
     ).toEqual([]);
   });
+});
 
+test.describe("GET /transactions", { tag: ["@api", "@transactions"] }, () => {
   test("pages through results", async ({ createUser, apiAs }) => {
     const me = await createUser({ balance: 10_000 });
     const friend = await createUser();
