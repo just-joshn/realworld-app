@@ -1,88 +1,71 @@
-import { createMachine, assign } from "xstate";
+import { assign, setup } from "xstate";
+import { typed } from "./service";
 
-type DateFilterEvent = {
-  type: "DATE_FILTER";
-  dateRangeStart: string;
-  dateRangeEnd: string;
-};
-type AmountFilterEvent = {
-  type: "AMOUNT_FILTER";
-  amountMin: string;
-  amountMax: string;
-};
-type DateResetEvent = { type: "DATE_RESET" };
-type AmountResetEvent = { type: "AMOUNT_RESET" };
-type FilterEvents =
-  { type: "NONE" } | DateFilterEvent | AmountFilterEvent | DateResetEvent | AmountResetEvent;
+export type FilterEvents =
+  | { type: "NONE" }
+  | { type: "DATE_FILTER"; dateRangeStart?: string | undefined; dateRangeEnd?: string | undefined }
+  | {
+      type: "AMOUNT_FILTER";
+      amountMin?: number | string | undefined;
+      amountMax?: number | string | undefined;
+    }
+  | { type: "DATE_RESET" }
+  | { type: "AMOUNT_RESET" };
 
 export interface FilterContext {
   dateRangeStart?: string | undefined;
   dateRangeEnd?: string | undefined;
-  amountMin?: string | undefined;
-  amountMax?: string | undefined;
+  amountMin?: number | string | undefined;
+  amountMax?: number | string | undefined;
 }
 
-export const transactionFiltersMachine = createMachine<FilterContext, FilterEvents>(
-  {
-    id: "filters",
-    type: "parallel",
-    context: {},
-    states: {
-      dateRange: {
-        initial: "none",
-        states: {
-          none: {
-            entry: "resetDateRange",
-            on: {
-              DATE_FILTER: "filter",
-            },
+export const transactionFiltersMachine = setup({
+  types: typed<{ context: FilterContext; events: FilterEvents }>(),
+}).createMachine({
+  id: "filters",
+  type: "parallel",
+  context: {},
+  states: {
+    dateRange: {
+      initial: "none",
+      states: {
+        none: {
+          entry: assign({ dateRangeStart: undefined, dateRangeEnd: undefined }),
+          on: {
+            DATE_FILTER: "filter",
           },
-          filter: {
-            entry: "setDateRange",
-            on: {
-              DATE_RESET: "none",
-            },
+        },
+        filter: {
+          entry: assign(({ event }) => ({
+            dateRangeStart: "dateRangeStart" in event ? event.dateRangeStart : undefined,
+            dateRangeEnd: "dateRangeEnd" in event ? event.dateRangeEnd : undefined,
+          })),
+          on: {
+            DATE_RESET: "none",
           },
         },
       },
-      amountRange: {
-        initial: "none",
-        states: {
-          none: {
-            entry: "resetAmountRange",
-            on: {
-              AMOUNT_FILTER: "filter",
-            },
+    },
+    amountRange: {
+      initial: "none",
+      states: {
+        none: {
+          entry: assign({ amountMin: undefined, amountMax: undefined }),
+          on: {
+            AMOUNT_FILTER: "filter",
           },
-          filter: {
-            entry: "setAmountRange",
-            on: {
-              AMOUNT_RESET: "none",
-              AMOUNT_FILTER: "filter",
-            },
+        },
+        filter: {
+          entry: assign(({ event }) => ({
+            amountMin: "amountMin" in event ? event.amountMin : undefined,
+            amountMax: "amountMax" in event ? event.amountMax : undefined,
+          })),
+          on: {
+            AMOUNT_RESET: "none",
+            AMOUNT_FILTER: { target: "filter", reenter: true },
           },
         },
       },
     },
   },
-  {
-    actions: {
-      setDateRange: assign<FilterContext, FilterEvents>((_ctx, event) => ({
-        dateRangeStart: "dateRangeStart" in event ? event.dateRangeStart : undefined,
-        dateRangeEnd: "dateRangeEnd" in event ? event.dateRangeEnd : undefined,
-      })),
-      resetDateRange: assign(() => ({
-        dateRangeStart: undefined,
-        dateRangeEnd: undefined,
-      })),
-      setAmountRange: assign<FilterContext, FilterEvents>((_ctx, event) => ({
-        amountMin: "amountMin" in event ? event.amountMin : undefined,
-        amountMax: "amountMax" in event ? event.amountMax : undefined,
-      })),
-      resetAmountRange: assign(() => ({
-        amountMin: undefined,
-        amountMax: undefined,
-      })),
-    },
-  }
-);
+});

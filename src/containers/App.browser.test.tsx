@@ -17,7 +17,7 @@ afterEach(async () => {
           resolve();
         }
       });
-      authService.send("LOGOUT");
+      authService.send({ type: "LOGOUT" });
     });
   }
 });

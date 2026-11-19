@@ -3,7 +3,7 @@ import { http, HttpResponse } from "msw";
 import { Route } from "react-router-dom";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { userEvent } from "vitest/browser";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import type { TransactionResponseItem } from "../models";
 import { TransactionRequestStatus } from "../models";
@@ -22,7 +22,7 @@ async function renderDetail(transaction: TransactionResponseItem, user = buildUs
     http.post(apiUrl("/login"), () => HttpResponse.json({ user })),
     http.get(apiUrl("/transactions/txn1"), () => HttpResponse.json({ transaction }))
   );
-  const authService = interpret(authMachine).start();
+  const authService = createActor(authMachine).start();
   onTestFinished(() => {
     authService.stop();
   });
@@ -33,7 +33,7 @@ async function renderDetail(transaction: TransactionResponseItem, user = buildUs
         resolve();
       }
     });
-    authService.send("LOGIN");
+    authService.send({ type: "LOGIN" });
   });
   return renderWithRouter(
     <Route path="/transaction/:transactionId">

@@ -1,23 +1,11 @@
-import { createMachine } from "xstate";
-
-export interface UserOnboardingMachineSchema {
-  states: {
-    idle: Record<string, never>;
-    stepOne: Record<string, never>;
-    stepTwo: Record<string, never>;
-    stepThree: Record<string, never>;
-    done: Record<string, never>;
-  };
-}
+import { setup } from "xstate";
+import { typed } from "./service";
 
 export type UserOnboardingMachineEvents = { type: "PREV" } | { type: "NEXT" };
 
-export type UserOnboardingMachineContext = Record<string, never>;
-
-export const userOnboardingMachine = createMachine<
-  UserOnboardingMachineContext,
-  UserOnboardingMachineEvents
->({
+export const userOnboardingMachine = setup({
+  types: typed<{ events: UserOnboardingMachineEvents }>(),
+}).createMachine({
   id: "userOnboarding",
   initial: "stepOne",
   states: {

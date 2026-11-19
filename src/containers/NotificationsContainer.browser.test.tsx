@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { page } from "vitest/browser";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import { notificationsMachine } from "../machines/notificationsMachine";
 import {
@@ -16,8 +16,8 @@ import { PaymentNotificationStatus } from "../models";
 import NotificationsContainer from "./NotificationsContainer";
 
 function services() {
-  const authService = interpret(authMachine).start();
-  const notificationsService = interpret(notificationsMachine).start();
+  const authService = createActor(authMachine).start();
+  const notificationsService = createActor(notificationsMachine).start();
   onTestFinished(() => {
     authService.stop();
     notificationsService.stop();

@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -72,18 +72,20 @@ const StyledContainer = styled(
 }));
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const SignInForm: React.FC<Props> = ({ authService }) => {
-  const [authState, sendAuth] = useActor(authService);
+  const [authState, sendAuth] = useSharedActor(authService);
   const initialValues: SignInPayload = {
     username: "",
     password: "",
     remember: false,
   };
 
-  const signInPending = (payload: SignInPayload) => sendAuth({ type: "LOGIN", ...payload });
+  const signInPending = (payload: SignInPayload) => {
+    sendAuth({ type: "LOGIN", ...payload });
+  };
 
   return (
     <StyledContainer component="main" maxWidth="xs">

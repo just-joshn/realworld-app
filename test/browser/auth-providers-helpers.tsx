@@ -12,9 +12,18 @@ export function startProviderSession() {
     ),
     http.post(apiUrl("/logout"), () => HttpResponse.json({}))
   );
-  authService.stop();
-  authService.start();
-  onTestFinished(() => {
-    authService.stop();
+  // An xstate 5 actor cannot restart, so each test signs the shared service back out instead.
+  onTestFinished(async () => {
+    worker.use(http.post(apiUrl("/logout"), () => HttpResponse.json({})));
+    if (authService.getSnapshot().matches("unauthorized")) return;
+    await new Promise<void>((resolve) => {
+      const subscription = authService.subscribe((state) => {
+        if (state.matches("unauthorized")) {
+          subscription.unsubscribe();
+          resolve();
+        }
+      });
+      authService.send({ type: "LOGOUT" });
+    });
   });
 }

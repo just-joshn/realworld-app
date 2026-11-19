@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -26,7 +27,7 @@ const Root = styled("div")(() => ({
 const AppAuth0: React.FC = () => {
   const { isAuthenticated, user, getAccessTokenSilently, logout } = useAuth0();
 
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -36,19 +37,17 @@ const AppAuth0: React.FC = () => {
   useEffect(() => {
     void (async function waitForToken() {
       const token = await getAccessTokenSilently();
-      authService.send("AUTH0", { user, token });
+      if (user !== undefined && token !== undefined)
+        authService.send({ type: "AUTH0", user, token });
     })();
   }, [isAuthenticated, user, getAccessTokenSilently]);
 
   useEffect(() => {
-    const signOutOfAuth0 = (event: { type: string }) => {
-      if (event.type.startsWith("done.invoke.authentication.logout")) {
-        void logout({ logoutParams: { returnTo: window.location.origin } });
-      }
-    };
-    authService.onEvent(signOutOfAuth0);
+    const subscription = authService.on("LOGGED_OUT", () => {
+      void logout({ logoutParams: { returnTo: window.location.origin } });
+    });
     return () => {
-      authService.off(signOutOfAuth0);
+      subscription.unsubscribe();
     };
   }, [logout]);
 

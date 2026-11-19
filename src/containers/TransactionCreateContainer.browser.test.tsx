@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test, vi } from "vitest";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import { snackbarMachine } from "../machines/snackbarMachine";
 import { buildUser } from "../../test/factories";
@@ -22,8 +22,8 @@ async function renderCreate({ signedIn = true } = {}) {
     http.post(apiUrl("/transactions"), () => HttpResponse.json({ transaction: { id: "new" } })),
     http.get(apiUrl("/checkAuth"), () => HttpResponse.json({ user: buildUser() }))
   );
-  const authService = interpret(authMachine).start();
-  const snackbarService = interpret(snackbarMachine).start();
+  const authService = createActor(authMachine).start();
+  const snackbarService = createActor(snackbarMachine).start();
   onTestFinished(() => {
     authService.stop();
     snackbarService.stop();
@@ -36,7 +36,7 @@ async function renderCreate({ signedIn = true } = {}) {
           resolve();
         }
       });
-      authService.send("LOGIN");
+      authService.send({ type: "LOGIN" });
     });
   }
   return renderWithRouter(

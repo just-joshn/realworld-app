@@ -1,11 +1,5 @@
-import { createMachine, assign } from "xstate";
-
-export interface SnackbarSchema {
-  states: {
-    invisible: Record<string, never>;
-    visible: Record<string, never>;
-  };
-}
+import { assign, setup } from "xstate";
+import { typed } from "./service";
 
 export type SnackbarEvents = ({ type: "SHOW" } | { type: "HIDE" }) & SnackbarContext;
 export enum Severities {
@@ -19,38 +13,29 @@ export interface SnackbarContext {
   message?: string | undefined;
 }
 
-export const snackbarMachine = createMachine<SnackbarContext, SnackbarEvents>(
-  {
-    id: "snackbar",
-    initial: "invisible",
-    context: {
-      severity: undefined,
-      message: undefined,
+export const snackbarMachine = setup({
+  types: typed<{ context: SnackbarContext; events: SnackbarEvents }>(),
+}).createMachine({
+  id: "snackbar",
+  initial: "invisible",
+  context: {
+    severity: undefined,
+    message: undefined,
+  },
+  states: {
+    invisible: {
+      entry: assign({ severity: undefined, message: undefined }),
+      on: { SHOW: "visible" },
     },
-    states: {
-      invisible: {
-        entry: "resetSnackbar",
-        on: { SHOW: "visible" },
-      },
-      visible: {
-        entry: "setSnackbar",
-        on: { HIDE: "invisible" },
-        after: {
-          3000: "invisible",
-        },
+    visible: {
+      entry: assign(({ event }) => ({
+        severity: "severity" in event ? event.severity : undefined,
+        message: "message" in event ? event.message : undefined,
+      })),
+      on: { HIDE: "invisible" },
+      after: {
+        3000: "invisible",
       },
     },
   },
-  {
-    actions: {
-      setSnackbar: assign<SnackbarContext, SnackbarEvents>((_ctx, event) => ({
-        severity: event.severity,
-        message: event.message,
-      })),
-      resetSnackbar: assign(() => ({
-        severity: undefined,
-        message: undefined,
-      })),
-    },
-  }
-);
+});

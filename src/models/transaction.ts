@@ -22,10 +22,10 @@ export interface Transaction {
   privacyLevel: DefaultPrivacyLevel;
   receiverId: string;
   senderId: string;
-  balanceAtCompletion?: number;
+  balanceAtCompletion?: number | undefined;
   status: TransactionStatus;
-  requestStatus?: TransactionRequestStatus | string;
-  requestResolvedAt?: Date | string;
+  requestStatus?: TransactionRequestStatus | string | undefined;
+  requestResolvedAt?: Date | string | undefined;
   createdAt: Date;
   modifiedAt: Date;
 }
@@ -65,8 +65,8 @@ export type TransactionPayload = Omit<Transaction, "id" | "uuid" | "createdAt" |
 
 export type TransactionCreatePayload = Partial<
   Pick<Transaction, "senderId" | "receiverId" | "description"> & {
-    amount: string;
-    transactionType: string;
+    amount: number | string;
+    transactionType: string | undefined;
   }
 >;
 

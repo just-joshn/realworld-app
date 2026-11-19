@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "config:base"
-  ],
+  "extends": ["config:base"],
   "baseBranch": "develop",
   "automerge": false,
   "commitMessage": "{{semanticPrefix}}Update {{depName}} to {{newVersion}} \ud83c\udf1f",
@@ -20,9 +18,7 @@
     "enabled": true
   },
   "masterIssue": true,
-  "schedule": [
-    "before 3am on the first day of the month"
-  ],
+  "schedule": ["before 3am on the first day of the month"],
   "packageRules": [
     {
       "groupName": "automergeTypesMinor",
@@ -30,99 +26,56 @@
       "major": {
         "automerge": false
       },
-      "matchPackagePatterns": [
-        "^@types/"
-      ]
+      "matchPackagePatterns": ["^@types/"]
     },
     {
       "groupName": "devDeps",
       "description": "automerge minor updates of widely used libraries in devDeps",
       "automerge": true,
-      "matchUpdateTypes": [
-        "minor"
-      ],
-      "matchDepTypes": [
-        "devDependencies"
-      ]
+      "matchUpdateTypes": ["minor"],
+      "matchDepTypes": ["devDependencies"]
     },
     {
       "groupName": "Typescript",
-      "matchPackageNames": [
-        "typescript",
-        "ts-node"
-      ]
+      "matchPackageNames": ["typescript", "ts-node"]
     },
     {
       "groupName": "React",
-      "matchPackageNames": [
-        "react",
-        "react-dom",
-        "react-scripts"
-      ]
+      "matchPackageNames": ["react", "react-dom", "react-scripts"]
     },
     {
       "groupName": "React Router",
-      "matchPackageNames": [
-        "react-router",
-        "react-router-dom",
-        "history"
-      ]
+      "matchPackageNames": ["react-router", "react-router-dom", "history"]
     },
     {
       "groupName": "Okta",
-      "matchPackagePatterns": [
-        "^@okta/"
-      ]
+      "matchPackagePatterns": ["^@okta/"]
     },
     {
       "groupName": "Material UI",
-      "matchPackagePatterns": [
-        "^@mui/"
-      ]
+      "matchPackagePatterns": ["^@mui/"]
     },
     {
       "groupName": "Graphql",
-      "matchPackagePatterns": [
-        "^graphql-"
-      ]
+      "matchPackagePatterns": ["^graphql-"]
     },
     {
       "groupName": "Xstate",
-      "matchPackageNames": [
-        "xstate",
-        "@xstate/react"
-      ]
+      "matchPackageNames": ["xstate", "@xstate/react"]
     },
     {
       "groupName": "Oxlint",
-      "matchPackageNames": [
-        "oxlint",
-        "oxlint-tsgolint"
-      ],
-      "matchPackagePatterns": [
-        "^@oxlint/"
-      ]
+      "matchPackageNames": ["oxlint", "oxlint-tsgolint"],
+      "matchPackagePatterns": ["^@oxlint/"]
     },
     {
       "groupName": "Express",
-      "matchPackageNames": [
-        "express",
-        "morgan",
-        "nodemon",
-        "cors",
-        "bcryptjs"
-      ],
-      "matchPackagePatterns": [
-        "^express-",
-        "^passport-"
-      ]
+      "matchPackageNames": ["express", "morgan", "nodemon", "cors", "bcryptjs"],
+      "matchPackagePatterns": ["^express-", "^passport-"]
     },
     {
       "groupName": "AWS / Amplify",
-      "matchPackageNames": [
-        "@aws-amplify/ui-react",
-        "aws-amplify"
-      ]
+      "matchPackageNames": ["@aws-amplify/ui-react", "aws-amplify"]
     },
     {
       "groupName": "Misc FE libs",

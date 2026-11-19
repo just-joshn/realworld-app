@@ -60,7 +60,7 @@ describe.for([
     const received = respondWithResults("get", path);
     const service = startService(machine);
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(received).toHaveBeenCalledExactlyOnceWith({ path, params: {} });
@@ -82,7 +82,7 @@ describe("usersMachine", () => {
     const received = respondWithResults("get", "/users");
     const service = startService(usersMachine);
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect
       .poll(() => service.getSnapshot().context.results)
@@ -106,7 +106,7 @@ describe("notificationsMachine", () => {
     const received = respondWithResults("get", "/notifications");
     const service = startService(notificationsMachine);
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(received).toHaveBeenCalledWith({ path: "/notifications", params: {} });
@@ -161,7 +161,7 @@ describe("bankAccountsMachine", () => {
     serveAccounts();
     const service = startService(bankAccountsMachine);
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(service.getSnapshot().context.results).toEqual([

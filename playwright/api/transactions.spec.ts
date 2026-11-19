@@ -85,9 +85,7 @@ test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
     });
 
     expect(response.status()).toBe(422);
-    const paths = (await readBody(response, validationErrorsSchema)).errors.map(
-      ({ path }) => path
-    );
+    const paths = (await readBody(response, validationErrorsSchema)).errors.map(({ path }) => path);
     expect(paths).toEqual(
       expect.arrayContaining([
         "transactionType",

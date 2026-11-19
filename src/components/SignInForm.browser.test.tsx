@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test } from "vitest";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import { buildUser } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
@@ -8,7 +8,7 @@ import { history, renderWithRouter } from "../../test/browser/render";
 import SignInForm from "./SignInForm";
 
 function startAuthService() {
-  const service = interpret(authMachine).start();
+  const service = createActor(authMachine).start();
   onTestFinished(() => {
     service.stop();
   });

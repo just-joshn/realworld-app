@@ -6,7 +6,7 @@ import { startProviderSession } from "../../test/browser/auth-providers-helpers"
 import AppOkta from "./AppOkta";
 
 const sdk = vi.hoisted(() => ({
-  state: { isAuthenticated: true, accessToken: "okta-token" },
+  state: { isAuthenticated: true, accessToken: { accessToken: "okta-token" } },
   auth: {
     getUser: vi.fn(() =>
       Promise.resolve({

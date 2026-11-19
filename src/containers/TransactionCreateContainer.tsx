@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { useMachine, useActor } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import type { User } from "../models";
 import TransactionCreateStepOne from "../components/TransactionCreateStepOne";
 import type { TransactionCreateStepTwoProps } from "../components/TransactionCreateStepTwo";
@@ -8,19 +9,19 @@ import TransactionCreateStepThree from "../components/TransactionCreateStepThree
 import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { usersMachine } from "../machines/usersMachine";
 import { debounce } from "lodash/fp";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import { isAppUser, type authMachine } from "../machines/authMachine";
 import type { snackbarMachine, SnackbarContext } from "../machines/snackbarMachine";
 import { Stepper, Step, StepLabel } from "@mui/material";
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
-  snackbarService: InterpreterFrom<typeof snackbarMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  snackbarService: ActorRefFrom<typeof snackbarMachine>;
 }
 
 const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarService }) => {
-  const [authState] = useActor(authService);
-  const [, sendSnackbar] = useActor(snackbarService);
+  const [authState] = useSharedActor(authService);
+  const [, sendSnackbar] = useSharedActor(snackbarService);
 
   const [createTransactionState, sendCreateTransaction, createTransactionService] =
     useMachine(createTransactionMachine);
@@ -41,13 +42,15 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     sendCreateTransaction({ type: "SET_USERS", sender, receiver });
   };
   const createTransaction: TransactionCreateStepTwoProps["createTransaction"] = (payload) => {
-    sendCreateTransaction("CREATE", payload);
+    sendCreateTransaction({ type: "CREATE", ...payload });
   };
-  const userListSearch = debounce(200, (payload: { q: string }) =>
-    sendUsers({ type: "FETCH", ...payload })
-  );
+  const userListSearch = debounce(200, (payload: { q: string }) => {
+    sendUsers({ type: "FETCH", ...payload });
+  });
 
-  const showSnackbar = (payload: SnackbarContext) => sendSnackbar({ type: "SHOW", ...payload });
+  const showSnackbar = (payload: SnackbarContext) => {
+    sendSnackbar({ type: "SHOW", ...payload });
+  };
 
   let activeStep;
   if (createTransactionState.matches("stepTwo")) {

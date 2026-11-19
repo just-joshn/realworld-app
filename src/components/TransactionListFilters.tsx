@@ -5,6 +5,7 @@ import type { TransactionDateRangePayload, TransactionAmountRangePayload } from 
 import TransactionListDateRangeFilter from "./TransactionDateRangeFilter";
 import TransactionListAmountRangeFilter from "./TransactionListAmountRangeFilter";
 import { debounce } from "lodash/fp";
+import type { FilterEvents } from "../machines/transactionFiltersMachine";
 
 const PREFIX = "TransactionListFilters";
 
@@ -22,10 +23,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export type TransactionListFiltersProps = {
-  sendFilterEvent: (
-    type: "DATE_FILTER" | "DATE_RESET" | "AMOUNT_FILTER" | "AMOUNT_RESET",
-    payload?: TransactionDateRangePayload | TransactionAmountRangePayload
-  ) => void;
+  sendFilterEvent: (event: FilterEvents) => void;
   dateRangeFilters: TransactionDateRangePayload;
   amountRangeFilters: TransactionAmountRangePayload;
 };
@@ -36,17 +34,17 @@ const TransactionListFilters: React.FC<TransactionListFiltersProps> = ({
   amountRangeFilters,
 }) => {
   const filterDateRange = (payload: TransactionDateRangePayload) => {
-    sendFilterEvent("DATE_FILTER", payload);
+    sendFilterEvent({ type: "DATE_FILTER", ...payload });
   };
   const resetDateRange = () => {
-    sendFilterEvent("DATE_RESET");
+    sendFilterEvent({ type: "DATE_RESET" });
   };
 
   const filterAmountRange = debounce(200, (payload: TransactionAmountRangePayload) => {
-    sendFilterEvent("AMOUNT_FILTER", payload);
+    sendFilterEvent({ type: "AMOUNT_FILTER", ...payload });
   });
   const resetAmountRange = () => {
-    sendFilterEvent("AMOUNT_RESET");
+    sendFilterEvent({ type: "AMOUNT_RESET" });
   };
 
   return (

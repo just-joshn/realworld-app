@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -28,7 +29,7 @@ const Root = styled("div")(() => ({
 Amplify.configure(awsConfig);
 
 const AppCognito: React.FC = () => {
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -48,10 +49,15 @@ const AppCognito: React.FC = () => {
           if (!tokens.idToken || !userSub) {
             throw new Error("Missing Cognito session tokens or user subject");
           }
-          authService.send("COGNITO", {
+          const email = tokens.idToken.payload["email"];
+          if (typeof email !== "string") {
+            throw new Error("Missing Cognito email claim");
+          }
+          authService.send({
+            type: "COGNITO",
             accessTokenJwtString: tokens.accessToken.toString(),
             userSub,
-            email: tokens.idToken.payload["email"],
+            email,
           });
         } else {
           void signInWithRedirect();
@@ -61,17 +67,15 @@ const AppCognito: React.FC = () => {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    const signOutOfCognito = (event: { type: string }) => {
-      if (
-        event.type.startsWith("done.invoke.authentication.logout") ||
-        event.type.startsWith("error.platform.authentication.logout")
-      ) {
-        void signOut();
-      }
+    const signOutOfCognito = () => {
+      void signOut();
     };
-    authService.onEvent(signOutOfCognito);
+    const subscriptions = [
+      authService.on("LOGGED_OUT", signOutOfCognito),
+      authService.on("LOGOUT_FAILED", signOutOfCognito),
+    ];
     return () => {
-      authService.off(signOutOfCognito);
+      for (const subscription of subscriptions) subscription.unsubscribe();
     };
   }, []);
 

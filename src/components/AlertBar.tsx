@@ -1,16 +1,16 @@
 import React from "react";
 import { Snackbar } from "@mui/material";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import type { snackbarMachine } from "../machines/snackbarMachine";
-import { useActor } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { Alert } from "@mui/material";
 
 interface Props {
-  snackbarService: InterpreterFrom<typeof snackbarMachine>;
+  snackbarService: ActorRefFrom<typeof snackbarMachine>;
 }
 
 const AlertBar: React.FC<Props> = ({ snackbarService }) => {
-  const [snackbarState] = useActor(snackbarService);
+  const [snackbarState] = useSharedActor(snackbarService);
 
   return (
     <Snackbar

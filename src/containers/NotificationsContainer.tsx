@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
 import { Paper, Typography } from "@mui/material";
 import type { NotificationUpdatePayload } from "../models";
 import NotificationList from "../components/NotificationList";
@@ -25,20 +25,21 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<typeof notificationsMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  notificationsService: ActorRefFrom<typeof notificationsMachine>;
 }
 
 const NotificationsContainer: React.FC<Props> = ({ authService, notificationsService }) => {
-  const [authState] = useActor(authService);
-  const [notificationsState, sendNotifications] = useActor(notificationsService);
+  const [authState] = useSharedActor(authService);
+  const [notificationsState, sendNotifications] = useSharedActor(notificationsService);
 
   useEffect(() => {
     sendNotifications({ type: "FETCH" });
   }, [authState, sendNotifications]);
 
-  const updateNotification = (payload: NotificationUpdatePayload) =>
+  const updateNotification = (payload: NotificationUpdatePayload) => {
     sendNotifications({ type: "UPDATE", ...payload });
+  };
 
   return (
     <StyledPaper className={classes.paper}>

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test, vi } from "vitest";
 import { page } from "vitest/browser";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { notificationsMachine } from "../machines/notificationsMachine";
 import { buildLikeNotification } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
@@ -15,11 +15,11 @@ test("opens notifications with the unread count", async () => {
       HttpResponse.json({ results: [{ ...buildLikeNotification(), userFullName: "Ada Lovelace" }] })
     )
   );
-  const service = interpret(notificationsMachine).start();
+  const service = createActor(notificationsMachine).start();
   onTestFinished(() => {
     service.stop();
   });
-  service.send("FETCH");
+  service.send({ type: "FETCH" });
   const screen = await renderWithRouter(
     <NavBar drawerOpen={false} toggleDrawer={vi.fn()} notificationsService={service} />
   );

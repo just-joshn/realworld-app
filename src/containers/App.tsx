@@ -1,7 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { Switch, Route, Redirect } from "react-router-dom";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -26,7 +27,7 @@ const Root = styled("div")(() => ({
 }));
 
 const App: React.FC = () => {
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);

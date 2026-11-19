@@ -204,5 +204,7 @@ test("PATCH /:transactionId updates the request status", async () => {
   });
 
   expect(result).toEqual({ status: 204 });
-  expect(required(getTransactionById("t45AiwidW"), "transaction").requestStatus).toBe(TransactionRequestStatus.rejected);
+  expect(required(getTransactionById("t45AiwidW"), "transaction").requestStatus).toBe(
+    TransactionRequestStatus.rejected
+  );
 });

@@ -1,19 +1,34 @@
 import { describe, expect, test, vi } from "vitest";
 import { startService } from "../../test/machines";
-import { dataMachine } from "./dataMachine";
+import type { FetchOutput } from "./dataMachine";
+import { dataMachine, dataServices } from "./dataMachine";
 
 type Item = { id: string };
 
 const results = (...ids: string[]) => ids.map((id) => ({ id }));
 
-function itemsMachine(services: Partial<Record<string, () => Promise<unknown>>> = {}) {
-  return dataMachine<Item>("items").withConfig({
-    services: {
-      fetchData: () => Promise.resolve({ results: results("a", "b"), pageData: { page: 1 } }),
-      createData: () => Promise.resolve({}),
-      updateData: () => Promise.resolve({}),
-      deleteData: () => Promise.resolve({}),
-      ...services,
+const { load, change } = dataServices<Item>();
+
+function itemsMachine(
+  services: {
+    fetchData?: () => Promise<FetchOutput<Item>>;
+    createData?: () => Promise<unknown>;
+    updateData?: () => Promise<unknown>;
+    deleteData?: () => Promise<unknown>;
+  } = {}
+) {
+  const {
+    fetchData = () => Promise.resolve({ results: results("a", "b"), pageData: { page: 1 } }),
+    createData = () => Promise.resolve({}),
+    updateData = () => Promise.resolve({}),
+    deleteData = () => Promise.resolve({}),
+  } = services;
+  return dataMachine<Item>("items").provide({
+    actors: {
+      fetchData: load(fetchData),
+      createData: change(createData),
+      updateData: change(updateData),
+      deleteData: change(deleteData),
     },
   });
 }
@@ -22,7 +37,7 @@ describe("dataMachine", () => {
   test("FETCH loads results and page data", async () => {
     const service = startService(itemsMachine());
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     expect(service.getSnapshot().context).toMatchObject({
@@ -36,7 +51,7 @@ describe("dataMachine", () => {
       itemsMachine({ fetchData: () => Promise.resolve({ results: [], pageData: { page: 1 } }) })
     );
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withoutData" });
   });
@@ -48,9 +63,9 @@ describe("dataMachine", () => {
       .mockResolvedValueOnce({ results: results("b"), pageData: { page: 2 } });
     const service = startService(itemsMachine({ fetchData }));
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
     await expect.poll(() => service.getSnapshot().matches("success")).toBe(true);
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().context.results).toEqual(results("a", "b"));
   });
@@ -62,9 +77,9 @@ describe("dataMachine", () => {
       .mockResolvedValueOnce({ results: results("a") });
     const service = startService(itemsMachine({ fetchData }));
 
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
     await expect.poll(() => service.getSnapshot().value).toBe("failure");
-    service.send("FETCH");
+    service.send({ type: "FETCH" });
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
   });
@@ -77,7 +92,7 @@ describe("dataMachine", () => {
         itemsMachine({ createData: change, updateData: change, deleteData: change })
       );
 
-      service.send(type);
+      service.send({ type });
 
       await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
       expect(change).toHaveBeenCalledOnce();
@@ -91,10 +106,10 @@ describe("dataMachine", () => {
       const service = startService(
         itemsMachine({ createData: change, updateData: change, deleteData: change })
       );
-      service.send("FETCH");
+      service.send({ type: "FETCH" });
       await expect.poll(() => service.getSnapshot().matches("success")).toBe(true);
 
-      service.send(type);
+      service.send({ type });
 
       await expect.poll(() => change.mock.calls.length).toBe(1);
       await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
@@ -120,10 +135,10 @@ describe("dataMachine", () => {
       const service = startService(
         itemsMachine({ fetchData, createData: change, updateData: change, deleteData: change })
       );
-      service.send("FETCH");
+      service.send({ type: "FETCH" });
       expect(service.getSnapshot().value).toBe("loading");
 
-      service.send(type);
+      service.send({ type });
       finishFirstLoad();
 
       await expect.poll(() => change.mock.calls.length).toBe(1);
@@ -137,7 +152,7 @@ describe("dataMachine", () => {
       itemsMachine({ createData: fail, updateData: fail, deleteData: fail })
     );
 
-    service.send(type);
+    service.send({ type });
 
     await expect.poll(() => service.getSnapshot().value).toBe("failure");
   });

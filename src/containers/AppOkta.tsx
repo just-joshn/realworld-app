@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 import { LoginCallback, SecureRoute, useOktaAuth, withOktaAuth } from "@okta/okta-react";
 import { Route } from "react-router-dom";
@@ -27,7 +28,7 @@ const Root = styled("div")(() => ({
 const AppOkta: React.FC = () => {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();
 
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -35,22 +36,20 @@ const AppOkta: React.FC = () => {
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
-    if (oktaAuthState?.isAuthenticated) {
+    const token = oktaAuthState?.accessToken?.accessToken;
+    if (oktaAuthState?.isAuthenticated && token !== undefined) {
       void oktaAuthService.getUser().then((user) => {
-        authService.send("OKTA", { user, token: oktaAuthState.accessToken });
+        authService.send({ type: "OKTA", user, token });
       });
     }
   }, [oktaAuthState, oktaAuthService]);
 
   useEffect(() => {
-    const signOutOfOkta = (event: { type: string }) => {
-      if (event.type.startsWith("done.invoke.authentication.logout")) {
-        void oktaAuthService.signOut();
-      }
-    };
-    authService.onEvent(signOutOfOkta);
+    const subscription = authService.on("LOGGED_OUT", () => {
+      void oktaAuthService.signOut();
+    });
     return () => {
-      authService.off(signOutOfOkta);
+      subscription.unsubscribe();
     };
   }, [oktaAuthService]);
 

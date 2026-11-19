@@ -230,7 +230,9 @@ describe("createTransaction", () => {
       amount: 2500,
       privacyLevel: DefaultPrivacyLevel.public,
     });
-    expect(required(getTransactionById(transaction.id), "transaction").status).toBe(TransactionStatus.complete);
+    expect(required(getTransactionById(transaction.id), "transaction").status).toBe(
+      TransactionStatus.complete
+    );
     expect(required(getUserById("user1"), "user1").balance).toBe(7500);
     expect(required(getUserById("user2"), "user2").balance).toBe(7500);
     expect(getNotificationsByUserId("user2")).toEqual([
@@ -300,7 +302,9 @@ describe("updateTransactionById", () => {
 
     updateTransactionById("txn3", { requestStatus: TransactionRequestStatus.rejected });
 
-    expect(required(getTransactionById("txn3"), "transaction").status).toBe(TransactionStatus.complete);
+    expect(required(getTransactionById("txn3"), "transaction").status).toBe(
+      TransactionStatus.complete
+    );
     expect(required(getUserById("user1"), "user1").balance).toBe(10000);
     expect(required(getUserById("user3"), "user3").balance).toBe(0);
   });

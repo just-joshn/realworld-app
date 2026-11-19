@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useActor } from "@xstate/react";
-import type { InterpreterFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
+import type { ActorRefFrom } from "xstate";
 import { Link as RouterLink, useRouteMatch } from "react-router-dom";
 import { Grid, Button, Paper, Typography } from "@mui/material";
 
@@ -12,8 +12,8 @@ import BankAccountForm from "../components/BankAccountForm";
 import BankAccountList from "../components/BankAccountList";
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
-  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  bankAccountsService: ActorRefFrom<typeof bankAccountsMachine>;
 }
 const PREFIX = "BankAccountsContainer";
 
@@ -33,8 +33,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
   const match = useRouteMatch();
 
-  const [authState] = useActor(authService);
-  const [bankAccountsState, sendBankAccounts] = useActor(bankAccountsService);
+  const [authState] = useSharedActor(authService);
+  const [bankAccountsState, sendBankAccounts] = useSharedActor(bankAccountsService);
 
   const currentUser = authState.context.user;
 
@@ -47,7 +47,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
   };
 
   useEffect(() => {
-    sendBankAccounts("FETCH");
+    sendBankAccounts({ type: "FETCH" });
   }, [sendBankAccounts]);
 
   if (match.url === "/bankaccounts/new" && currentUser?.id) {

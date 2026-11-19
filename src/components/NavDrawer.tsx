@@ -1,8 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { head } from "lodash/fp";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
 import clsx from "clsx";
 import {
   useMediaQuery,
@@ -189,7 +189,7 @@ interface Props {
   closeMobileDrawer: () => void;
   toggleDrawer: () => void;
   drawerOpen: boolean;
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const NavDrawer: React.FC<Props> = ({
@@ -199,11 +199,13 @@ const NavDrawer: React.FC<Props> = ({
   authService,
 }) => {
   const theme = useTheme();
-  const [authState, sendAuth] = useActor(authService);
+  const [authState, sendAuth] = useSharedActor(authService);
   const showTemporaryDrawer = useMediaQuery(theme.breakpoints.only("xs"));
 
   const currentUser = authState.context.user;
-  const signOut = () => sendAuth("LOGOUT");
+  const signOut = () => {
+    sendAuth({ type: "LOGOUT" });
+  };
 
   return (
     <StyledDrawer

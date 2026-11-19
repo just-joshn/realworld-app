@@ -843,10 +843,7 @@ export const formatNotificationForApiResponse = (
   notification: NotificationType
 ): NotificationResponseItem => {
   let userFullName = getFullNameForUser(notification.userId);
-  const transaction = required(
-    getTransactionById(notification.transactionId),
-    "transaction"
-  );
+  const transaction = required(getTransactionById(notification.transactionId), "transaction");
 
   if (isRequestTransaction(transaction)) {
     userFullName = getFullNameForUser(transaction.senderId);
@@ -886,7 +883,6 @@ export const getAllContacts = () => db.data.contacts;
 
 export const getAllTransactions = () => db.data.transactions;
 
-
 export const getBankAccountsByUserId = (userId: string) => getBankAccountsBy("userId", userId);
 
 export const getNotificationById = (id: string): NotificationType => getNotificationBy("id", id);
@@ -900,4 +896,3 @@ export const getTransactionsBy = (key: string, value: string) =>
   select(db.data.transactions, { [key]: value });
 
 export const getTransactionsByUserId = (userId: string) => getTransactionsBy("receiverId", userId);
-

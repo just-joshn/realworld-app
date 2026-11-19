@@ -1,8 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import clsx from "clsx";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
 import {
   AppBar,
   Toolbar,
@@ -99,14 +99,14 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
 interface NavBarProps {
   drawerOpen: boolean;
   toggleDrawer: () => void;
-  notificationsService: InterpreterFrom<typeof notificationsMachine>;
+  notificationsService: ActorRefFrom<typeof notificationsMachine>;
 }
 
 const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notificationsService }) => {
   const match = useLocation();
 
   const theme = useTheme();
-  const [notificationsState] = useActor(notificationsService);
+  const [notificationsState] = useSharedActor(notificationsService);
 
   const allNotifications = notificationsState.context.results;
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));

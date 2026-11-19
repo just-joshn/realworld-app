@@ -2,9 +2,9 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { Link as RouterLink, useHistory } from "react-router-dom";
 import { Paper, Typography, Grid, Avatar, Box, Button } from "@mui/material";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import type { createTransactionMachine } from "../machines/createTransactionMachine";
-import { useActor } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { formatAmount } from "../utils/transactionUtils";
 
 const PREFIX = "TransactionCreateStepThree";
@@ -22,7 +22,7 @@ const StyledPaper = styled(Paper)(() => ({
 }));
 
 export interface TransactionCreateStepThreeProps {
-  createTransactionService: InterpreterFrom<typeof createTransactionMachine>;
+  createTransactionService: ActorRefFrom<typeof createTransactionMachine>;
 }
 
 const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
@@ -30,7 +30,7 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
 }) => {
   const history = useHistory();
 
-  const [createTransactionState, sendCreateTransaction] = useActor(createTransactionService);
+  const [createTransactionState, sendCreateTransaction] = useSharedActor(createTransactionService);
 
   const receiver = createTransactionState.context.receiver;
   const transactionDetails = createTransactionState.context.transactionDetails;
@@ -110,7 +110,7 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
               variant="contained"
               size="small"
               onClick={() => {
-                sendCreateTransaction("RESET");
+                sendCreateTransaction({ type: "RESET" });
                 history.push("/transaction/new");
               }}
               data-test="new-transaction-create-another-transaction"

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Switch } from "react-router";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import MainLayout from "../components/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
 import TransactionsContainer from "./TransactionsContainer";
@@ -13,15 +13,15 @@ import type { notificationsMachine } from "../machines/notificationsMachine";
 import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import type { authMachine } from "../machines/authMachine";
 import type { snackbarMachine } from "../machines/snackbarMachine";
-import { useActor } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import UserOnboardingContainer from "./UserOnboardingContainer";
 
 export interface Props {
   isLoggedIn: boolean;
-  authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<typeof notificationsMachine>;
-  snackbarService: InterpreterFrom<typeof snackbarMachine>;
-  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  notificationsService: ActorRefFrom<typeof notificationsMachine>;
+  snackbarService: ActorRefFrom<typeof snackbarMachine>;
+  bankAccountsService: ActorRefFrom<typeof bankAccountsMachine>;
 }
 
 const PrivateRoutesContainer: React.FC<Props> = ({
@@ -31,7 +31,7 @@ const PrivateRoutesContainer: React.FC<Props> = ({
   snackbarService,
   bankAccountsService,
 }) => {
-  const [, sendNotifications] = useActor(notificationsService);
+  const [, sendNotifications] = useSharedActor(notificationsService);
 
   useEffect(() => {
     sendNotifications({ type: "FETCH" });
