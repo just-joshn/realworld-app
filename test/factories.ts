@@ -1,3 +1,4 @@
+import { avatarUrl } from "./avatar-config";
 import type {
   BankAccount,
   Comment,
@@ -26,7 +27,7 @@ export function buildUser(overrides: Partial<User> = {}): User {
     email: "ada@example.com",
     phoneNumber: "555-0100",
     balance: 10000,
-    avatar: "https://example.com/ada.png",
+    avatar: avatarUrl("ada"),
     defaultPrivacyLevel: DefaultPrivacyLevel.public,
     createdAt,
     modifiedAt: createdAt,
@@ -59,9 +60,9 @@ export function buildTransactionResponseItem(
     likes: [],
     comments: [],
     receiverName: "Grace Hopper",
-    receiverAvatar: "https://example.com/grace.png",
+    receiverAvatar: avatarUrl("grace"),
     senderName: "Ada Lovelace",
-    senderAvatar: "https://example.com/ada.png",
+    senderAvatar: avatarUrl("ada"),
     ...overrides,
   };
 }

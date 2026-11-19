@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import type { TestProject } from "vitest/node";
+import { localOrigin } from "../../src/utils/apiConfig";
 import { BACKEND_PORT, CORS_ORIGIN_PORT } from "./ports";
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
@@ -28,7 +29,7 @@ export default async function setup(project: TestProject) {
     stdio: ["ignore", "ignore", "inherit"],
   });
 
-  const apiUrl = `http://localhost:${String(BACKEND_PORT)}`;
+  const apiUrl = localOrigin(BACKEND_PORT);
   await waitForApi(apiUrl, () => api.exitCode);
 
   project.provide("apiUrl", apiUrl);

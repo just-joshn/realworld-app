@@ -6,12 +6,35 @@ import { vi } from "vitest";
 import { required } from "../backend/required";
 import { writableQuery } from "../backend/writable-query";
 
-export function buildExchange() {
+export const describeProps = (values: Record<string, unknown>): PropertyDescriptorMap =>
+  Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      key,
+      { value, writable: true, enumerable: true, configurable: true },
+    ])
+  );
+
+class ExchangeRequest extends IncomingMessage {
+  constructor(props: Record<string, unknown>) {
+    super(new Socket());
+    Object.defineProperties(this, describeProps({ method: "GET", url: "/", ...props }));
+  }
+}
+
+class ExchangeResponse extends ServerResponse {
+  constructor(incoming: IncomingMessage, props: Record<string, unknown>) {
+    super(incoming);
+    Object.defineProperties(this, describeProps(props));
+  }
+}
+
+export function buildExchange(
+  requestProps: Record<string, unknown> = {},
+  responseProps: Record<string, unknown> = {}
+) {
   const app = express();
-  const incoming = new IncomingMessage(new Socket());
-  incoming.method = "GET";
-  incoming.url = "/";
-  const outgoing = new ServerResponse(incoming);
+  const incoming = new ExchangeRequest(requestProps);
+  const outgoing = new ExchangeResponse(incoming, responseProps);
   let exchange: { req: Request; res: Response } | undefined;
   app.use((req, res) => {
     exchange = { req, res };
@@ -51,20 +74,21 @@ export function withQuery(url: string, query: Record<string, unknown>): string {
 
 export function buildRequest(overrides: Record<string, unknown> = {}): Request {
   const { query, ...rest } = overrides;
-  const { req } = buildExchange();
-  Object.assign(
-    req,
-    {
-      body: {},
-      params: {},
-      cookies: {},
-      isAuthenticated: () => true,
-    },
-    rest
+  const { req: base } = buildExchange();
+  const merged: Record<string, unknown> = {
+    body: {},
+    params: {},
+    cookies: {},
+    isAuthenticated: () => true,
+    ...rest,
+  };
+  const url = isQueryRecord(query)
+    ? withQuery(String(merged["url"] ?? base.url), query)
+    : undefined;
+  const req: Request = Object.create(
+    base,
+    describeProps(url === undefined ? merged : { ...merged, url })
   );
-  if (isQueryRecord(query)) {
-    req.url = withQuery(req.url, query);
-  }
   writableQuery(req);
   return req;
 }

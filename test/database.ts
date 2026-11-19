@@ -1,3 +1,4 @@
+import { avatarUrl } from "./avatar-config";
 import { replaceDatabase } from "../backend/database";
 import type { DbSchema } from "../src/models/db-schema";
 import { buildContact, buildDbState, buildTransaction, buildUser } from "./factories";
@@ -10,7 +11,12 @@ export function resetDatabase(overrides: Partial<DbSchema> = {}): DbSchema {
 }
 
 export const ada = () =>
-  buildUser({ id: "user1", firstName: "Ada", lastName: "Lovelace", username: "ada" });
+  buildUser({
+    id: "user1",
+    firstName: "Ada",
+    lastName: "Lovelace",
+    username: "ada",
+  });
 export const grace = () =>
   buildUser({
     id: "user2",
@@ -19,7 +25,7 @@ export const grace = () =>
     username: "grace",
     email: "grace@example.com",
     balance: 5000,
-    avatar: "https://example.com/grace.png",
+    avatar: avatarUrl("grace"),
     defaultPrivacyLevel: DefaultPrivacyLevel.private,
   });
 export const alan = () =>
@@ -30,7 +36,7 @@ export const alan = () =>
     username: "alan",
     email: "alan@example.com",
     balance: 0,
-    avatar: "https://example.com/alan.png",
+    avatar: avatarUrl("alan"),
   });
 
 // Ada has Grace as a contact. Grace and Alan have no contacts.
@@ -43,4 +49,9 @@ export function seedPeople(overrides: Partial<DbSchema> = {}) {
 }
 
 export const paymentFromAdaToGrace = (overrides = {}) =>
-  buildTransaction({ id: "txn1", senderId: "user1", receiverId: "user2", ...overrides });
+  buildTransaction({
+    id: "txn1",
+    senderId: "user1",
+    receiverId: "user2",
+    ...overrides,
+  });
