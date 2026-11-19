@@ -68,7 +68,7 @@ Document every HTTP/form entry point and confirm Yup validation. Close gaps only
 
 Add `style:check` to CI (done in `.github/workflows/main.yml`).
 
-**Do not promote** the 56 `fn-size-warn` / `nesting-warn` notes to fails yet. Most sit in tests and page objects; flipping them would fail the done predicate immediately. Clear that debt in a later sweep, then promote.
+Note scope narrowed to product `src/` + `backend/` (tests, Playwright, generated `Svg*` excluded). Remaining notes are real product debt. **Do not promote** them to fails until that debt is cleared; flipping early would fail the done predicate.
 
 ## Unproven until PR2
 

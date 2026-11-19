@@ -1,7 +1,7 @@
 {
   "filesScanned": 273,
   "violationCount": 0,
-  "noteCount": 56,
+  "noteCount": 20,
   "byRule": {},
   "overMaxFiles": [],
   "overWarnFiles": [],
@@ -9,43 +9,8 @@
   "notes": [
     {
       "rule": "fn-size-warn",
-      "path": "test/router.ts",
-      "detail": "fn near L22 spans ~59 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/auth.test.ts",
-      "detail": "fn near L18 spans ~128 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "backend/database-schema.ts",
       "detail": "fn near L17 spans ~81 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/validators.test.ts",
-      "detail": "fn near L19 spans ~126 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/database.notifications.test.ts",
-      "detail": "fn near L30 spans ~162 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/database.transactions.test.ts",
-      "detail": "fn near L77 spans ~137 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/database.transactions.test.ts",
-      "detail": "fn near L214 spans ~118 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/user-routes.test.ts",
-      "detail": "fn near L11 spans ~125 lines > 50"
     },
     {
       "rule": "fn-size-warn",
@@ -59,78 +24,13 @@
     },
     {
       "rule": "fn-size-warn",
-      "path": "backend/transaction-routes.test.ts",
-      "detail": "fn near L41 spans ~171 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "playwright/api/users.spec.ts",
-      "detail": "fn near L64 spans ~158 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "playwright/api/get-transactions.spec.ts",
-      "detail": "fn near L67 spans ~65 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "playwright/pages/transaction-feed.page.ts",
-      "detail": "fn near L7 spans ~63 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "playwright/helpers/schemas.ts",
-      "detail": "fn near L7 spans ~98 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "scripts/seed/transactions.ts",
-      "detail": "fn near L69 spans ~57 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "scripts/seed/social.ts",
-      "detail": "fn near L131 spans ~53 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "scripts/check-playwright-practices.mjs",
-      "detail": "fn near L21 spans ~134 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "scripts/style-compliance.mjs",
-      "detail": "fn near L119 spans ~149 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "scripts/style-compliance.mjs",
-      "detail": "fn near L268 spans ~62 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/components/SkeletonList.tsx",
       "detail": "fn near L18 spans ~53 lines > 50"
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/components/MainLayout.browser.test.tsx",
-      "detail": "fn near L18 spans ~115 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/SvgUndrawReminders697P.tsx",
-      "detail": "fn near L3 spans ~127 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/components/SignInForm.tsx",
       "detail": "fn near L86 spans ~106 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/SvgUndrawPersonalFinanceTqcd.tsx",
-      "detail": "fn near L3 spans ~83 lines > 50"
     },
     {
       "rule": "nesting-warn",
@@ -144,16 +44,6 @@
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/components/SvgUndrawPersonalSettingsKihd.tsx",
-      "detail": "fn near L3 spans ~234 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/SvgCypressLogo.tsx",
-      "detail": "fn near L3 spans ~81 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/components/NavDrawer.tsx",
       "detail": "fn near L115 spans ~57 lines > 50"
     },
@@ -164,28 +54,13 @@
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/components/SignUpForm.browser.test.tsx",
-      "detail": "fn near L9 spans ~77 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/components/TransactionItem.tsx",
       "detail": "fn near L70 spans ~80 lines > 50"
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/components/SignInForm.browser.test.tsx",
-      "detail": "fn near L10 spans ~65 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/components/TransactionCreateStepTwo.tsx",
       "detail": "fn near L46 spans ~162 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/SvgUndrawNavigatorA479.tsx",
-      "detail": "fn near L3 spans ~113 lines > 50"
     },
     {
       "rule": "fn-size-warn",
@@ -196,11 +71,6 @@
       "rule": "fn-size-warn",
       "path": "src/components/TransactionListAmountRangeFilter.tsx",
       "detail": "fn near L63 spans ~108 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/SvgUndrawTransferMoneyRywa.tsx",
-      "detail": "fn near L3 spans ~280 lines > 50"
     },
     {
       "rule": "nesting-warn",
@@ -219,36 +89,6 @@
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/machines/transactionMachines.test.ts",
-      "detail": "fn near L22 spans ~89 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/machines/transactionMachines.test.ts",
-      "detail": "fn near L111 spans ~62 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/machines/authMachine.test.ts",
-      "detail": "fn near L94 spans ~265 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/machines/dataMachine.test.ts",
-      "detail": "fn near L12 spans ~138 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/machines/apiMachines.test.ts",
-      "detail": "fn near L22 spans ~128 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/machines/apiMachines.test.ts",
-      "detail": "fn near L150 spans ~66 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/machines/authMachine.ts",
       "detail": "fn near L56 spans ~303 lines > 50"
     },
@@ -264,28 +104,8 @@
     },
     {
       "rule": "fn-size-warn",
-      "path": "src/containers/NotificationsContainer.browser.test.tsx",
-      "detail": "fn near L18 spans ~64 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
       "path": "src/containers/UserOnboardingContainer.tsx",
       "detail": "fn near L59 spans ~82 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/AppCognito.browser.test.tsx",
-      "detail": "fn near L27 spans ~65 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/TransactionCreateContainer.browser.test.tsx",
-      "detail": "fn near L18 spans ~115 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/TransactionDetailContainer.browser.test.tsx",
-      "detail": "fn near L20 spans ~119 lines > 50"
     }
   ]
 }

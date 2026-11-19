@@ -70,6 +70,17 @@ function mutationRulesApply(pathRel) {
   return true;
 }
 
+/**
+ * Fn-size and nesting notes track product debt only.
+ * Tests, Playwright, and generated Svg* components are out of scope.
+ */
+function sizeNotesApply(pathRel) {
+  if (!mutationRulesApply(pathRel)) return false;
+  if (GENERATED_FILE_RE.test(pathRel)) return false;
+  if (/^src\/components\/Svg[A-Z]/.test(pathRel)) return false;
+  return true;
+}
+
 const SOURCE_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 
 const args = new Set(process.argv.slice(2));
@@ -229,7 +240,7 @@ function scanFile(path) {
       }
     }
   }
-  if (maxDepth > MAX_NESTING + 2) {
+  if (sizeNotesApply(pathRel) && maxDepth > MAX_NESTING + 2) {
     // +2 allowance for module/function/block wrappers; flag only deep excess.
     notes.push({
       rule: "nesting-warn",
@@ -239,26 +250,28 @@ function scanFile(path) {
   }
 
   // Function length: naive export function / const fn = heuristics.
-  const fnStarts = [];
-  codeLines.forEach((line, i) => {
-    if (
-      /^\s*(export\s+)?(async\s+)?function\s+/.test(line) ||
-      /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?\(/.test(line) ||
-      /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line)
-    ) {
-      fnStarts.push(i);
-    }
-  });
-  for (let fi = 0; fi < fnStarts.length; fi += 1) {
-    const start = fnStarts[fi];
-    const end = fi + 1 < fnStarts.length ? fnStarts[fi + 1] : codeLines.length;
-    const span = end - start;
-    if (span > MAX_FN_LINES) {
-      notes.push({
-        rule: "fn-size-warn",
-        path: pathRel,
-        detail: `fn near L${start + 1} spans ~${span} lines > ${MAX_FN_LINES}`,
-      });
+  if (sizeNotesApply(pathRel)) {
+    const fnStarts = [];
+    codeLines.forEach((line, i) => {
+      if (
+        /^\s*(export\s+)?(async\s+)?function\s+/.test(line) ||
+        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?\(/.test(line) ||
+        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line)
+      ) {
+        fnStarts.push(i);
+      }
+    });
+    for (let fi = 0; fi < fnStarts.length; fi += 1) {
+      const start = fnStarts[fi];
+      const end = fi + 1 < fnStarts.length ? fnStarts[fi + 1] : codeLines.length;
+      const span = end - start;
+      if (span > MAX_FN_LINES) {
+        notes.push({
+          rule: "fn-size-warn",
+          path: pathRel,
+          detail: `fn near L${start + 1} spans ~${span} lines > ${MAX_FN_LINES}`,
+        });
+      }
     }
   }
 

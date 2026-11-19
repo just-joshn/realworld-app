@@ -15,4 +15,4 @@ Gate: `bun scripts/style-compliance.mjs` (also `bun run style:check`). Exit 0 is
 - No `console.log` in product code. Use `console.error` in catch paths when logging is required. CLI reporters and server listen banners may write to stdout.
 - Files typically 200–400 lines, hard max 800. Generated `SvgUndraw*` components are excluded from the size fail.
 - Organize by feature or domain. Prefer many small files over large catch-alls.
-- Prefer small functions (<50 lines) and shallow nesting. The compliance script reports these as notes until the debt is cleared, then they become fails.
+- Prefer small functions (<50 lines) and shallow nesting in product `src/` and `backend/` (not tests, Playwright, or generated `Svg*`). The compliance script reports these as notes until the debt is cleared, then they become fails.
