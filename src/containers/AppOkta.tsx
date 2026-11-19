@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
@@ -45,7 +45,7 @@ function useOktaSync() {
   }, [oktaAuthService]);
 }
 
-const AppOkta: React.FC = () => {
+function AppOkta() {
   const [authState] = useSharedActor(authService);
   const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
@@ -79,6 +79,6 @@ const AppOkta: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 export default withOktaAuth(AppOkta);

@@ -1,15 +1,12 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
-import { snackbarMachine } from "../machines/snackbarMachine";
-import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
+import { useAppServices } from "./useAppServices";
 import { Amplify } from "aws-amplify";
 import { fetchAuthSession, signInWithRedirect, signOut } from "aws-amplify/auth";
 
@@ -28,44 +25,38 @@ const Root = styled("div")(() => ({
 
 Amplify.configure(awsConfig);
 
-const AppCognito: React.FC = () => {
-  const [authState] = useSharedActor(authService);
-  const [, , notificationsService] = useMachine(notificationsMachine);
+type CognitoSession = Awaited<ReturnType<typeof fetchAuthSession>>;
 
-  const [, , snackbarService] = useMachine(snackbarMachine);
+function sendCognitoSession({ tokens, userSub }: CognitoSession) {
+  if (!tokens?.idToken || !userSub) {
+    throw new Error("Missing Cognito session tokens or user subject");
+  }
+  const email = tokens.idToken.payload["email"];
+  if (typeof email !== "string") {
+    throw new Error("Missing Cognito email claim");
+  }
+  authService.send({
+    type: "COGNITO",
+    accessTokenJwtString: tokens.accessToken.toString(),
+    userSub,
+    email,
+  });
+}
 
-  const [, , bankAccountsService] = useMachine(bankAccountsMachine);
-
-  const isLoggedIn =
-    authState.matches("authorized") ||
-    authState.matches("refreshing") ||
-    authState.matches("updating");
-
+function useCognitoSignIn(isLoggedIn: boolean) {
   useEffect(() => {
-    if (!isLoggedIn) {
-      void fetchAuthSession().then((authSession) => {
-        if (authSession.tokens) {
-          const { tokens, userSub } = authSession;
-          if (!tokens.idToken || !userSub) {
-            throw new Error("Missing Cognito session tokens or user subject");
-          }
-          const email = tokens.idToken.payload["email"];
-          if (typeof email !== "string") {
-            throw new Error("Missing Cognito email claim");
-          }
-          authService.send({
-            type: "COGNITO",
-            accessTokenJwtString: tokens.accessToken.toString(),
-            userSub,
-            email,
-          });
-        } else {
-          void signInWithRedirect();
-        }
-      });
-    }
+    if (isLoggedIn) return;
+    void fetchAuthSession().then((authSession) => {
+      if (authSession.tokens) {
+        sendCognitoSession(authSession);
+      } else {
+        void signInWithRedirect();
+      }
+    });
   }, [isLoggedIn]);
+}
 
+function useCognitoSignOut() {
   useEffect(() => {
     const signOutOfCognito = () => {
       void signOut();
@@ -78,6 +69,19 @@ const AppCognito: React.FC = () => {
       for (const subscription of subscriptions) subscription.unsubscribe();
     };
   }, []);
+}
+
+function AppCognito() {
+  const [authState] = useSharedActor(authService);
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
+
+  const isLoggedIn =
+    authState.matches("authorized") ||
+    authState.matches("refreshing") ||
+    authState.matches("updating");
+
+  useCognitoSignIn(isLoggedIn);
+  useCognitoSignOut();
 
   if (!isLoggedIn) {
     return null;
@@ -98,6 +102,6 @@ const AppCognito: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 export default AppCognito;

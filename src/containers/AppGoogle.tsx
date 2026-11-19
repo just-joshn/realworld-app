@@ -1,4 +1,3 @@
-import React from "react";
 import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import { Container, CssBaseline } from "@mui/material";
@@ -53,7 +52,7 @@ function useGoogleSync() {
   return clientId;
 }
 
-const AppGoogle: React.FC = () => {
+function AppGoogle() {
   const [authState] = useSharedActor(authService);
   const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
@@ -91,6 +90,6 @@ const AppGoogle: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 export default AppGoogle;

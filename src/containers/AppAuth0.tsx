@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
@@ -42,7 +42,7 @@ function useAuth0Sync() {
   }, [logout]);
 }
 
-const AppAuth0: React.FC = () => {
+function AppAuth0() {
   const [authState] = useSharedActor(authService);
   const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
@@ -70,7 +70,7 @@ const AppAuth0: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 const appAuth0 = withAuthenticationRequired(AppAuth0);
 export default appAuth0;

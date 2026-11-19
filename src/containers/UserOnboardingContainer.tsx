@@ -32,6 +32,23 @@ export interface Props {
 // Matches the intrinsic height of each svg so the artwork shrinks in width but keeps its box height.
 const illustrationStyle = (height: number) => ({ minWidth: 0, maxWidth: "100%", height }) as const;
 
+type OnboardingState = ReturnType<typeof useMachine<typeof userOnboardingMachine>>[0];
+
+function isDialogOpen(state: OnboardingState, noBankAccounts: boolean) {
+  return (
+    (state.matches("stepTwo") && !noBankAccounts) ||
+    (state.matches("stepThree") && !noBankAccounts) ||
+    (!state.matches("done") && noBankAccounts)
+  );
+}
+
+function onboardingTitle(state: OnboardingState) {
+  if (state.matches("stepOne")) return "Get Started with Real World App";
+  if (state.matches("stepTwo")) return "Create Bank Account";
+  if (state.matches("stepThree")) return "Finished";
+  return null;
+}
+
 const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -49,11 +66,7 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
     bankAccountsState.matches({ success: "withoutData" }) &&
     isEmpty(bankAccountsState.context.results);
 
-  const dialogIsOpen =
-    (userOnboardingState.matches("stepTwo") && !noBankAccounts) ||
-    (userOnboardingState.matches("stepThree") && !noBankAccounts) ||
-    (!userOnboardingState.matches("done") && noBankAccounts) ||
-    false;
+  const dialogIsOpen = isDialogOpen(userOnboardingState, noBankAccounts);
 
   const nextStep = () => {
     sendUserOnboarding({ type: "NEXT" });
@@ -67,9 +80,7 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
   return (
     <Dialog data-test="user-onboarding-dialog" fullScreen={fullScreen} open={dialogIsOpen}>
       <DialogTitle data-test="user-onboarding-dialog-title">
-        {userOnboardingState.matches("stepOne") && "Get Started with Real World App"}
-        {userOnboardingState.matches("stepTwo") && "Create Bank Account"}
-        {userOnboardingState.matches("stepThree") && "Finished"}
+        {onboardingTitle(userOnboardingState)}
       </DialogTitle>
       <OnboardingContent
         step={userOnboardingState}
@@ -87,8 +98,6 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
     </Dialog>
   );
 };
-
-type OnboardingState = ReturnType<typeof useMachine<typeof userOnboardingMachine>>[0];
 
 interface ContentProps {
   step: OnboardingState;
