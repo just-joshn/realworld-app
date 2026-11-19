@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
-import NumberFormat from "react-number-format";
+import { NumericFormat } from "react-number-format";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object, number } from "yup";
@@ -110,7 +110,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
             <Form className={classes.form} data-test="transaction-create-form">
               <Field name="amount">
                 {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <NumberFormat<TextFieldProps>
+                  <NumericFormat<TextFieldProps>
                     customInput={TextField}
                     variant="outlined"
                     margin="dense"
@@ -131,7 +131,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                       void form.setFieldValue(field.name, values.value);
                     }}
                     thousandSeparator
-                    isNumericString
+                    valueIsNumericString
                     prefix="$"
                   />
                 )}

@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { test, expect } from "../fixtures/base";
-import { readBody, rowsSchema } from "../helpers/schemas";
+import { readBody, rowSchema, rowsSchema } from "../helpers/schemas";
 import * as yup from "yup";
 
 const seed = yup
-  .object({ users: rowsSchema.fields.results, transactions: rowsSchema.fields.results })
+  .object({ users: yup.array(rowSchema).defined(), transactions: yup.array(rowSchema).defined() })
   .validateSync(
     JSON.parse(readFileSync(path.resolve(__dirname, "../../data/database-seed.json"), "utf-8")),
     { strict: true }

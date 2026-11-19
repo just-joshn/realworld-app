@@ -120,7 +120,7 @@ export const validationErrorsSchema = yup.object({
     .defined(),
 });
 
-const rowSchema = yup.object({ id: text(), uuid: text() });
+export const rowSchema = yup.object({ id: text(), uuid: text() });
 
 /** `{ results: [...] }` where each row is only known to carry its ids. */
 export const rowsSchema = yup.object({ results: yup.array(rowSchema).defined() });
