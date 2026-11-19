@@ -240,7 +240,9 @@ function scanFile(path) {
       }
     }
   }
-  if (sizeNotesApply(pathRel) && maxDepth > MAX_NESTING + 2) {
+  // XState machine configs nest states by design; brace depth is not product debt.
+  const skipNestingNote = pathRel.startsWith("src/machines/");
+  if (sizeNotesApply(pathRel) && !skipNestingNote && maxDepth > MAX_NESTING + 2) {
     // +2 allowance for module/function/block wrappers; flag only deep excess.
     notes.push({
       rule: "nesting-warn",
@@ -257,8 +259,10 @@ function scanFile(path) {
         /^\s*(export\s+)?(async\s+)?function\s+/.test(line) ||
         /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?\(/.test(line) ||
         /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line) ||
-        // lodash/fp curry hides the real arrow; count it as a function start
-        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*curry\s*\(/.test(line)
+        // curry / XState / actor helpers hide the real body; count them as starts
+        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(curry|setup|createMachine|createActor|fromPromise|fromEvent|assign)\s*[<(]/.test(
+          line
+        )
       ) {
         fnStarts.push(i);
       }

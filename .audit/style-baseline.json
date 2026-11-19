@@ -1,7 +1,7 @@
 {
   "filesScanned": 277,
   "violationCount": 0,
-  "noteCount": 17,
+  "noteCount": 15,
   "byRule": {},
   "overMaxFiles": [],
   "overWarnFiles": [],
@@ -58,24 +58,14 @@
       "detail": "fn near L63 spans ~108 lines > 50"
     },
     {
-      "rule": "nesting-warn",
-      "path": "src/machines/drawerMachine.ts",
-      "detail": "max brace depth 7 near L31"
-    },
-    {
-      "rule": "nesting-warn",
-      "path": "src/machines/dataMachine.ts",
-      "detail": "max brace depth 7 near L83"
-    },
-    {
-      "rule": "nesting-warn",
+      "rule": "fn-size-warn",
       "path": "src/machines/transactionFiltersMachine.ts",
-      "detail": "max brace depth 7 near L65"
+      "detail": "fn near L22 spans ~51 lines > 50"
     },
     {
       "rule": "fn-size-warn",
       "path": "src/machines/authMachine.ts",
-      "detail": "fn near L56 spans ~303 lines > 50"
+      "detail": "fn near L194 spans ~165 lines > 50"
     },
     {
       "rule": "fn-size-warn",
