@@ -107,6 +107,11 @@
         "shortid",
         "yup"
       ]
+    },
+    {
+      "groupName": "Playwright",
+      "description": "The CI container tag must equal @playwright/test",
+      "matchPackageNames": ["@playwright/test", "mcr.microsoft.com/playwright"]
     }
   ]
 }
