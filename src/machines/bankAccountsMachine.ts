@@ -2,7 +2,7 @@ import { bankAccountsResponseSchema } from "../models/schemas";
 import type { BankAccount } from "../models";
 import { omit } from "lodash/fp";
 import gql from "graphql-tag";
-import { dataMachine } from "./dataMachine";
+import { dataMachine, dataServices } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
 
@@ -47,9 +47,11 @@ const createBankAccountMutation = gql`
   }
 `;
 
-export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").withConfig({
-  services: {
-    fetchData: async () => {
+const { load, change } = dataServices<BankAccount>();
+
+export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").provide({
+  actors: {
+    fetchData: load(async () => {
       const resp = await httpClient.post<unknown>(
         `http://localhost:${String(backendPort)}/graphql`,
         {
@@ -61,8 +63,8 @@ export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").with
         results: bankAccountsResponseSchema.validateSync(resp.data).data.listBankAccount,
         pageData: {},
       };
-    },
-    deleteData: async (_ctx, event) => {
+    }),
+    deleteData: change(async (_ctx, event) => {
       const payload = omit("type", event);
       const resp = await httpClient.post<unknown>(
         `http://localhost:${String(backendPort)}/graphql`,
@@ -73,8 +75,8 @@ export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").with
         }
       );
       return resp.data;
-    },
-    createData: async (_ctx, event) => {
+    }),
+    createData: change(async (_ctx, event) => {
       const payload = omit("type", event);
       const resp = await httpClient.post<unknown>(
         `http://localhost:${String(backendPort)}/graphql`,
@@ -85,6 +87,6 @@ export const bankAccountsMachine = dataMachine<BankAccount>("bankAccounts").with
         }
       );
       return resp.data;
-    },
+    }),
   },
 });

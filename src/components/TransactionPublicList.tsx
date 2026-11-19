@@ -20,11 +20,12 @@ const TransactionPublicList: React.FC<TransactionPublicListProps> = ({
   const { pageData, results } = current.context;
 
   useEffect(() => {
-    send("FETCH", { ...dateRangeFilters, ...amountRangeFilters });
+    send({ type: "FETCH", ...dateRangeFilters, ...amountRangeFilters });
   }, [send, dateRangeFilters, amountRangeFilters]);
 
-  const loadNextPage = (page: number) =>
-    send("FETCH", { page, ...dateRangeFilters, ...amountRangeFilters });
+  const loadNextPage = (page: number) => {
+    send({ type: "FETCH", page, ...dateRangeFilters, ...amountRangeFilters });
+  };
 
   return (
     <>

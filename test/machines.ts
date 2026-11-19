@@ -1,11 +1,9 @@
 import { onTestFinished } from "vitest";
-import { interpret } from "xstate";
-import type { EventObject, StateMachine, StateSchema } from "xstate";
+import { createActor } from "xstate";
+import type { AnyStateMachine } from "xstate";
 
-export function startService<TContext, TSchema extends StateSchema, TEvent extends EventObject>(
-  machine: StateMachine<TContext, TSchema, TEvent>
-) {
-  const service = interpret(machine).start();
+export function startService<TMachine extends AnyStateMachine>(machine: TMachine) {
+  const service = createActor(machine).start();
   onTestFinished(() => {
     service.stop();
   });

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import { Router } from "react-router-dom";
 import { render } from "vitest-browser-react";
-import { history } from "../../src/utils/historyUtils";
+import { history, HistoryRouter } from "../../src/utils/historyUtils";
 
 export { history };
 
@@ -9,6 +8,6 @@ export { history };
 export function renderWithRouter(ui: ReactNode, { route = "/" }: { route?: string } = {}) {
   history.replace(route);
   return render(ui, {
-    wrapper: ({ children }) => <Router history={history}>{children}</Router>,
+    wrapper: ({ children }) => <HistoryRouter history={history}>{children}</HistoryRouter>,
   });
 }

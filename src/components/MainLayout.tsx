@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { useMachine } from "@xstate/react";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import { Container, Grid, useMediaQuery, useTheme } from "@mui/material";
 
 import Footer from "./Footer";
@@ -52,8 +52,8 @@ const Root = styled("div")(({ theme }) => ({
 
 interface Props {
   children: React.ReactNode;
-  authService: InterpreterFrom<typeof authMachine>;
-  notificationsService: InterpreterFrom<typeof notificationsMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  notificationsService: ActorRefFrom<typeof notificationsMachine>;
 }
 
 const MainLayout: React.FC<Props> = ({ children, notificationsService, authService }) => {
@@ -66,15 +66,18 @@ const MainLayout: React.FC<Props> = ({ children, notificationsService, authServi
   const desktopDrawerOpen = drawerState.matches({ desktop: "open" });
   const mobileDrawerOpen = drawerState.matches({ mobile: "open" });
   const toggleDesktopDrawer = () => {
-    sendDrawer("TOGGLE_DESKTOP");
+    sendDrawer({ type: "TOGGLE_DESKTOP" });
   };
   const toggleMobileDrawer = () => {
-    sendDrawer("TOGGLE_MOBILE");
+    sendDrawer({ type: "TOGGLE_MOBILE" });
   };
 
-  const openDesktopDrawer = (payload: { aboveSmallBreakpoint: boolean }) =>
-    sendDrawer("OPEN_DESKTOP", payload);
-  const closeMobileDrawer = () => sendDrawer("CLOSE_MOBILE");
+  const openDesktopDrawer = (payload: { aboveSmallBreakpoint: boolean }) => {
+    sendDrawer({ type: "OPEN_DESKTOP", ...payload });
+  };
+  const closeMobileDrawer = () => {
+    sendDrawer({ type: "CLOSE_MOBILE" });
+  };
 
   useEffect(() => {
     if (!desktopDrawerOpen && aboveSmallBreakpoint) {
@@ -99,9 +102,7 @@ const MainLayout: React.FC<Props> = ({ children, notificationsService, authServi
         <div className={classes.appBarSpacer} />
         <Container maxWidth="md" className={classes.container}>
           <Grid container spacing={3}>
-            <Grid item xs={12}>
-              {children}
-            </Grid>
+            <Grid size={{ xs: 12 }}>{children}</Grid>
           </Grid>
         </Container>
         <footer>

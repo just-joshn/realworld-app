@@ -1,4 +1,4 @@
-import { Faker, faker } from "@faker-js/faker";
+import { Faker, base, en } from "@faker-js/faker";
 import type { ApiBankAccount, ApiUser } from "./schemas";
 
 export type NewUser = Pick<
@@ -13,7 +13,7 @@ export type TestUser = Omit<ApiUser, "password"> & { password: string };
 
 /** A Faker whose output depends only on `seed`, so a failing run can be reproduced. */
 export function seededFaker(seed: string): Faker {
-  const fake = new Faker({ locales: faker.locales, locale: "en" });
+  const fake = new Faker({ locale: [en, base] });
   let hash = 0;
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) | 0;
   fake.seed(Math.abs(hash));
@@ -22,22 +22,22 @@ export function seededFaker(seed: string): Faker {
 
 export function buildUser(fake: Faker, overrides: Partial<NewUser> = {}): NewUser {
   return {
-    firstName: fake.name.firstName(),
-    lastName: fake.name.lastName(),
+    firstName: fake.person.firstName(),
+    lastName: fake.person.lastName(),
     // Seeded data repeats across runs that share a database, so add a seeded random suffix.
-    username: `${fake.internet.userName()}_${fake.datatype.uuid().slice(0, 8)}`,
-    password: fake.internet.password(10),
+    username: `${fake.internet.username()}_${fake.string.uuid().slice(0, 8)}`,
+    password: fake.internet.password({ length: 10 }),
     email: fake.internet.email(),
-    phoneNumber: fake.phone.phoneNumber("###-###-####"),
+    phoneNumber: fake.helpers.replaceSymbols("###-###-####"),
     ...overrides,
   };
 }
 
 export function buildBankAccount(fake: Faker): NewBankAccount {
   return {
-    bankName: `${fake.company.companyName()} Bank`,
+    bankName: `${fake.company.name()} Bank`,
     routingNumber: fake.finance.routingNumber(),
-    accountNumber: fake.finance.account(10),
+    accountNumber: fake.finance.accountNumber(10),
   };
 }
 

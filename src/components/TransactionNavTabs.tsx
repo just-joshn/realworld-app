@@ -1,9 +1,9 @@
 import React from "react";
 import { Tabs, Tab } from "@mui/material";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 
 export default function TransactionNavTabs() {
-  const match = useRouteMatch();
+  const location = useLocation();
 
   const navUrls: Record<string, number> = {
     "/": 0,
@@ -12,7 +12,7 @@ export default function TransactionNavTabs() {
     "/personal": 2,
   };
 
-  const [value, setValue] = React.useState(navUrls[match.url]);
+  const [value, setValue] = React.useState(navUrls[location.pathname]);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);

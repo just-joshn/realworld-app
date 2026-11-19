@@ -1,12 +1,9 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { buildBankAccount, buildUser } from "../../../test/factories";
 import { resetDatabase } from "../../../test/database";
 import { getBankAccountById } from "../../database";
 import resolvers from ".";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
+import { required } from "../../required";
 
 const context = { user: buildUser({ id: "user1" }) };
 
@@ -46,6 +43,6 @@ describe("Mutation", () => {
     resetDatabase({ bankaccounts: [buildBankAccount({ id: "bank1" })] });
 
     expect(resolvers.Mutation.deleteBankAccount(null, { id: "bank1" })).toBe(true);
-    expect(getBankAccountById("bank1").isDeleted).toBe(true);
+    expect(required(getBankAccountById("bank1"), "bank1").isDeleted).toBe(true);
   });
 });

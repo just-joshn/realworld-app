@@ -1,16 +1,13 @@
 import { objectContaining } from "./test-matchers";
 import * as yup from "yup";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import { buildTransaction } from "../test/factories";
 import { seedPeople } from "../test/database";
 import { dispatch } from "../test/router";
 import { DefaultPrivacyLevel, TransactionRequestStatus, TransactionStatus } from "../src/models";
 import { getTransactionById, getUserById } from "./database";
 import router from "./transaction-routes";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
+import { required } from "./required";
 
 const ada = { id: "user1" };
 
@@ -174,7 +171,7 @@ test("POST / creates a payment for the authenticated user", async () => {
   expect(body).toEqual({
     transaction: objectContaining({ senderId: "user1", amount: 1250 }),
   });
-  expect(getUserById("user1").balance).toBe(8750);
+  expect(required(getUserById("user1"), "user1").balance).toBe(8750);
 });
 
 test("GET /:transactionId returns the formatted transaction", async () => {
@@ -207,5 +204,7 @@ test("PATCH /:transactionId updates the request status", async () => {
   });
 
   expect(result).toEqual({ status: 204 });
-  expect(getTransactionById("t45AiwidW").requestStatus).toBe(TransactionRequestStatus.rejected);
+  expect(required(getTransactionById("t45AiwidW"), "transaction").requestStatus).toBe(
+    TransactionRequestStatus.rejected
+  );
 });

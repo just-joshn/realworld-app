@@ -1,8 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
-import { Link } from "react-router-dom";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
+import { Link } from "react-router";
 import {
   Button,
   CssBaseline,
@@ -72,18 +72,20 @@ const StyledContainer = styled(
 }));
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const SignInForm: React.FC<Props> = ({ authService }) => {
-  const [authState, sendAuth] = useActor(authService);
+  const [authState, sendAuth] = useSharedActor(authService);
   const initialValues: SignInPayload = {
     username: "",
     password: "",
     remember: false,
   };
 
-  const signInPending = (payload: SignInPayload) => sendAuth({ type: "LOGIN", ...payload });
+  const signInPending = (payload: SignInPayload) => {
+    sendAuth({ type: "LOGIN", ...payload });
+  };
 
   return (
     <StyledContainer component="main" maxWidth="xs">
@@ -167,8 +169,8 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs></Grid>
-                <Grid item>
+                <Grid size={{ xs: "grow" }}></Grid>
+                <Grid>
                   <Link data-test="signup" to="/signup">
                     {"Don't have an account? Sign Up"}
                   </Link>
@@ -178,7 +180,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
           )}
         </Formik>
       </div>
-      <Box mt={8}>
+      <Box sx={{ mt: 8 }}>
         <Footer />
       </Box>
     </StyledContainer>

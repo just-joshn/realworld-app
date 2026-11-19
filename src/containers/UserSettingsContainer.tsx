@@ -3,9 +3,9 @@ import { styled } from "@mui/material/styles";
 import { Paper, Typography, Grid } from "@mui/material";
 import type { User, UserSettingsPayload } from "../models";
 import UserSettingsForm from "../components/UserSettingsForm";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import { isAppUser, type authMachine } from "../machines/authMachine";
-import { useActor } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import PersonalSettingsIllustration from "../components/SvgUndrawPersonalSettingsKihd";
 
 const PREFIX = "UserSettingsContainer";
@@ -24,18 +24,19 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
-  const [authState, sendAuth] = useActor(authService);
+  const [authState, sendAuth] = useSharedActor(authService);
 
   const currentUser =
     authState.context.user && isAppUser(authState.context.user)
       ? authState.context.user
       : undefined;
-  const updateUser = (payload: UserSettingsPayload & Pick<User, "id">) =>
+  const updateUser = (payload: UserSettingsPayload & Pick<User, "id">) => {
     sendAuth({ type: "UPDATE", ...payload });
+  };
 
   return (
     <StyledPaper className={classes.paper}>
@@ -46,13 +47,12 @@ const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
         container
         spacing={2}
         direction="row"
-        justifyContent="flex-start"
-        alignItems="flex-start"
+        sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
       >
-        <Grid item>
+        <Grid>
           <PersonalSettingsIllustration style={{ height: 200, width: 300 }} />
         </Grid>
-        <Grid item style={{ width: "50%" }}>
+        <Grid style={{ width: "50%" }}>
           {currentUser && <UserSettingsForm userProfile={currentUser} updateUser={updateUser} />}
         </Grid>
       </Grid>

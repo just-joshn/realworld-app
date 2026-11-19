@@ -38,7 +38,7 @@ export const userPatchBody = userBody.shape({
   defaultPrivacyLevel: yup
     .mixed<DefaultPrivacyLevel>()
     .oneOf(Object.values(DefaultPrivacyLevel))
-    .notRequired(),
+    .optional(),
 });
 export const transactionBody = yup.object({
   transactionType: yup.mixed<"payment" | "request">().oneOf(["payment", "request"]).defined(),
@@ -50,7 +50,7 @@ export const transactionBody = yup.object({
   privacyLevel: yup
     .mixed<DefaultPrivacyLevel>()
     .oneOf(Object.values(DefaultPrivacyLevel))
-    .notRequired(),
+    .optional(),
   status: yup
     .mixed<TransactionStatus>()
     .oneOf(Object.values(TransactionStatus))
@@ -65,7 +65,7 @@ export const transactionPatch = yup.object({
 export const transactionQuery = yup.object({
   page: yup.number().default(1),
   limit: yup.number().default(10),
-  status: yup.mixed<TransactionStatus>().oneOf(Object.values(TransactionStatus)).notRequired(),
+  status: yup.mixed<TransactionStatus>().oneOf(Object.values(TransactionStatus)).optional(),
   requestStatus: yup.string().optional(),
   senderId: yup.string().optional(),
   receiverId: yup.string().optional(),

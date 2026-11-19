@@ -29,10 +29,7 @@ import contactRoutes from "./contact-routes";
 import likeRoutes from "./like-routes";
 import notificationRoutes from "./notification-routes";
 import testDataRoutes from "./testdata-routes";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
+import { required } from "./required";
 
 const currentUser = { id: "user1" };
 const shortId = "t45AiwidW";
@@ -82,7 +79,7 @@ describe("bank account routes", () => {
 
     await dispatch(bankAccountRoutes, { method: "DELETE", url: `/${shortId}`, user: currentUser });
 
-    expect(getBankAccountById(shortId).isDeleted).toBe(true);
+    expect(required(getBankAccountById(shortId), shortId).isDeleted).toBe(true);
   });
 });
 

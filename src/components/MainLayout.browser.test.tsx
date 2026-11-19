@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { expect, onTestFinished, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../machines/authMachine";
 import { notificationsMachine } from "../machines/notificationsMachine";
 import { buildUser } from "../../test/factories";
@@ -16,8 +16,8 @@ async function setMobileViewport() {
 }
 
 async function renderLayout(balance = 10000, loggedIn = true, route = "/") {
-  const authService = interpret(authMachine).start();
-  const notificationsService = interpret(notificationsMachine).start();
+  const authService = createActor(authMachine).start();
+  const notificationsService = createActor(notificationsMachine).start();
   onTestFinished(() => {
     authService.stop();
     notificationsService.stop();
@@ -34,7 +34,7 @@ async function renderLayout(balance = 10000, loggedIn = true, route = "/") {
           resolve();
         }
       });
-      authService.send("LOGIN");
+      authService.send({ type: "LOGIN" });
     });
   }
   return renderWithRouter(

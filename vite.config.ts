@@ -21,6 +21,11 @@ export default defineConfig(({ mode }) => {
           find: "./runtimeConfig",
           replacement: "./runtimeConfig.browser", // ensures browser compatible version of AWS JS SDK is used
         },
+        {
+          // okta-react imports react-router-dom, which react-router 8 no longer publishes.
+          find: "react-router-dom",
+          replacement: "react-router",
+        },
       ],
     },
   };

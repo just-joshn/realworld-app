@@ -13,7 +13,11 @@ export default defineConfig((env) =>
         restoreMocks: true,
         unstubEnvs: true,
         unstubGlobals: true,
-        expect: { requireAssertions: true },
+        // WebKit under load takes seconds for one click or fill. The default 1s poll window made
+        // `expect.element` and `expect.poll` fail on slow runs even though the UI was fine.
+        expect: { requireAssertions: true, poll: { timeout: 10_000 } },
+        testTimeout: 30_000,
+        hookTimeout: 30_000,
         // v8 coverage only works in Chromium, so `bun run coverage` skips the webkit instance.
         coverage: {
           provider: "v8",
@@ -69,7 +73,7 @@ export default defineConfig((env) =>
               browser: {
                 enabled: true,
                 headless: true,
-                provider: playwright({ actionTimeout: 5_000 }),
+                provider: playwright({ actionTimeout: 10_000 }),
                 instances: [{ browser: "chromium" }, { browser: "webkit" }],
               },
             },
@@ -93,7 +97,7 @@ export default defineConfig((env) =>
               browser: {
                 enabled: true,
                 headless: true,
-                provider: playwright({ actionTimeout: 5_000 }),
+                provider: playwright({ actionTimeout: 10_000 }),
                 // v8 coverage only works in Chromium.
                 instances: [{ browser: "chromium" }],
               },

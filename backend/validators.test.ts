@@ -38,7 +38,7 @@ describe("shortIdValidation", () => {
       params: { userId: "not a short id!" },
     });
 
-    expect(errors).toEqual([expect.objectContaining({ param: "userId" })]);
+    expect(errors).toEqual([expect.objectContaining({ path: "userId", location: "params" })]);
   });
 });
 
@@ -77,7 +77,10 @@ describe("isUserValidator", () => {
       body: { avatar: "not-a-url", defaultPrivacyLevel: "everyone" },
     });
 
-    expect(errors.map((error) => error.param)).toEqual(["avatar", "defaultPrivacyLevel"]);
+    expect(errors.map((error) => (error.type === "field" ? error.path : error.type))).toEqual([
+      "avatar",
+      "defaultPrivacyLevel",
+    ]);
   });
 });
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { useTheme, useMediaQuery, Divider } from "@mui/material";
-import type { Index, ListRowProps } from "react-virtualized";
+import type { RowRendererParams } from "react-virtualized";
 import { InfiniteLoader, List } from "react-virtualized";
 import "react-virtualized/styles.css";
 
@@ -46,10 +46,10 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
     return Promise.resolve();
   };
 
-  const isRowLoaded = (params: Index) =>
+  const isRowLoaded = (params: { index: number }) =>
     !pagination.hasNextPages || params.index < transactions.length;
 
-  function rowRenderer({ key, index, style }: ListRowProps) {
+  function rowRenderer({ key, index, style }: RowRendererParams) {
     const transaction = transactions[index];
 
     if (transaction) {
@@ -82,6 +82,7 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
             width={isXsBreakpoint ? removePx(theme.spacing(38)) : removePx(theme.spacing(90))}
             rowHeight={isXsBreakpoint ? removePx(theme.spacing(28)) : removePx(theme.spacing(16))}
             rowRenderer={rowRenderer}
+            role="grid"
           />
         </div>
       )}

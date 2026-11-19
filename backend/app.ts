@@ -11,8 +11,9 @@ import paginate from "express-paginate";
 import { createHandler as graphqlHandler } from "graphql-http/lib/use/express";
 import { loadSchemaSync } from "@graphql-tools/load";
 import { GraphQLFileLoader } from "@graphql-tools/graphql-file-loader";
-import { addResolversToSchema } from "@graphql-tools/schema/index.js";
+import { addResolversToSchema } from "@graphql-tools/schema";
 
+import { materializeQuery } from "./writable-query";
 import auth from "./auth";
 import userRoutes from "./user-routes";
 import contactRoutes from "./contact-routes";
@@ -26,7 +27,8 @@ import bankTransferRoutes from "./banktransfer-routes";
 import testDataRoutes from "./testdata-routes";
 import { checkAuth0Jwt, verifyOktaToken, checkCognitoJwt, checkGoogleJwt } from "./helpers";
 import resolvers from "./graphql/resolvers";
-import { frontendPort, getBackendPort } from "../src/utils/portUtils";
+import { frontendPort } from "../src/utils/portUtils";
+import { getBackendPort } from "./backend-port";
 
 import dotenv from "dotenv";
 
@@ -47,6 +49,8 @@ const schemaWithResolvers = addResolversToSchema({
 });
 
 const app = express();
+
+app.use(materializeQuery);
 
 app.use(cors(corsOption));
 app.use(logger("dev"));

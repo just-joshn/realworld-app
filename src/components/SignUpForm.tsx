@@ -1,8 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { useActor } from "@xstate/react";
-import type { InterpreterFrom } from "xstate";
-import { Link } from "react-router-dom";
+import { useSharedActor } from "../utils/useSharedActor";
+import type { ActorRefFrom } from "xstate";
+import { Link } from "react-router";
 import { Button, Container, CssBaseline, TextField, Grid, Box, Typography } from "@mui/material";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
@@ -61,11 +61,11 @@ const validationSchema = object({
 });
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const SignUpForm: React.FC<Props> = ({ authService }) => {
-  const [, sendAuth] = useActor(authService);
+  const [, sendAuth] = useSharedActor(authService);
   const initialValues: SignUpPayload & { confirmPassword: string } = {
     firstName: "",
     lastName: "",
@@ -74,7 +74,9 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
     confirmPassword: "",
   };
 
-  const signUpPending = (payload: SignUpPayload) => sendAuth({ type: "SIGNUP", ...payload });
+  const signUpPending = (payload: SignUpPayload) => {
+    sendAuth({ type: "SIGNUP", ...payload });
+  };
 
   return (
     <StyledContainer component="main" maxWidth="xs">
@@ -196,7 +198,7 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
                 Sign Up
               </Button>
               <Grid container>
-                <Grid item>
+                <Grid>
                   <Link to="/signin">{"Have an account? Sign In"}</Link>
                 </Grid>
               </Grid>
@@ -204,7 +206,7 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
           )}
         </Formik>
       </div>
-      <Box mt={8}>
+      <Box sx={{ mt: 8 }}>
         <Footer />
       </Box>
     </StyledContainer>

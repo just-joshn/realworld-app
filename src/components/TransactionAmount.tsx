@@ -42,7 +42,7 @@ const TransactionAmount: React.FC<{
       className={
         isRequestTransaction(transaction) ? classes.amountPositive : classes.amountNegative
       }
-      display="inline"
+      sx={{ display: "inline" }}
       component="span"
       color="primary"
     >

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
-import NumberFormat from "react-number-format";
+import { NumericFormat } from "react-number-format";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object, number } from "yup";
@@ -76,12 +76,15 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
 
   return (
     <StyledPaper className={classes.paper} elevation={0}>
-      <Box display="flex" height={200} alignItems="center" justifyContent="center">
-        <Grid container direction="column" justifyContent="flex-start" alignItems="center">
-          <Grid item>
+      <Box sx={{ display: "flex", height: 200, alignItems: "center", justifyContent: "center" }}>
+        <Grid
+          container
+          sx={{ justifyContent: "flex-start", alignItems: "center", flexDirection: "column" }}
+        >
+          <Grid>
             <Avatar src={receiver.avatar} />
           </Grid>
-          <Grid item>
+          <Grid>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>
               {receiver.firstName} {receiver.lastName}
               {transactionType}
@@ -110,7 +113,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
             <Form className={classes.form} data-test="transaction-create-form">
               <Field name="amount">
                 {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <NumberFormat<TextFieldProps>
+                  <NumericFormat<TextFieldProps>
                     customInput={TextField}
                     variant="outlined"
                     margin="dense"
@@ -123,7 +126,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     data-test={"transaction-create-amount-input"}
                     error={(touched || value !== initialValue) && Boolean(error)}
                     helperText={touched || value !== initialValue ? error : ""}
-                    inputProps={{ id: "amount" }}
+                    slotProps={{ htmlInput: { id: "amount" } }}
                     name={field.name}
                     value={amountFieldValue(field.value)}
                     onBlur={field.onBlur}
@@ -131,7 +134,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                       void form.setFieldValue(field.name, values.value);
                     }}
                     thousandSeparator
-                    isNumericString
+                    valueIsNumericString
                     prefix="$"
                   />
                 )}
@@ -157,10 +160,9 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                 container
                 spacing={2}
                 direction="row"
-                justifyContent="center"
-                alignItems="center"
+                sx={{ justifyContent: "center", alignItems: "center" }}
               >
-                <Grid item>
+                <Grid>
                   <Button
                     type="submit"
                     fullWidth
@@ -176,7 +178,7 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
                     Request
                   </Button>
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Button
                     type="submit"
                     fullWidth

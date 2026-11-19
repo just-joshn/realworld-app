@@ -1,16 +1,18 @@
 import { transactionDetailResponseSchema } from "../models/schemas";
 import type { TransactionResponseItem } from "../models";
 import { omit, flow } from "lodash/fp";
-import { dataMachine } from "./dataMachine";
+import { dataMachine, dataServices } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
 import { backendPort } from "../utils/portUtils";
 import { authService } from "./authMachine";
 
+const { load, change } = dataServices<TransactionResponseItem>();
+
 export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
   "transactionData"
-).withConfig({
-  services: {
-    fetchData: async (_ctx, event) => {
+).provide({
+  actors: {
+    fetchData: load(async (_ctx, event) => {
       const payload = omit("type", event);
       const contextTransactionId = _ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.transactionId;
@@ -18,8 +20,8 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
         `http://localhost:${String(backendPort)}/transactions/${String(transactionId)}`
       );
       return { results: [transactionDetailResponseSchema.validateSync(resp.data).transaction] };
-    },
-    createData: async (_ctx, event) => {
+    }),
+    createData: change(async (_ctx, event) => {
       const route = event.entity === "LIKE" ? "likes" : "comments";
       const payload = flow(omit("type"), omit("entity"))(event);
       const resp = await httpClient.post<unknown>(
@@ -27,8 +29,8 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
         payload
       );
       return resp.data;
-    },
-    updateData: async (_ctx, event) => {
+    }),
+    updateData: change(async (_ctx, event) => {
       const payload = omit("type", event);
       const contextTransactionId = _ctx.results[0]?.id;
       const transactionId = contextTransactionId || payload.id;
@@ -37,8 +39,8 @@ export const transactionDetailMachine = dataMachine<TransactionResponseItem>(
         payload
       );
       // accepting a request changes the current user's balance
-      authService.send("REFRESH");
+      authService.send({ type: "REFRESH" });
       return resp.data;
-    },
+    }),
   },
 });

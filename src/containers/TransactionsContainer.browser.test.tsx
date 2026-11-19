@@ -62,15 +62,19 @@ for (const [route, endpoint, header] of [
 }
 
 test("offers to create a transaction when there are none", async () => {
+  const requested = vi.fn();
   worker.use(
-    http.get(apiUrl("/transactions/public"), () =>
-      HttpResponse.json({
+    http.get(apiUrl("/transactions/public"), () => {
+      requested();
+      return HttpResponse.json({
         results: [],
         pageData: { page: 1, hasNextPages: false },
-      })
-    )
+      });
+    })
   );
   const screen = await renderWithRouter(<TransactionsContainer />);
+  // The empty state shows before the fetch starts; let the request finish before this test ends.
+  await expect.poll(() => requested.mock.calls.length).toBe(1);
   await expect.element(screen.getByRole("heading", { name: "No Transactions" })).toBeVisible();
   await screen.getByRole("link", { name: "Create A Transaction" }).click();
   await expect.poll(() => history.location.pathname).toBe("/transaction/new");
@@ -93,12 +97,12 @@ for (const mobile of [false, true]) {
     await expect.element(screen.getByRole("heading", { name: "No Transactions" })).toBeVisible();
     await screen.getByRole("button", { name: "Amount: $0 - $1,000" }).click();
     const minAmount = screen.getByRole("slider").first();
-    // The visually hidden range input needs a forced click, which skips Playwright's stability
-    // check, so first wait for the filter to finish sliding on screen.
+    // The range input is visually hidden, so focus it for the keyboard instead of clicking it.
+    // First wait for the filter to finish sliding on screen.
     await expect
       .poll(() => minAmount.element().getBoundingClientRect().bottom <= window.innerHeight)
       .toBe(true);
-    await minAmount.click({ force: true });
+    minAmount.element().focus();
     await userEvent.keyboard("{ArrowRight}");
     await expect
       .poll(() => queries.mock.calls.some(([q]) => Number(q["amountMin"]) > 0))

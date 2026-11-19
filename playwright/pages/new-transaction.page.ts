@@ -15,7 +15,8 @@ export class NewTransactionPage {
 
   constructor(private readonly page: Page) {
     this.search = page.getByPlaceholder("Search...");
-    this.users = page.getByRole("listitem");
+    // The stepper above the list also renders list items.
+    this.users = page.getByTestId("users-list").getByRole("listitem");
     this.amount = page.getByPlaceholder("Amount");
     this.note = page.getByPlaceholder("Add a note");
     this.payButton = page.getByRole("button", { name: "Pay" });

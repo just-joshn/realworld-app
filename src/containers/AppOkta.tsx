@@ -1,9 +1,11 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
-import { LoginCallback, SecureRoute, useOktaAuth, withOktaAuth } from "@okta/okta-react";
-import { Route } from "react-router-dom";
+import { LoginCallback, useOktaAuth, withOktaAuth } from "@okta/okta-react";
+import { toRelativeUrl } from "@okta/okta-auth-js";
+import { Route, Routes } from "react-router";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
 import { notificationsMachine } from "../machines/notificationsMachine";
@@ -24,10 +26,24 @@ const Root = styled("div")(() => ({
   },
 }));
 
+// okta-react's own SecureRoute only supports react-router 5, so this sends signed-out visitors to Okta.
+function SecureRoute() {
+  const { authState, oktaAuth } = useOktaAuth();
+
+  useEffect(() => {
+    if (authState && !authState.isAuthenticated) {
+      oktaAuth.setOriginalUri(toRelativeUrl(window.location.href, window.location.origin));
+      void oktaAuth.signInWithRedirect();
+    }
+  }, [authState, oktaAuth]);
+
+  return null;
+}
+
 const AppOkta: React.FC = () => {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();
 
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -35,22 +51,20 @@ const AppOkta: React.FC = () => {
   const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
-    if (oktaAuthState?.isAuthenticated) {
+    const token = oktaAuthState?.accessToken?.accessToken;
+    if (oktaAuthState?.isAuthenticated && token !== undefined) {
       void oktaAuthService.getUser().then((user) => {
-        authService.send("OKTA", { user, token: oktaAuthState.accessToken });
+        authService.send({ type: "OKTA", user, token });
       });
     }
   }, [oktaAuthState, oktaAuthService]);
 
   useEffect(() => {
-    const signOutOfOkta = (event: { type: string }) => {
-      if (event.type.startsWith("done.invoke.authentication.logout")) {
-        void oktaAuthService.signOut();
-      }
-    };
-    authService.onEvent(signOutOfOkta);
+    const subscription = authService.on("LOGGED_OUT", () => {
+      void oktaAuthService.signOut();
+    });
     return () => {
-      authService.off(signOutOfOkta);
+      subscription.unsubscribe();
     };
   }, [oktaAuthService]);
 
@@ -73,10 +87,10 @@ const AppOkta: React.FC = () => {
         />
       )}
       {authState.matches("unauthorized") && (
-        <>
-          <Route path="/implicit/callback" component={LoginCallback} />
-          <SecureRoute exact path="/" />
-        </>
+        <Routes>
+          <Route path="/implicit/callback" element={<LoginCallback />} />
+          <Route path="/" element={<SecureRoute />} />
+        </Routes>
       )}
 
       <AlertBar snackbarService={snackbarService} />

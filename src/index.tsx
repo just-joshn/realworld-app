@@ -1,9 +1,8 @@
 import { createRoot } from "react-dom/client";
-import { Router } from "react-router-dom";
 import { createTheme, StyledEngineProvider } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import App from "./containers/App";
-import { history } from "./utils/historyUtils";
+import { history, HistoryRouter } from "./utils/historyUtils";
 
 const theme = createTheme({
   palette: {
@@ -43,11 +42,11 @@ if (!rootElement) {
 const root = createRoot(rootElement);
 
 root.render(
-  <Router history={history}>
+  <HistoryRouter history={history}>
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <App />
       </ThemeProvider>
     </StyledEngineProvider>
-  </Router>
+  </HistoryRouter>
 );

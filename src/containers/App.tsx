@@ -1,7 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { Switch, Route, Redirect } from "react-router-dom";
-import { useActor, useMachine } from "@xstate/react";
+import { Routes, Route, Navigate } from "react-router";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -26,7 +27,7 @@ const Root = styled("div")(() => ({
 }));
 
 const App: React.FC = () => {
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -52,21 +53,11 @@ const App: React.FC = () => {
         />
       )}
       {authState.matches("unauthorized") && (
-        <Switch>
-          <Route exact path="/signup">
-            <SignUpForm authService={authService} />
-          </Route>
-          <Route exact path="/signin">
-            <SignInForm authService={authService} />
-          </Route>
-          <Route path="/*">
-            <Redirect
-              to={{
-                pathname: "/signin",
-              }}
-            />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route path="/signup" element={<SignUpForm authService={authService} />} />
+          <Route path="/signin" element={<SignInForm authService={authService} />} />
+          <Route path="/*" element={<Navigate to="/signin" replace />} />
+        </Routes>
       )}
       <AlertBar snackbarService={snackbarService} />
     </Root>

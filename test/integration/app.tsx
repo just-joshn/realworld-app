@@ -1,9 +1,8 @@
 import { createTheme, StyledEngineProvider, ThemeProvider } from "@mui/material";
-import { Router } from "react-router-dom";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import App from "../../src/containers/App";
-import { history } from "../../src/utils/historyUtils";
+import { history, HistoryRouter } from "../../src/utils/historyUtils";
 
 export { history };
 
@@ -22,13 +21,13 @@ export async function renderApp({ route = "/", viewport = desktop } = {}) {
   await page.viewport(viewport.width, viewport.height);
   history.replace(route);
   return render(
-    <Router history={history}>
+    <HistoryRouter history={history}>
       <StyledEngineProvider injectFirst>
         <ThemeProvider theme={createTheme()}>
           <App />
         </ThemeProvider>
       </StyledEngineProvider>
-    </Router>
+    </HistoryRouter>
   );
 }
 

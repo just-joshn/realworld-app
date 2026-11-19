@@ -33,10 +33,6 @@ import {
   updateUserById,
 } from "./database";
 
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
-
 describe("seedDatabase", () => {
   test("replaces the database with the seed file contents", () => {
     resetDatabase({ users: [buildUser({ id: "stale" })] });

@@ -1,6 +1,7 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 import { Container, CssBaseline } from "@mui/material";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -32,7 +33,7 @@ const Root = styled("div")(({ theme }) => ({
 }));
 
 const AppGoogle: React.FC = () => {
-  const [authState] = useActor(authService);
+  const [authState] = useSharedActor(authService);
   const [, , notificationsService] = useMachine(notificationsMachine);
 
   const [, , snackbarService] = useMachine(snackbarMachine);
@@ -51,7 +52,7 @@ const AppGoogle: React.FC = () => {
       if (!("profileObj" in res)) {
         throw new Error("Missing Google profile in login response");
       }
-      authService.send("GOOGLE", { user: res.profileObj, token: res.tokenId });
+      authService.send({ type: "GOOGLE", user: res.profileObj, token: res.tokenId });
     },
     cookiePolicy: "single_host_origin",
     isSignedIn: true,

@@ -18,8 +18,7 @@ httpClient.interceptors.request.use((config) => {
     process.env["VITE_GOOGLE"]
   ) {
     const accessToken = localStorage.getItem(getAuthTokenName());
-    config.headers ??= {};
-    config.headers["Authorization"] = `Bearer ${String(accessToken)}`;
+    config.headers.set("Authorization", `Bearer ${String(accessToken)}`);
   }
   return config;
 });

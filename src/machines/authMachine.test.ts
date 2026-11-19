@@ -14,8 +14,8 @@ await vi.hoisted(async () => {
 });
 
 vi.mock(import("../utils/historyUtils"), async () => {
-  const { createMemoryHistory } = await import("history");
-  return { history: createMemoryHistory() };
+  const { UNSAFE_createMemoryHistory } = await import("react-router");
+  return { history: UNSAFE_createMemoryHistory({ v5Compat: true }) };
 });
 
 const api = "http://localhost:3001";
@@ -53,7 +53,7 @@ describe("LOGIN", () => {
     server.use(http.post(`${api}/login`, () => new HttpResponse(null, { status: 401 })));
     const service = startService(authMachine);
 
-    service.send("LOGIN");
+    service.send({ type: "LOGIN" });
 
     await expect
       .poll(() => service.getSnapshot().context.message)
@@ -84,7 +84,7 @@ describe("SIGNUP", () => {
     server.use(http.post(`${api}/users`, () => new HttpResponse(null, { status: 422 })));
     const service = startService(authMachine);
 
-    service.send("SIGNUP");
+    service.send({ type: "SIGNUP" });
 
     await expect.poll(() => service.getSnapshot().context.message).toMatch(/422/);
   });
@@ -94,7 +94,7 @@ describe("when authorized", () => {
   async function authorizedService() {
     server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
     const service = startService(authMachine);
-    service.send("LOGIN");
+    service.send({ type: "LOGIN" });
     await expect.poll(() => service.getSnapshot().value).toBe("authorized");
     return service;
   }
@@ -136,7 +136,7 @@ describe("when authorized", () => {
     server.use(http.get(`${api}/checkAuth`, () => new HttpResponse(null, { status: 401 })));
     const service = await authorizedService();
 
-    service.send("REFRESH");
+    service.send({ type: "REFRESH" });
 
     await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     expect(service.getSnapshot().context.user).toBeUndefined();
@@ -153,7 +153,7 @@ describe("when authorized", () => {
     localStorage.setItem("authState", "{}");
     const service = await authorizedService();
 
-    service.send("LOGOUT");
+    service.send({ type: "LOGOUT" });
 
     await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     expect(loggedOut).toHaveBeenCalledOnce();
@@ -164,7 +164,7 @@ describe("when authorized", () => {
     server.use(http.post(`${api}/logout`, () => new HttpResponse(null, { status: 500 })));
     const service = await authorizedService();
 
-    service.send("LOGOUT");
+    service.send({ type: "LOGOUT" });
 
     await expect.poll(() => service.getSnapshot().context.message).toMatch(/500/);
     expect(service.getSnapshot().value).toBe("unauthorized");
@@ -280,11 +280,16 @@ describe("identity provider sign-in", () => {
     });
   });
 
-  test("a provider sign-in throws without a configured token name", () => {
+  test("a provider sign-in fails without a configured token name", async () => {
     vi.stubEnv("VITE_AUTH_TOKEN_NAME", undefined);
     const service = startService(authMachine);
 
-    expect(() => service.send(providerEvents.AUTH0)).toThrow("VITE_AUTH_TOKEN_NAME is required");
+    service.send(providerEvents.AUTH0);
+
+    await expect
+      .poll(() => service.getSnapshot().context.message)
+      .toBe("VITE_AUTH_TOKEN_NAME is required");
+    expect(service.getSnapshot().value).toBe("unauthorized");
   });
 
   test.for(["AUTH0", "OKTA", "GOOGLE", "COGNITO"] as const)(
@@ -294,7 +299,7 @@ describe("identity provider sign-in", () => {
       const service = startService(authMachine);
       service.send(providerEvents[provider]);
 
-      service.send("LOGOUT");
+      service.send({ type: "LOGOUT" });
 
       await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     }
@@ -321,7 +326,7 @@ describe("authService", () => {
     });
     server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
 
-    authService.send("LOGIN");
+    authService.send({ type: "LOGIN" });
 
     await expect
       .poll(() => {
@@ -336,7 +341,7 @@ describe("authService", () => {
   test("resumes from the saved auth state", async () => {
     server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
     const previous = startService(authMachine);
-    previous.send("LOGIN");
+    previous.send({ type: "LOGIN" });
     await expect.poll(() => previous.getSnapshot().value).toBe("authorized");
     localStorage.setItem("authState", JSON.stringify(previous.getSnapshot()));
     vi.resetModules();

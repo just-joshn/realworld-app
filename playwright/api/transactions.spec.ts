@@ -85,10 +85,8 @@ test.describe("POST /transactions", { tag: ["@api", "@transactions"] }, () => {
     });
 
     expect(response.status()).toBe(422);
-    const params = (await readBody(response, validationErrorsSchema)).errors.map(
-      ({ param }) => param
-    );
-    expect(params).toEqual(
+    const paths = (await readBody(response, validationErrorsSchema)).errors.map(({ path }) => path);
+    expect(paths).toEqual(
       expect.arrayContaining([
         "transactionType",
         "privacyLevel",
@@ -225,7 +223,7 @@ test.describe("GET /transactions", { tag: ["@api", "@transactions"] }, () => {
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "amountMin" })],
+      errors: [expect.objectContaining({ path: "amountMin" })],
     });
   });
 
@@ -320,7 +318,7 @@ test.describe("GET /transactions/public", { tag: ["@api", "@transactions"] }, ()
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "order" })],
+      errors: [expect.objectContaining({ path: "order" })],
     });
   });
 
@@ -439,7 +437,7 @@ test.describe("PATCH /transactions/:transactionId", { tag: ["@api", "@transactio
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "requestStatus" })],
+      errors: [expect.objectContaining({ path: "requestStatus" })],
     });
   });
 

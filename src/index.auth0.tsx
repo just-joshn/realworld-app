@@ -1,10 +1,9 @@
 import { createRoot } from "react-dom/client";
-import { Router } from "react-router-dom";
 import { createTheme, ThemeProvider, StyledEngineProvider } from "@mui/material";
 import type { AppState } from "@auth0/auth0-react";
 import { Auth0Provider } from "@auth0/auth0-react";
 import AppAuth0 from "./containers/AppAuth0";
-import { history } from "./utils/historyUtils";
+import { history, HistoryRouter } from "./utils/historyUtils";
 
 const theme = createTheme({
   palette: {
@@ -44,13 +43,13 @@ if (process.env["VITE_AUTH0"]) {
       onRedirectCallback={onRedirectCallback}
       cacheLocation="localstorage"
     >
-      <Router history={history}>
+      <HistoryRouter history={history}>
         <StyledEngineProvider injectFirst>
           <ThemeProvider theme={theme}>
             <AppAuth0 />
           </ThemeProvider>
         </StyledEngineProvider>
-      </Router>
+      </HistoryRouter>
     </Auth0Provider>
   );
 } else {

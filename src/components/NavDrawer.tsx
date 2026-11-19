@@ -1,8 +1,8 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
 import { head } from "lodash/fp";
-import type { InterpreterFrom } from "xstate";
-import { useActor } from "@xstate/react";
+import type { ActorRefFrom } from "xstate";
+import { useSharedActor } from "../utils/useSharedActor";
 import clsx from "clsx";
 import {
   useMediaQuery,
@@ -17,7 +17,7 @@ import {
   Avatar,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router";
 import {
   Home as HomeIcon,
   Person as PersonIcon,
@@ -189,7 +189,7 @@ interface Props {
   closeMobileDrawer: () => void;
   toggleDrawer: () => void;
   drawerOpen: boolean;
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
 
 const NavDrawer: React.FC<Props> = ({
@@ -199,11 +199,13 @@ const NavDrawer: React.FC<Props> = ({
   authService,
 }) => {
   const theme = useTheme();
-  const [authState, sendAuth] = useActor(authService);
+  const [authState, sendAuth] = useSharedActor(authService);
   const showTemporaryDrawer = useMediaQuery(theme.breakpoints.only("xs"));
 
   const currentUser = authState.context.user;
-  const signOut = () => sendAuth("LOGOUT");
+  const signOut = () => {
+    sendAuth({ type: "LOGOUT" });
+  };
 
   return (
     <StyledDrawer
@@ -221,11 +223,10 @@ const NavDrawer: React.FC<Props> = ({
       <Grid
         container
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
         className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+        sx={{ justifyContent: "space-between", alignItems: "center" }}
       >
-        <Grid item>
+        <Grid>
           {currentUser && (
             <Avatar
               className={classes.avatar}
@@ -234,7 +235,7 @@ const NavDrawer: React.FC<Props> = ({
             />
           )}
         </Grid>
-        <Grid item>
+        <Grid>
           {currentUser && (
             <>
               <Typography
@@ -255,16 +256,15 @@ const NavDrawer: React.FC<Props> = ({
             </>
           )}
         </Grid>
-        <Grid item style={{ width: "30%" }}></Grid>
+        <Grid style={{ width: "30%" }}></Grid>
       </Grid>
       <Grid
         container
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
         className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+        sx={{ justifyContent: "space-between", alignItems: "center" }}
       >
-        <Grid item>
+        <Grid>
           {currentUser && isAppUser(currentUser) && (
             <>
               <Typography
@@ -281,16 +281,16 @@ const NavDrawer: React.FC<Props> = ({
             </>
           )}
         </Grid>
-        <Grid item>
+        <Grid>
           <Divider />
         </Grid>
-        <Grid item>
+        <Grid>
           <List>{mainListItems(toggleDrawer, showTemporaryDrawer)}</List>
         </Grid>
-        <Grid item>
+        <Grid>
           <Divider />
         </Grid>
-        <Grid item>
+        <Grid>
           <List>{secondaryListItems(signOut)}</List>
         </Grid>
       </Grid>

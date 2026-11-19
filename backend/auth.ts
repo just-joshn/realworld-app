@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import passport from "passport";
 import * as yup from "yup";
-import type { RequestHandler, Request, Response } from "express";
+import type { NextFunction, RequestHandler, Request, Response } from "express";
 import express from "express";
 import type { User } from "../src/models/user";
 import { getAllUsers, getUserById } from "./database";
@@ -49,13 +49,17 @@ router.post("/login", authenticate, (req: Request, res: Response): void => {
   res.send({ user: req.user });
 });
 
-router.post("/logout", (req: Request, res: Response): void => {
-  res.clearCookie("connect.sid");
-  req.logout(() => {
-    res.redirect("/");
-  });
-  req.session.destroy(function () {
-    res.redirect("/");
+router.post("/logout", (req: Request, res: Response, next: NextFunction): void => {
+  // passport 0.7 regenerates the session during logout, so destroy it only after that finishes.
+  req.logout((error) => {
+    if (error) {
+      next(error);
+      return;
+    }
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      res.redirect("/");
+    });
   });
 });
 

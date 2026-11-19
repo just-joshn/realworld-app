@@ -116,11 +116,13 @@ export async function readBody<S extends yup.AnyObjectSchema>(
 
 export const validationErrorsSchema = yup.object({
   errors: yup
-    .array(yup.object({ param: text(), msg: text(), location: text(), value: yup.mixed() }))
+    .array(
+      yup.object({ path: text(), msg: text(), location: text(), type: text(), value: yup.mixed() })
+    )
     .defined(),
 });
 
-const rowSchema = yup.object({ id: text(), uuid: text() });
+export const rowSchema = yup.object({ id: text(), uuid: text() });
 
 /** `{ results: [...] }` where each row is only known to carry its ids. */
 export const rowsSchema = yup.object({ results: yup.array(rowSchema).defined() });

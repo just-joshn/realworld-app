@@ -8,6 +8,6 @@ export class NavBar {
   }
 
   notificationsBell(unread: number) {
-    return this.page.getByRole("link", { name: String(unread), exact: true });
+    return this.page.getByRole("link", { name: `${String(unread)} unread notifications` });
   }
 }

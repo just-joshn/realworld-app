@@ -1,13 +1,13 @@
 import { http, HttpResponse } from "msw";
 import { onTestFinished } from "vitest";
-import { interpret } from "xstate";
+import { createActor } from "xstate";
 import { authMachine } from "../../src/machines/authMachine";
 import { bankAccountsMachine } from "../../src/machines/bankAccountsMachine";
 import { buildUser } from "../factories";
 import { apiUrl, worker } from "./msw";
 
 export function startAuth() {
-  const service = interpret(authMachine).start();
+  const service = createActor(authMachine).start();
   onTestFinished(() => {
     service.stop();
   });
@@ -28,13 +28,13 @@ export async function login() {
         resolve();
       }
     });
-    service.send("LOGIN");
+    service.send({ type: "LOGIN" });
   });
   return service;
 }
 
 export function startBankAccounts() {
-  const service = interpret(bankAccountsMachine).start();
+  const service = createActor(bankAccountsMachine).start();
   onTestFinished(() => {
     service.stop();
   });

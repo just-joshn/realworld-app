@@ -11,9 +11,10 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import { isEmpty } from "lodash/fp";
-import { useActor, useMachine } from "@xstate/react";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
 
 import { userOnboardingMachine } from "../machines/userOnboardingMachine";
 import type { BankAccountPayload } from "../models";
@@ -24,25 +25,26 @@ import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
 import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
-  bankAccountsService: InterpreterFrom<typeof bankAccountsMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
+  bankAccountsService: ActorRefFrom<typeof bankAccountsMachine>;
 }
 
 const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const [bankAccountsState, sendBankAccounts] = useActor(bankAccountsService);
-  const [authState, sendAuth] = useActor(authService);
+  const [bankAccountsState, sendBankAccounts] = useSharedActor(bankAccountsService);
+  const [authState, sendAuth] = useSharedActor(authService);
   const [userOnboardingState, sendUserOnboarding] = useMachine(userOnboardingMachine);
 
   const currentUser = authState.context.user;
 
   useEffect(() => {
-    sendBankAccounts("FETCH");
+    sendBankAccounts({ type: "FETCH" });
   }, [sendBankAccounts]);
 
   const noBankAccounts =
-    bankAccountsState.matches("success.withoutData") && isEmpty(bankAccountsState.context.results);
+    bankAccountsState.matches({ success: "withoutData" }) &&
+    isEmpty(bankAccountsState.context.results);
 
   const dialogIsOpen =
     (userOnboardingState.matches("stepTwo") && !noBankAccounts) ||
@@ -50,7 +52,9 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
     (!userOnboardingState.matches("done") && noBankAccounts) ||
     false;
 
-  const nextStep = () => sendUserOnboarding("NEXT");
+  const nextStep = () => {
+    sendUserOnboarding({ type: "NEXT" });
+  };
 
   const createBankAccountWithNextStep = (payload: BankAccountPayload) => {
     sendBankAccounts({ type: "CREATE", ...payload });
@@ -65,7 +69,7 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
         {userOnboardingState.matches("stepThree") && "Finished"}
       </DialogTitle>
       <DialogContent data-test="user-onboarding-dialog-content">
-        <Box display="flex" alignItems="center" justifyContent="center">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           {userOnboardingState.matches("stepOne") && (
             <>
               <NavigatorIllustration />
@@ -100,20 +104,28 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
         </Box>
       </DialogContent>
       <DialogActions>
-        <Grid container justifyContent="space-between">
-          <Grid item>
+        <Grid container sx={{ justifyContent: "space-between" }}>
+          <Grid>
             <Button
               style={{ paddingRight: "80%" }}
-              onClick={() => sendAuth("LOGOUT")}
+              onClick={() => {
+                sendAuth({ type: "LOGOUT" });
+              }}
               color="secondary"
               data-test="user-onboarding-logout"
             >
               Logout
             </Button>
           </Grid>
-          <Grid item>
+          <Grid>
             {!userOnboardingState.matches("stepTwo") && (
-              <Button onClick={() => nextStep()} color="primary" data-test="user-onboarding-next">
+              <Button
+                onClick={() => {
+                  nextStep();
+                }}
+                color="primary"
+                data-test="user-onboarding-next"
+              >
                 {userOnboardingState.matches("stepThree") ? "Done" : "Next"}
               </Button>
             )}

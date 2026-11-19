@@ -1,5 +1,5 @@
 import { objectContaining, anyString } from "./test-matchers";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
   buildComment,
   buildCommentNotification,
@@ -26,10 +26,6 @@ import {
   getUnreadNotificationsByUserId,
   updateNotificationById,
 } from "./database";
-
-vi.mock(import("lowdb/adapters/FileSync"), async () => ({
-  default: (await import("lowdb/adapters/Memory")).default,
-}));
 
 const notifiedUsers = (userIds: string[]) =>
   userIds.flatMap((userId) => getNotificationsByUserId(userId).map(() => userId));

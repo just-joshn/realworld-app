@@ -52,17 +52,17 @@ describe("drawerMachine", () => {
   test("toggles and closes the desktop drawer", () => {
     const service = startService(drawerMachine);
 
-    service.send("TOGGLE_DESKTOP");
+    service.send({ type: "TOGGLE_DESKTOP" });
     expect(service.getSnapshot().value).toMatchObject({ desktop: "closed" });
 
-    service.send("TOGGLE_DESKTOP");
-    service.send("CLOSE_DESKTOP");
+    service.send({ type: "TOGGLE_DESKTOP" });
+    service.send({ type: "CLOSE_DESKTOP" });
     expect(service.getSnapshot().value).toMatchObject({ desktop: "closed" });
   });
 
   test("OPEN_DESKTOP leaves a drawer the user closed closed when the breakpoint is unchanged", () => {
     const service = startService(drawerMachine);
-    service.send("TOGGLE_DESKTOP");
+    service.send({ type: "TOGGLE_DESKTOP" });
 
     service.send({ type: "OPEN_DESKTOP", aboveSmallBreakpoint: true });
 
@@ -72,14 +72,14 @@ describe("drawerMachine", () => {
   test("toggles, opens, and closes the mobile drawer", () => {
     const service = startService(drawerMachine);
 
-    service.send("TOGGLE_MOBILE");
+    service.send({ type: "TOGGLE_MOBILE" });
     expect(service.getSnapshot().value).toMatchObject({ mobile: "open" });
 
-    service.send("CLOSE_MOBILE");
+    service.send({ type: "CLOSE_MOBILE" });
     expect(service.getSnapshot().value).toMatchObject({ mobile: "closed" });
 
-    service.send("OPEN_MOBILE");
-    service.send("TOGGLE_MOBILE");
+    service.send({ type: "OPEN_MOBILE" });
+    service.send({ type: "TOGGLE_MOBILE" });
     expect(service.getSnapshot().value).toMatchObject({ mobile: "closed" });
   });
 });
@@ -90,23 +90,23 @@ describe("userOnboardingMachine", () => {
     const visited = [service.getSnapshot().value];
 
     for (let step = 0; step < 3; step++) {
-      service.send("NEXT");
+      service.send({ type: "NEXT" });
       visited.push(service.getSnapshot().value);
     }
 
     expect(visited).toEqual(["stepOne", "stepTwo", "stepThree", "done"]);
-    expect(service.getSnapshot().done).toBe(true);
+    expect(service.getSnapshot().status).toBe("done");
   });
 
   test("PREV goes back a step", () => {
     const service = startService(userOnboardingMachine);
-    service.send("NEXT");
-    service.send("NEXT");
+    service.send({ type: "NEXT" });
+    service.send({ type: "NEXT" });
 
-    service.send("PREV");
+    service.send({ type: "PREV" });
     expect(service.getSnapshot().value).toBe("stepTwo");
 
-    service.send("PREV");
+    service.send({ type: "PREV" });
     expect(service.getSnapshot().value).toBe("stepOne");
   });
 });

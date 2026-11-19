@@ -1,32 +1,10 @@
 import { omit } from "lodash/fp";
-import { createMachine, assign } from "xstate";
-import { dataMachine } from "./dataMachine";
+import { assign, fromPromise, setup } from "xstate";
 import { httpClient } from "../utils/asyncUtils";
 import type { User, TransactionCreatePayload } from "../models";
 import { authService } from "./authMachine";
 import { backendPort } from "../utils/portUtils";
-
-export interface CreateTransactionMachineSchema {
-  states: {
-    stepOne: Record<string, never>;
-    stepTwo: Record<string, never>;
-    stepThree: Record<string, never>;
-  };
-}
-
-const transactionDataMachine = dataMachine("transactionData").withConfig({
-  services: {
-    createData: async (_ctx, event) => {
-      const payload = omit("type", event);
-      const resp = await httpClient.post<unknown>(
-        `http://localhost:${String(backendPort)}/transactions`,
-        payload
-      );
-      authService.send("REFRESH");
-      return resp.data;
-    },
-  },
-});
+import { typed } from "./service";
 
 export type CreateTransactionMachineEvents =
   | { type: "SET_USERS"; sender?: User | undefined; receiver: User }
@@ -39,56 +17,57 @@ export interface CreateTransactionMachineContext {
   transactionDetails?: TransactionCreatePayload | undefined;
 }
 
-export const createTransactionMachine = createMachine<
-  CreateTransactionMachineContext,
-  CreateTransactionMachineEvents
->(
-  {
-    id: "createTransaction",
-    initial: "stepOne",
-    // Filled by SET_USERS and CREATE before step three reads it.
-    context: {},
-    states: {
-      stepOne: {
-        entry: "clearContext",
-        on: {
-          SET_USERS: "stepTwo",
-        },
+const postTransaction = fromPromise<unknown, CreateTransactionMachineEvents>(async ({ input }) => {
+  if (input.type !== "CREATE") throw new Error("Expected CREATE event");
+  const payload = omit("type", input);
+  const resp = await httpClient.post<unknown>(
+    `http://localhost:${String(backendPort)}/transactions`,
+    payload
+  );
+  authService.send({ type: "REFRESH" });
+  return resp.data;
+});
+
+export const createTransactionMachine = setup({
+  types: typed<{
+    context: CreateTransactionMachineContext;
+    events: CreateTransactionMachineEvents;
+  }>(),
+  actors: { postTransaction },
+}).createMachine({
+  id: "createTransaction",
+  initial: "stepOne",
+  // Filled by SET_USERS and CREATE before step three reads it.
+  context: {},
+  states: {
+    stepOne: {
+      entry: assign({ sender: undefined, receiver: undefined, transactionDetails: undefined }),
+      on: {
+        SET_USERS: "stepTwo",
       },
-      stepTwo: {
-        entry: "setSenderAndReceiver",
-        invoke: {
-          id: "transactionDataMachine",
-          src: transactionDataMachine,
-          autoForward: true,
-        },
-        on: {
-          CREATE: "stepThree",
-        },
+    },
+    stepTwo: {
+      entry: assign(({ context, event }) => ({
+        sender: event.type === "SET_USERS" ? event.sender : context.sender,
+        receiver: event.type === "SET_USERS" ? event.receiver : context.receiver,
+      })),
+      on: {
+        CREATE: "stepThree",
       },
-      stepThree: {
-        entry: "setTransactionDetails",
-        on: {
-          RESET: "stepOne",
-        },
+    },
+    stepThree: {
+      entry: assign(({ context, event }) => ({
+        transactionDetails: event.type === "CREATE" ? event : context.transactionDetails,
+      })),
+      invoke: {
+        src: "postTransaction",
+        input: ({ event }) => event,
+        // The user sees the confirmation step either way; a failed post is not surfaced.
+        onError: {},
+      },
+      on: {
+        RESET: "stepOne",
       },
     },
   },
-  {
-    actions: {
-      setSenderAndReceiver: assign<CreateTransactionMachineContext, CreateTransactionMachineEvents>(
-        (_ctx, event) => ({
-          sender: event.type === "SET_USERS" ? event.sender : _ctx.sender,
-          receiver: event.type === "SET_USERS" ? event.receiver : _ctx.receiver,
-        })
-      ),
-      setTransactionDetails: assign<
-        CreateTransactionMachineContext,
-        CreateTransactionMachineEvents
-      >((_ctx, event) => ({
-        transactionDetails: event.type === "CREATE" ? event : _ctx.transactionDetails,
-      })),
-      clearContext: assign(() => ({})),
-    },
-  }
-);
+});

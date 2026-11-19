@@ -1,36 +1,37 @@
 import React, { useEffect } from "react";
-import { useMachine, useActor } from "@xstate/react";
-import { useParams } from "react-router-dom";
+import { useMachine } from "@xstate/react";
+import { useSharedActor } from "../utils/useSharedActor";
+import { useParams } from "react-router";
 import TransactionDetail from "../components/TransactionDetail";
 import type { Transaction, Comment, TransactionUpdateActionPayload } from "../models";
 import { transactionDetailMachine } from "../machines/transactionDetailMachine";
 import { first } from "lodash/fp";
-import type { InterpreterFrom } from "xstate";
+import type { ActorRefFrom } from "xstate";
 import { isAppUser, type authMachine } from "../machines/authMachine";
 
 export interface Props {
-  authService: InterpreterFrom<typeof authMachine>;
+  authService: ActorRefFrom<typeof authMachine>;
 }
-interface Params {
-  transactionId: string;
-}
-
 const TransactionDetailsContainer: React.FC<Props> = ({ authService }) => {
-  const { transactionId }: Params = useParams();
-  const [authState] = useActor(authService);
+  const transactionId = useParams()["transactionId"];
+  if (transactionId === undefined) throw new Error("Missing transactionId route parameter");
+  const [authState] = useSharedActor(authService);
   const [transactionDetailState, sendTransactionDetail] = useMachine(transactionDetailMachine);
   useEffect(() => {
-    sendTransactionDetail("FETCH", { transactionId });
+    sendTransactionDetail({ type: "FETCH", transactionId });
   }, [sendTransactionDetail, transactionId]);
 
-  const transactionLike = (transactionId: Transaction["id"]) =>
-    sendTransactionDetail("CREATE", { entity: "LIKE", transactionId });
+  const transactionLike = (transactionId: Transaction["id"]) => {
+    sendTransactionDetail({ type: "CREATE", entity: "LIKE", transactionId });
+  };
 
-  const transactionComment = (payload: Pick<Comment, "transactionId" | "content">) =>
-    sendTransactionDetail("CREATE", { entity: "COMMENT", ...payload });
+  const transactionComment = (payload: Pick<Comment, "transactionId" | "content">) => {
+    sendTransactionDetail({ type: "CREATE", entity: "COMMENT", ...payload });
+  };
 
-  const transactionUpdate = (payload: TransactionUpdateActionPayload) =>
-    sendTransactionDetail("UPDATE", payload);
+  const transactionUpdate = (payload: TransactionUpdateActionPayload) => {
+    sendTransactionDetail({ type: "UPDATE", ...payload });
+  };
 
   const transaction = first(transactionDetailState.context.results);
   const currentUser =

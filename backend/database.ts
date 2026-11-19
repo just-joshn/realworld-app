@@ -1,7 +1,6 @@
 import path from "path";
 import { parseDatabase } from "./database-schema";
 import { required } from "./required";
-import { chain } from "lodash";
 import bcrypt from "bcryptjs";
 import fs from "fs";
 import { v4 } from "uuid";
@@ -20,8 +19,8 @@ import {
   remove,
 } from "lodash/fp";
 import { isWithinInterval } from "date-fns";
-import low from "lowdb";
-import FileSync from "lowdb/adapters/FileSync";
+import { LowSync, MemorySync } from "lowdb";
+import { JSONFileSync } from "lowdb/node";
 import shortid from "shortid";
 import type {
   BankAccount,
@@ -50,7 +49,7 @@ import {
   BankTransferType,
   DefaultPrivacyLevel,
 } from "../src/models";
-import Fuse from "fuse.js";
+import Fuse, { type IFuseOptions } from "fuse.js";
 import {
   isPayment,
   getTransferAmount,
@@ -89,65 +88,104 @@ const COMMENT_TABLE = "comments";
 const NOTIFICATION_TABLE = "notifications";
 const BANK_TRANSFER_TABLE = "banktransfers";
 
-const databaseFile = path.join(__dirname, "../data/database.json");
-const adapter = new FileSync<DbSchema>(databaseFile);
+function emptyDatabase(): DbSchema {
+  return {
+    users: [],
+    contacts: [],
+    bankaccounts: [],
+    transactions: [],
+    likes: [],
+    comments: [],
+    notifications: [],
+    banktransfers: [],
+  };
+}
 
-const db = low(adapter);
+const databaseFile = path.join(__dirname, "../data/database.json");
+// lowdb's own preset switches to memory for every NODE_ENV=test process, including the API
+// server the integration suite starts. Only the Vitest process itself should skip the file.
+const db = new LowSync<DbSchema>(
+  process.env["VITEST"] === "true"
+    ? new MemorySync<DbSchema>()
+    : new JSONFileSync<DbSchema>(databaseFile),
+  emptyDatabase()
+);
+db.read();
+
+function rows<K extends keyof DbSchema>(entity: K): DbSchema[K] {
+  return db.data[entity];
+}
+
+function persist(): void {
+  db.write();
+}
+
+function rowMatches(item: object, query: object): boolean {
+  return Object.entries(query).every(([key, value]) =>
+    Object.entries(item).some(([itemKey, itemValue]) => itemKey === key && itemValue === value)
+  );
+}
 
 export const seedDatabase = () => {
   const testSeed: unknown = JSON.parse(
     fs.readFileSync(path.join(process.cwd(), "data", "database-seed.json"), "utf-8")
   );
 
-  void db.setState(parseDatabase(testSeed)).write();
-  return;
+  db.data = parseDatabase(testSeed);
+  persist();
 };
 
-export const getAllUsers = () => db.get(USER_TABLE).value();
+export const getAllUsers = () => db.data.users;
 
 export const getAllPublicTransactions = () =>
-  db.get(TRANSACTION_TABLE).filter({ privacyLevel: DefaultPrivacyLevel.public }).value();
+  db.data.transactions.filter(
+    (transaction) => transaction.privacyLevel === DefaultPrivacyLevel.public
+  );
 
 export const getAllForEntity = <K extends keyof DbSchema>(entity: K): DbSchema[K] =>
-  db.getState()[entity];
+  db.data[entity];
 
-export function getAllBy<K extends keyof DbSchema>(
-  entity: K,
-  key: string,
-  value: unknown
-): DbSchema[K];
-export function getAllBy(entity: keyof DbSchema, key: string, value: unknown) {
-  return chain(db.get(entity).value())
-    .filter({ [key]: value })
-    .value();
+function select<T extends object>(items: readonly T[], query: object): T[] {
+  const found: T[] = [];
+  for (const item of items) {
+    if (rowMatches(item, query)) found.push(item);
+  }
+  return found;
+}
+
+export function replaceDatabase(state: DbSchema): void {
+  db.data = state;
+  persist();
+}
+
+export function getAllBy(entity: keyof DbSchema, key: string, value: unknown): object[] {
+  const items: readonly object[] = db.data[entity];
+  return select(items, { [key]: value });
 }
 
 export function getBy<K extends keyof DbSchema>(
   entity: K,
   key: string,
   value: unknown
-): DbSchema[K][number];
-export function getBy(entity: keyof DbSchema, key: string, value: unknown) {
-  return chain(db.get(entity).value())
-    .find({ [key]: value })
-    .value();
+): DbSchema[K][number] | undefined {
+  return rows(entity).find((item) => rowMatches(item, { [key]: value }));
 }
 
-export function getAllByObj<K extends keyof DbSchema>(entity: K, query: object): DbSchema[K];
-export function getAllByObj(entity: keyof DbSchema, query: object) {
-  return chain(db.get(entity).value()).filter(query).value();
+export function getAllByObj(entity: keyof DbSchema, query: object): object[] {
+  const items: readonly object[] = db.data[entity];
+  return select(items, query);
 }
 
 export const cleanSearchQuery = (query: string) => query.replace(/[^a-zA-Z0-9]/g, "");
 
 export const setupSearch = curry(
-  (items: object[], options: Fuse.IFuseOptions<object>, query: string) => {
+  (items: object[], options: IFuseOptions<object>, query: string) => {
     const fuse = new Fuse(items, options);
     return fuse.search(query);
   }
 );
 
-export const performSearch = <T>(items: T[], options: Fuse.IFuseOptions<T>, query: string): T[] =>
+export const performSearch = <T>(items: T[], options: IFuseOptions<T>, query: string): T[] =>
   new Fuse(items, options).search(cleanSearchQuery(query)).map((result) => result.item);
 
 export const searchUsers = (query: string) => {
@@ -205,34 +243,38 @@ export const createUser = (
 };
 
 const saveUser = (user: User) => {
-  void db.get(USER_TABLE).push(user).write();
+  rows(USER_TABLE).push(user);
+  persist();
 };
 
 export const updateUserById = (userId: string, edits: Partial<User>) => {
   const user = getUserById(userId);
-
-  void db.get(USER_TABLE).find(user).assign(edits).write();
+  if (user) Object.assign(user, edits);
+  persist();
 };
 
 export const getContactBy = (key: string, value: unknown) => getBy(CONTACT_TABLE, key, value);
 
-export const getContactsBy = (key: string, value: unknown) => getAllBy(CONTACT_TABLE, key, value);
+export const getContactsBy = (key: string, value: unknown) =>
+  select(db.data.contacts, { [key]: value });
 
-export const getContactsByUsername = (username: string) =>
-  flow(getUserByUsername, getUserId, getContactsByUserId)(username);
+export const getContactsByUsername = (username: string): Contact[] => {
+  const user = required(getUserByUsername(username), "user");
+  return getContactsByUserId(user.id);
+};
 
 export const getContactsByUserId = (userId: string): Contact[] => getContactsBy("userId", userId);
 
 export const createContact = (contact: Contact) => {
-  void db.get(CONTACT_TABLE).push(contact).write();
+  rows(CONTACT_TABLE).push(contact);
+  persist();
 
   return getContactBy("id", contact.id);
 };
 
 export const removeContactById = (contactId: string) => {
-  const contact = getContactBy("id", contactId);
-
-  void db.get(CONTACT_TABLE).remove(contact).write();
+  db.data.contacts = rows(CONTACT_TABLE).filter((contact) => contact.id !== contactId);
+  persist();
 };
 
 export const createContactForUser = (userId: string, contactUserId: string) => {
@@ -257,10 +299,11 @@ export const getBankAccountBy = (key: string, value: unknown) =>
 export const getBankAccountById = (id: string) => getBankAccountBy("id", id);
 
 export const getBankAccountsBy = (key: string, value: unknown) =>
-  getAllBy(BANK_ACCOUNT_TABLE, key, value);
+  select(db.data.bankaccounts, { [key]: value });
 
 export const createBankAccount = (bankaccount: BankAccount) => {
-  void db.get(BANK_ACCOUNT_TABLE).push(bankaccount).write();
+  rows(BANK_ACCOUNT_TABLE).push(bankaccount);
+  persist();
 
   return getBankAccountBy("id", bankaccount.id);
 };
@@ -288,14 +331,16 @@ export const createBankAccountForUser = (
 };
 
 export const removeBankAccountById = (bankAccountId: string) => {
-  void db.get(BANK_ACCOUNT_TABLE).find({ id: bankAccountId }).assign({ isDeleted: true }).write();
+  const account = getBankAccountById(bankAccountId);
+  if (account) account.isDeleted = true;
+  persist();
 };
 
 export const getBankTransferBy = (key: string, value: unknown) =>
   getBy(BANK_TRANSFER_TABLE, key, value);
 
 export const getBankTransfersBy = (key: string, value: unknown) =>
-  getAllBy(BANK_TRANSFER_TABLE, key, value);
+  select(db.data.banktransfers, { [key]: value });
 
 export const getBankTransfersByUserId = (userId: string) => getBankTransfersBy("userId", userId);
 
@@ -313,9 +358,9 @@ export const createBankTransfer = (bankTransferDetails: BankTransferPayload) => 
 };
 
 const saveBankTransfer = (bankTransfer: BankTransfer): BankTransfer => {
-  void db.get(BANK_TRANSFER_TABLE).push(bankTransfer).write();
-
-  return getBankTransferBy("id", bankTransfer.id);
+  rows(BANK_TRANSFER_TABLE).push(bankTransfer);
+  persist();
+  return bankTransfer;
 };
 
 export const getTransactionBy = (key: string, value: unknown) =>
@@ -323,21 +368,22 @@ export const getTransactionBy = (key: string, value: unknown) =>
 
 export const getTransactionById = (id: string) => getTransactionBy("id", id);
 
-export const getTransactionsByObj = (query: object) => getAllByObj(TRANSACTION_TABLE, query);
+export const getTransactionsByObj = (query: object) => select(db.data.transactions, query);
 
 export const getTransactionByIdForApi = (id: string) =>
-  formatTransactionForApiResponse(getTransactionBy("id", id));
+  formatTransactionForApiResponse(required(getTransactionBy("id", id), "transaction"));
 
 export const getTransactionsForUserForApi = (userId: string, query?: object) =>
   formatTransactionsForApiResponse(getTransactionsForUserByObj(userId, query ?? {}));
 
-export const getFullNameForUser = (userId: User["id"]) => flow(getUserById, formatFullName)(userId);
+export const getFullNameForUser = (userId: User["id"]): string =>
+  formatFullName(required(getUserById(userId), "user"));
 
 export const formatTransactionForApiResponse = (
   transaction: Transaction
 ): TransactionResponseItem => {
-  const receiver = getUserById(transaction.receiverId);
-  const sender = getUserById(transaction.senderId);
+  const receiver = required(getUserById(transaction.receiverId), "receiver");
+  const sender = required(getUserById(transaction.senderId), "sender");
 
   const receiverName = getFullNameForUser(transaction.receiverId);
   const senderName = getFullNameForUser(transaction.senderId);
@@ -533,8 +579,8 @@ export const createTransaction = (
   transactionDetails: Omit<TransactionPayload, "privacyLevel"> &
     Partial<Pick<TransactionPayload, "privacyLevel">>
 ): Transaction => {
-  const sender = getUserById(userId);
-  const receiver = getUserById(transactionDetails.receiverId);
+  const sender = required(getUserById(userId), "sender");
+  const receiver = required(getUserById(transactionDetails.receiverId), "receiver");
   const transaction: Transaction = {
     id: shortid(),
     uuid: v4(),
@@ -575,16 +621,16 @@ export const createTransaction = (
 };
 
 const saveTransaction = (transaction: Transaction): Transaction => {
-  void db.get(TRANSACTION_TABLE).push(transaction).write();
-
-  return getTransactionBy("id", transaction.id);
+  rows(TRANSACTION_TABLE).push(transaction);
+  persist();
+  return transaction;
 };
 
 export const updateTransactionById = (transactionId: string, edits: Partial<Transaction>) => {
-  const transaction = getTransactionBy("id", transactionId);
+  const transaction = required(getTransactionBy("id", transactionId), "transaction");
   const { senderId, receiverId } = transaction;
-  const sender = getUserById(senderId);
-  const receiver = getUserById(receiverId);
+  const sender = required(getUserById(senderId), "sender");
+  const receiver = required(getUserById(receiverId), "receiver");
 
   if (isRequestTransaction(transaction)) {
     edits.status = TransactionStatus.complete;
@@ -605,11 +651,13 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
     );
   }
 
-  void db.get(TRANSACTION_TABLE).find(transaction).assign(edits).write();
+  Object.assign(transaction, edits);
+  persist();
 };
 
-export const getLikeBy = (key: string, value: unknown): Like => getBy(LIKE_TABLE, key, value);
-export const getLikesByObj = (query: object) => getAllByObj(LIKE_TABLE, query);
+export const getLikeBy = (key: string, value: unknown): Like =>
+  required(getBy(LIKE_TABLE, key, value), "like");
+export const getLikesByObj = (query: object) => select(db.data.likes, query);
 
 export const getLikeById = (id: string): Like => getLikeBy("id", id);
 export const getLikesByTransactionId = (transactionId: string) => getLikesByObj({ transactionId });
@@ -629,7 +677,7 @@ export const createLike = (userId: string, transactionId: string): Like => {
 };
 
 export const createLikes = (userId: string, transactionId: string) => {
-  const { senderId, receiverId } = getTransactionById(transactionId);
+  const { senderId, receiverId } = required(getTransactionById(transactionId), "transaction");
 
   const like = createLike(userId, transactionId);
 
@@ -644,14 +692,14 @@ export const createLikes = (userId: string, transactionId: string) => {
 };
 
 const saveLike = (like: Like): Like => {
-  void db.get(LIKE_TABLE).push(like).write();
-
-  return getLikeById(like.id);
+  rows(LIKE_TABLE).push(like);
+  persist();
+  return like;
 };
 
 export const getCommentBy = (key: string, value: unknown): Comment =>
-  getBy(COMMENT_TABLE, key, value);
-export const getCommentsByObj = (query: object) => getAllByObj(COMMENT_TABLE, query);
+  required(getBy(COMMENT_TABLE, key, value), "comment");
+export const getCommentsByObj = (query: object) => select(db.data.comments, query);
 
 export const getCommentById = (id: string): Comment => getCommentBy("id", id);
 export const getCommentsByTransactionId = (transactionId: string) =>
@@ -673,7 +721,7 @@ export const createComment = (userId: string, transactionId: string, content: st
 };
 
 export const createComments = (userId: string, transactionId: string, content: string) => {
-  const { senderId, receiverId } = getTransactionById(transactionId);
+  const { senderId, receiverId } = required(getTransactionById(transactionId), "transaction");
 
   const comment = createComment(userId, transactionId, content);
 
@@ -688,16 +736,16 @@ export const createComments = (userId: string, transactionId: string, content: s
 };
 
 const saveComment = (comment: Comment): Comment => {
-  void db.get(COMMENT_TABLE).push(comment).write();
-
-  return getCommentById(comment.id);
+  rows(COMMENT_TABLE).push(comment);
+  persist();
+  return comment;
 };
 
 export const getNotificationBy = (key: string, value: unknown): NotificationType =>
-  getBy(NOTIFICATION_TABLE, key, value);
+  required(getBy(NOTIFICATION_TABLE, key, value), "notification");
 
 export const getNotificationsByObj = (query: object): NotificationType[] =>
-  getAllByObj(NOTIFICATION_TABLE, query);
+  select(db.data.notifications, query);
 
 export const getUnreadNotificationsByUserId = (userId: string) =>
   formatNotificationsForApiResponse(getNotificationsByObj({ userId, isRead: false }));
@@ -763,7 +811,8 @@ export const createCommentNotification = (
 };
 
 const saveNotification = (notification: NotificationType) => {
-  void db.get(NOTIFICATION_TABLE).push(notification).write();
+  rows(NOTIFICATION_TABLE).push(notification);
+  persist();
 };
 
 export const createNotifications = (userId: string, notifications: NotificationPayloadType[]) =>
@@ -786,15 +835,15 @@ export const updateNotificationById = (
   edits: Partial<NotificationType>
 ) => {
   const notification = getNotificationBy("id", notificationId);
-
-  void db.get(NOTIFICATION_TABLE).find(notification).assign(edits).write();
+  Object.assign(notification, edits);
+  persist();
 };
 
 export const formatNotificationForApiResponse = (
   notification: NotificationType
 ): NotificationResponseItem => {
   let userFullName = getFullNameForUser(notification.userId);
-  const transaction = getTransactionById(notification.transactionId);
+  const transaction = required(getTransactionById(notification.transactionId), "transaction");
 
   if (isRequestTransaction(transaction)) {
     userFullName = getFullNameForUser(transaction.senderId);
@@ -830,9 +879,9 @@ export const getRandomUser = () => {
   return required(sample(users), "random user");
 };
 
-export const getAllContacts = () => db.get(CONTACT_TABLE).value();
+export const getAllContacts = () => db.data.contacts;
 
-export const getAllTransactions = () => db.get(TRANSACTION_TABLE).value();
+export const getAllTransactions = () => db.data.transactions;
 
 export const getBankAccountsByUserId = (userId: string) => getBankAccountsBy("userId", userId);
 
@@ -844,8 +893,6 @@ export const getBankTransferByTransactionId = (transactionId: string) =>
   getBankTransferBy("transactionId", transactionId);
 
 export const getTransactionsBy = (key: string, value: string) =>
-  getAllBy(TRANSACTION_TABLE, key, value);
+  select(db.data.transactions, { [key]: value });
 
 export const getTransactionsByUserId = (userId: string) => getTransactionsBy("receiverId", userId);
-
-export default db;

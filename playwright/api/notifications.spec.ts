@@ -79,7 +79,7 @@ test.describe("PATCH /notifications/:notificationId", { tag: ["@api", "@notifica
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "isRead" })],
+      errors: [expect.objectContaining({ path: "isRead" })],
     });
   });
 
@@ -142,7 +142,7 @@ test.describe("POST /notifications/bulk", { tag: ["@api", "@notifications"] }, (
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "items[0].type" })],
+      errors: [expect.objectContaining({ path: "items[0].type" })],
     });
   });
 

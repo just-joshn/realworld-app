@@ -1,6 +1,6 @@
 import React from "react";
 import { useMachine } from "@xstate/react";
-import { Switch, Route } from "react-router";
+import { Routes, Route } from "react-router";
 import TransactionListFilters from "../components/TransactionListFilters";
 import TransactionContactsList from "../components/TransactionContactsList";
 import { transactionFiltersMachine } from "../machines/transactionFiltersMachine";
@@ -45,30 +45,39 @@ const TransactionsContainer: React.FC = () => {
     />
   );
 
+  const publicList = (
+    <TransactionPublicList
+      filterComponent={Filters}
+      dateRangeFilters={dateRangeFilters}
+      amountRangeFilters={amountRangeFilters}
+    />
+  );
+
   return (
-    <Switch>
-      <Route exact path="/contacts">
-        <TransactionContactsList
-          filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters}
-          amountRangeFilters={amountRangeFilters}
-        />
-      </Route>
-      <Route exact path="/personal">
-        <TransactionPersonalList
-          filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters}
-          amountRangeFilters={amountRangeFilters}
-        />
-      </Route>
-      <Route exact path="/(public)?">
-        <TransactionPublicList
-          filterComponent={Filters}
-          dateRangeFilters={dateRangeFilters}
-          amountRangeFilters={amountRangeFilters}
-        />
-      </Route>
-    </Switch>
+    <Routes>
+      <Route
+        path="/contacts"
+        element={
+          <TransactionContactsList
+            filterComponent={Filters}
+            dateRangeFilters={dateRangeFilters}
+            amountRangeFilters={amountRangeFilters}
+          />
+        }
+      />
+      <Route
+        path="/personal"
+        element={
+          <TransactionPersonalList
+            filterComponent={Filters}
+            dateRangeFilters={dateRangeFilters}
+            amountRangeFilters={amountRangeFilters}
+          />
+        }
+      />
+      <Route path="/public" element={publicList} />
+      <Route path="/" element={publicList} />
+    </Routes>
   );
 };
 

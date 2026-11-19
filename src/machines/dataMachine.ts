@@ -1,159 +1,157 @@
-import { createMachine, assign } from "xstate";
+import { assign, setup } from "xstate";
+import type { PromiseActorLogic } from "xstate";
 import { concat } from "lodash/fp";
 import type { TransactionPagination } from "../models";
+import type { ServiceInput } from "./service";
+import { errorMessage, service, typed } from "./service";
 
-export interface DataSchema {
-  states: {
-    idle: Record<string, never>;
-    loading: Record<string, never>;
-    updating: Record<string, never>;
-    creating: Record<string, never>;
-    deleting: Record<string, never>;
-    success: {
-      states: {
-        unknown: Record<string, never>;
-        withData: Record<string, never>;
-        withoutData: Record<string, never>;
-      };
-    };
-    failure: Record<string, never>;
-  };
-}
-
-type SuccessEvent<T> = { type: "SUCCESS"; results: T[]; pageData: object };
-type FailureEvent = { type: "FAILURE"; message: string };
-export type DataEvents<T = unknown> = (
-  | { type: "FETCH" }
-  | { type: "UPDATE" }
-  | { type: "CREATE" }
-  | { type: "DELETE" }
-  | SuccessEvent<T>
-  | FailureEvent
-  | { type: `done.invoke.${string}`; data: { results: T[]; pageData?: TransactionPagination } }
+export type DataEvents = (
+  { type: "FETCH" } | { type: "UPDATE" } | { type: "CREATE" } | { type: "DELETE" }
 ) & {
   id?: string | undefined;
   transactionId?: string | undefined;
-  entity?: string;
-  page?: number;
-  limit?: number;
-  q?: string;
-  isRead?: boolean;
-  bankName?: string;
-  accountNumber?: string;
-  routingNumber?: string;
-  content?: string;
-  requestStatus?: string;
+  entity?: string | undefined;
+  page?: number | undefined;
+  limit?: number | undefined;
+  q?: string | undefined;
+  isRead?: boolean | undefined;
+  bankName?: string | undefined;
+  accountNumber?: string | undefined;
+  routingNumber?: string | undefined;
+  content?: string | undefined;
+  requestStatus?: string | undefined;
 };
 
 export interface DataContext<T = unknown> {
-  pageData?: object | undefined;
+  pageData?: Partial<TransactionPagination> | undefined;
   results: T[];
   message?: string | undefined;
 }
 
+export interface FetchOutput<T> {
+  results: T[];
+  pageData?: Partial<TransactionPagination>;
+}
+
+type DataInput<T> = ServiceInput<DataContext<T>, DataEvents>;
+
 export const dataMachine = <T = unknown>(machineId: string) =>
-  createMachine<DataContext<T>, DataEvents<T>>(
-    {
-      id: machineId,
-      initial: "idle",
-      context: {
-        pageData: {},
-        results: [],
-        message: undefined,
+  setup({
+    types: typed<{ context: DataContext<T>; events: DataEvents }>(),
+    actors: typed<{
+      fetchData: PromiseActorLogic<FetchOutput<T>, DataInput<T>>;
+      updateData: PromiseActorLogic<unknown, DataInput<T>>;
+      createData: PromiseActorLogic<unknown, DataInput<T>>;
+      deleteData: PromiseActorLogic<unknown, DataInput<T>>;
+    }>(),
+    guards: {
+      hasData: ({ context }) => context.results.length > 0,
+    },
+  }).createMachine({
+    id: machineId,
+    initial: "idle",
+    context: {
+      pageData: {},
+      results: [],
+      message: undefined,
+    },
+    states: {
+      idle: {
+        on: {
+          FETCH: "loading",
+          CREATE: "creating",
+          UPDATE: "updating",
+          DELETE: "deleting",
+        },
       },
-      states: {
-        idle: {
-          on: {
-            FETCH: "loading",
-            CREATE: "creating",
-            UPDATE: "updating",
-            DELETE: "deleting",
+      loading: {
+        invoke: {
+          src: "fetchData",
+          input: ({ context, event }) => ({ context, event }),
+          onDone: {
+            target: "success",
+            actions: assign(({ context, event }) => ({
+              results:
+                event.output.pageData?.page !== undefined && event.output.pageData.page > 1
+                  ? concat(context.results, event.output.results)
+                  : event.output.results,
+              pageData: event.output.pageData,
+            })),
+          },
+          onError: {
+            target: "failure",
+            actions: assign({ message: ({ event }) => errorMessage(event.error) }),
           },
         },
-        loading: {
-          invoke: {
-            src: "fetchData",
-            onDone: { target: "success" },
-            onError: { target: "failure", actions: "setMessage" },
-          },
-          // A change made before the list finishes loading must not be dropped. Leaving
-          // `loading` discards the stale fetch; the change reloads the list when it finishes.
-          on: {
-            CREATE: "creating",
-            UPDATE: "updating",
-            DELETE: "deleting",
+        // A change made before the list finishes loading must not be dropped. Leaving
+        // `loading` discards the stale fetch; the change reloads the list when it finishes.
+        on: {
+          CREATE: "creating",
+          UPDATE: "updating",
+          DELETE: "deleting",
+        },
+      },
+      updating: {
+        invoke: {
+          src: "updateData",
+          input: ({ context, event }) => ({ context, event }),
+          onDone: { target: "loading" },
+          onError: {
+            target: "failure",
+            actions: assign({ message: ({ event }) => errorMessage(event.error) }),
           },
         },
-        updating: {
-          invoke: {
-            src: "updateData",
-            onDone: { target: "loading" },
-            onError: { target: "failure", actions: "setMessage" },
+      },
+      creating: {
+        invoke: {
+          src: "createData",
+          input: ({ context, event }) => ({ context, event }),
+          onDone: { target: "loading" },
+          onError: {
+            target: "failure",
+            actions: assign({ message: ({ event }) => errorMessage(event.error) }),
           },
         },
-        creating: {
-          invoke: {
-            src: "createData",
-            onDone: { target: "loading" },
-            onError: { target: "failure", actions: "setMessage" },
+      },
+      deleting: {
+        invoke: {
+          src: "deleteData",
+          input: ({ context, event }) => ({ context, event }),
+          onDone: { target: "loading" },
+          onError: {
+            target: "failure",
+            actions: assign({ message: ({ event }) => errorMessage(event.error) }),
           },
         },
-        deleting: {
-          invoke: {
-            src: "deleteData",
-            onDone: { target: "loading" },
-            onError: { target: "failure", actions: "setMessage" },
-          },
+      },
+      success: {
+        on: {
+          FETCH: "loading",
+          CREATE: "creating",
+          UPDATE: "updating",
+          DELETE: "deleting",
         },
-        success: {
-          entry: ["setResults", "setPageData"],
-          on: {
-            FETCH: "loading",
-            CREATE: "creating",
-            UPDATE: "updating",
-            DELETE: "deleting",
+        initial: "unknown",
+        states: {
+          unknown: {
+            always: [{ target: "withData", guard: "hasData" }, { target: "withoutData" }],
           },
-          initial: "unknown",
-          states: {
-            unknown: {
-              on: {
-                "": [{ target: "withData", cond: "hasData" }, { target: "withoutData" }],
-              },
-            },
-            withData: {},
-            withoutData: {},
-          },
+          withData: {},
+          withoutData: {},
         },
-        failure: {
-          entry: ["setMessage"],
-          on: {
-            FETCH: "loading",
-          },
+      },
+      failure: {
+        on: {
+          FETCH: "loading",
         },
       },
     },
-    {
-      actions: {
-        setResults: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => {
-          if (!("data" in event)) throw new Error("Expected data service result");
-          return {
-            results:
-              event.data.pageData && event.data.pageData.page > 1
-                ? concat(_ctx.results, event.data.results)
-                : event.data.results,
-          };
-        }),
-        setPageData: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => {
-          if (!("data" in event)) throw new Error("Expected data service result");
-          return { pageData: event.data.pageData };
-        }),
+  });
 
-        setMessage: assign<DataContext<T>, DataEvents<T>>((_ctx, event) => ({
-          message: "message" in event ? event.message : undefined,
-        })),
-      },
-      guards: {
-        hasData: (_ctx: DataContext<T>) => _ctx.results.length > 0,
-      },
-    }
-  );
+/** Builds the promise actors a data machine's `provide` takes, typed to its context and events. */
+export const dataServices = <T>() => ({
+  load: (run: (context: DataContext<T>, event: DataEvents) => Promise<FetchOutput<T>>) =>
+    service<DataContext<T>, DataEvents, FetchOutput<T>>(run),
+  change: (run: (context: DataContext<T>, event: DataEvents) => Promise<unknown>) =>
+    service<DataContext<T>, DataEvents, unknown>(run),
+});
