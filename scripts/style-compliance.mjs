@@ -252,26 +252,58 @@ function scanFile(path) {
   }
 
   // Function length: naive export function / const fn = heuristics.
-  if (sizeNotesApply(pathRel)) {
-    const fnStarts = [];
-    codeLines.forEach((line, i) => {
-      if (
-        /^\s*(export\s+)?(async\s+)?function\s+/.test(line) ||
-        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?\(/.test(line) ||
-        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line) ||
-        // curry / XState / actor helpers hide the real body; count them as starts
-        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(curry|setup|createMachine|createActor|fromPromise|fromEvent|assign)\s*[<(]/.test(
-          line
-        )
-      ) {
-        fnStarts.push(i);
+  // Typed consts (`const X: React.FC = (`) and generic arrows (`const f = <T>(`)
+  // must count, or a short nested handler absorbs the whole remaining file.
+  // Machine modules are declarative configs (and factories that return them).
+  if (sizeNotesApply(pathRel) && !pathRel.startsWith("src/machines/")) {
+    const isFnRhs = (rhs) =>
+      /^(async\s*)?(?:<[^>]*>\s*)?\(/.test(rhs) ||
+      /^(async\s+)?function\b/.test(rhs) ||
+      /^(curry|setup|createMachine|createActor|fromPromise|fromEvent|assign)\s*[<(]/.test(rhs);
+    const assignmentEq = (buf) => {
+      for (let k = 0; k < buf.length; k += 1) {
+        if (buf[k] !== "=") continue;
+        const prev = k > 0 ? buf[k - 1] : "";
+        const next = k + 1 < buf.length ? buf[k + 1] : "";
+        // skip =>, ==, ===, <=, >=, !=
+        if (prev === "=" || prev === "!" || prev === "<" || prev === ">") continue;
+        if (next === "=" || next === ">") continue;
+        return k;
       }
+      return -1;
+    };
+    const constFnMetaAt = (i) => {
+      const line = codeLines[i];
+      const nameMatch = line.match(/^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\b/);
+      if (!nameMatch) return null;
+      // React.FC props often break across lines before assignment `=`.
+      let buf = line.slice(nameMatch[0].length);
+      let j = i;
+      while (assignmentEq(buf) === -1 && j + 1 < codeLines.length && j - i < 20) {
+        j += 1;
+        buf += ` ${codeLines[j].trim()}`;
+      }
+      const eq = assignmentEq(buf);
+      if (eq === -1) return null;
+      const rhs = buf.slice(eq + 1).trimStart();
+      if (!isFnRhs(rhs)) return null;
+      const skipSize = /^(setup|createMachine)\s*[<(]/.test(rhs);
+      return { skipSize };
+    };
+    const starts = [];
+    codeLines.forEach((line, i) => {
+      if (/^\s*(export\s+)?(async\s+)?function\s+/.test(line)) {
+        starts.push({ index: i, skipSize: false });
+        return;
+      }
+      const meta = constFnMetaAt(i);
+      if (meta) starts.push({ index: i, skipSize: meta.skipSize });
     });
-    for (let fi = 0; fi < fnStarts.length; fi += 1) {
-      const start = fnStarts[fi];
-      const end = fi + 1 < fnStarts.length ? fnStarts[fi + 1] : codeLines.length;
+    for (let fi = 0; fi < starts.length; fi += 1) {
+      const start = starts[fi].index;
+      const end = fi + 1 < starts.length ? starts[fi + 1].index : codeLines.length;
       const span = end - start;
-      if (span > MAX_FN_LINES) {
+      if (span > MAX_FN_LINES && !starts[fi].skipSize) {
         notes.push({
           rule: "fn-size-warn",
           path: pathRel,
