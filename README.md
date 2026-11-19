@@ -10,8 +10,8 @@ The test suite is split across five layers in this checkout.
 
 | Layer                     | Location                                  | Count    |
 | ------------------------- | ----------------------------------------- | -------- |
-| Unit tests                | `src/**/*.test.ts`                        | 7 files  |
-| Browser component tests   | `src/**/*.browser.test.tsx`               | 25 files |
+| Unit tests                | `{src,backend}/**/*.unit.test.ts`         | 19 files |
+| Browser component tests   | `src/**/*.component.test.tsx`             | 25 files |
 | Browser integration tests | `test/integration/*.integration.test.tsx` | 8 files  |
 | Playwright E2E specs      | `playwright/e2e/**/*.spec.ts`             | 14 files |
 | Playwright API specs      | `playwright/api/*.spec.ts`                | 13 files |
@@ -51,7 +51,7 @@ Run each check or test layer with Bun.
 bun run types
 bun run lint
 bun run test:unit
-bun run test:browser
+bun run test:component
 bun run test:integration
 bun run test:playwright
 ```
@@ -64,7 +64,7 @@ Use `bun run test:e2e` to run only the Playwright E2E projects or `bun run test:
 | -------------------------- | ---------------------------------------------------------------------- |
 | `bun run dev`              | Seed `data/database.json` and start the frontend and API in watch mode |
 | `bun run test:unit`        | Run the Vitest unit project                                            |
-| `bun run test:browser`     | Run the Vitest browser component project                               |
+| `bun run test:component`   | Run the Vitest browser component project                               |
 | `bun run test:integration` | Run the Vitest browser integration project                             |
 | `bun run test:playwright`  | Run all Playwright projects                                            |
 | `bun run test:e2e`         | Run the Playwright `e2e` and `e2e-mobile` projects                     |

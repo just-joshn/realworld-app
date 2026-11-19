@@ -48,7 +48,7 @@ export default defineConfig((env) =>
           {
             test: {
               name: "unit",
-              include: ["src/**/*.test.ts", "backend/**/*.test.ts"],
+              include: ["src/**/*.unit.test.ts", "backend/**/*.unit.test.ts"],
               environment: "node",
               setupFiles: ["./test/msw.ts"],
               env: {
@@ -67,8 +67,8 @@ export default defineConfig((env) =>
             },
             plugins: [msw({ mode: "worker-only" })],
             test: {
-              name: "browser",
-              include: ["src/**/*.browser.test.tsx"],
+              name: "component",
+              include: ["src/**/*.component.test.tsx"],
               setupFiles: ["./test/browser/setup.ts"],
               browser: {
                 enabled: true,
