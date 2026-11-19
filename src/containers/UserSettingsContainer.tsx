@@ -6,7 +6,7 @@ import UserSettingsForm from "../components/UserSettingsForm";
 import type { ActorRefFrom } from "xstate";
 import { isAppUser, type authMachine } from "../machines/authMachine";
 import { useSharedActor } from "../utils/useSharedActor";
-import PersonalSettingsIllustration from "../components/SvgUndrawPersonalSettingsKihd";
+import personalSettingsIllustration from "../svgs/undraw_personal_settings_kihd.svg";
 
 const PREFIX = "UserSettingsContainer";
 
@@ -50,7 +50,7 @@ const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
         sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
       >
         <Grid>
-          <PersonalSettingsIllustration style={{ height: 200, width: 300 }} />
+          <img src={personalSettingsIllustration} alt="" style={{ height: 200, width: 300 }} />
         </Grid>
         <Grid style={{ width: "50%" }}>
           {currentUser && <UserSettingsForm userProfile={currentUser} updateUser={updateUser} />}

@@ -23,8 +23,8 @@ import { Link as RouterLink, useLocation } from "react-router";
 
 import type { notificationsMachine } from "../machines/notificationsMachine";
 import TransactionNavTabs from "./TransactionNavTabs";
-import RWALogo from "./SvgRwaLogo";
-import RWALogoIcon from "./SvgRwaIconLogo";
+import rwaLogoLight from "../svgs/rwa-logo-light.svg";
+import rwaLogoIcon from "../svgs/rwa-icon-logo.svg";
 
 const drawerWidth = 240;
 
@@ -113,9 +113,9 @@ function NavBarLogo() {
       underline="hover"
     >
       {xsBreakpoint ? (
-        <RWALogoIcon className={classes.logo} />
+        <img src={rwaLogoIcon} alt="" className={classes.logo} />
       ) : (
-        <RWALogo className={classes.logo} />
+        <img src={rwaLogoLight} alt="" className={classes.logo} />
       )}
     </Link>
   );

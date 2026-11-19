@@ -21,13 +21,16 @@ import type { BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
 import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import type { authMachine, AuthMachineContext } from "../machines/authMachine";
-import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
-import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
+import navigatorIllustration from "../svgs/undraw_navigator_a479.svg";
+import personalFinanceIllustration from "../svgs/undraw_personal_finance_tqcd.svg";
 
 export interface Props {
   authService: ActorRefFrom<typeof authMachine>;
   bankAccountsService: ActorRefFrom<typeof bankAccountsMachine>;
 }
+
+// Matches the intrinsic height of each svg so the artwork shrinks in width but keeps its box height.
+const illustrationStyle = (height: number) => ({ minWidth: 0, maxWidth: "100%", height }) as const;
 
 const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsService }) => {
   const theme = useTheme();
@@ -99,7 +102,7 @@ function OnboardingContent({ step, currentUser, createBankAccount }: ContentProp
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         {step.matches("stepOne") && (
           <>
-            <NavigatorIllustration />
+            <img src={navigatorIllustration} alt="" style={illustrationStyle(491.63114)} />
             <br />
             <DialogContentText style={{ paddingLeft: 20 }}>
               Real World App requires a Bank Account to perform transactions.
@@ -118,7 +121,7 @@ function OnboardingContent({ step, currentUser, createBankAccount }: ContentProp
         )}
         {step.matches("stepThree") && (
           <>
-            <PersonalFinance />
+            <img src={personalFinanceIllustration} alt="" style={illustrationStyle(733.6066)} />
             <br />
             <DialogContentText style={{ paddingLeft: 20 }}>
               You're all set!

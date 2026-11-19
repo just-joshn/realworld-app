@@ -10,7 +10,7 @@ import SkeletonList from "./SkeletonList";
 import type { TransactionResponseItem } from "../models";
 import EmptyList from "./EmptyList";
 import TransactionInfiniteList from "./TransactionInfiniteList";
-import TransferMoneyIllustration from "./SvgUndrawTransferMoneyRywa";
+import transferMoneyIllustration from "../svgs/undraw_transfer_money_rywa.svg";
 
 const paginationSchema = object({
   page: number().required(),
@@ -53,7 +53,11 @@ function EmptyTransactions({ showCreateButton }: { showCreateButton?: boolean | 
         }}
       >
         <Grid>
-          <TransferMoneyIllustration style={{ height: 200, width: 300, marginBottom: 30 }} />
+          <img
+            src={transferMoneyIllustration}
+            alt=""
+            style={{ height: 200, width: 300, marginBottom: 30 }}
+          />
         </Grid>
         <Grid>
           {showCreateButton && (

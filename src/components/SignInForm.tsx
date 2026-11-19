@@ -18,7 +18,7 @@ import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object } from "yup";
 
-import RWALogo from "./SvgRwaLogo";
+import rwaLogo from "../svgs/rwa-logo.svg";
 import Footer from "./Footer";
 import type { SignInPayload } from "../models";
 import type { authMachine } from "../machines/authMachine";
@@ -171,7 +171,7 @@ const SignInView: React.FC<{
         </Alert>
       )}
       <div>
-        <RWALogo className={classes.logo} />
+        <img src={rwaLogo} alt="" className={classes.logo} />
       </div>
       <Typography component="h1" variant="h5">
         Sign in
