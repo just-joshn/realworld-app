@@ -63,6 +63,16 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
 
   return (
     <StyledPaper className={classes.paper}>
+      <BankAccountsHeader />
+      <BankAccountList
+        bankAccounts={bankAccountsState.context.results}
+        deleteBankAccount={deleteBankAccount}
+      />
+    </StyledPaper>
+  );
+};
+function BankAccountsHeader() {
+  return (
       <Grid
         container
         direction="row"
@@ -86,11 +96,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
           </Button>
         </Grid>
       </Grid>
-      <BankAccountList
-        bankAccounts={bankAccountsState.context.results}
-        deleteBankAccount={deleteBankAccount}
-      />
-    </StyledPaper>
   );
-};
+}
+
 export default BankAccountsContainer;

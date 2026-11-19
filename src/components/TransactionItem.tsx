@@ -2,8 +2,19 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router";
 import type { Theme } from "@mui/material";
-import { ListItem, Typography, Grid, Avatar, ListItemAvatar, Paper, Badge } from "@mui/material";
-import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
+import {
+  ListItem,
+  Typography,
+  Grid,
+  Avatar,
+  ListItemAvatar,
+  Paper,
+  Badge,
+} from "@mui/material";
+import {
+  ThumbUpAltOutlined as LikeIcon,
+  CommentRounded as CommentIcon,
+} from "@mui/icons-material";
 import type { TransactionResponseItem } from "../models";
 import TransactionTitle from "./TransactionTitle";
 import TransactionAmount from "./TransactionAmount";
@@ -64,6 +75,56 @@ const SmallAvatar = styled(Avatar)(({ theme }: { theme: Theme }) => {
   };
 });
 
+const ItemAvatars: React.FC<TransactionProps> = ({ transaction }) => (
+  <ListItemAvatar>
+    <Badge
+      overlap="circular"
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      badgeContent={
+        <SmallAvatar
+          src={transaction.receiverAvatar}
+          classes={{ root: classes.root }}
+        />
+      }
+    >
+      <Avatar src={transaction.senderAvatar} />
+    </Badge>
+  </ListItemAvatar>
+);
+
+const SocialStats: React.FC<TransactionProps> = ({ transaction }) => (
+  <Grid
+    container
+    direction="row"
+    spacing={1}
+    className={classes.socialStats}
+    sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
+  >
+    <Grid>
+      <LikeIcon className={classes.countIcons} />
+    </Grid>
+    <Grid>
+      <Typography
+        data-test="transaction-like-count"
+        className={classes.countText}
+      >
+        {transaction.likes.length}
+      </Typography>
+    </Grid>
+    <Grid>
+      <CommentIcon className={classes.countIcons} />
+    </Grid>
+    <Grid>
+      <Typography
+        data-test="transaction-comment-count"
+        className={classes.countText}
+      >
+        {transaction.comments.length}
+      </Typography>
+    </Grid>
+  </Grid>
+);
+
 const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
   const navigate = useNavigate();
 
@@ -82,57 +143,21 @@ const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
       <Paper className={classes.paper} elevation={0}>
         <Grid container spacing={2}>
           <Grid>
-            <ListItemAvatar>
-              <Badge
-                overlap="circular"
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                badgeContent={
-                  <SmallAvatar
-                    src={transaction.receiverAvatar}
-                    classes={{
-                      root: classes.root,
-                    }}
-                  />
-                }
-              >
-                <Avatar src={transaction.senderAvatar} />
-              </Badge>
-            </ListItemAvatar>
+            <ItemAvatars transaction={transaction} />
           </Grid>
           <Grid container size={{ xs: 12, sm: "grow" }}>
-            <Grid container spacing={2} size={{ xs: "grow" }} sx={{ flexDirection: "column" }}>
+            <Grid
+              container
+              spacing={2}
+              size={{ xs: "grow" }}
+              sx={{ flexDirection: "column" }}
+            >
               <Grid size={{ xs: "grow" }}>
                 <TransactionTitle transaction={transaction} />
                 <Typography variant="body2" color="textSecondary" gutterBottom>
                   {transaction.description}
                 </Typography>
-                <Grid
-                  container
-                  direction="row"
-                  spacing={1}
-                  className={classes.socialStats}
-                  sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
-                >
-                  <Grid>
-                    <LikeIcon className={classes.countIcons} />
-                  </Grid>
-                  <Grid>
-                    <Typography data-test="transaction-like-count" className={classes.countText}>
-                      {transaction.likes.length}
-                    </Typography>
-                  </Grid>
-                  <Grid>
-                    <CommentIcon className={classes.countIcons} />
-                  </Grid>
-                  <Grid>
-                    <Typography data-test="transaction-comment-count" className={classes.countText}>
-                      {transaction.comments.length}
-                    </Typography>
-                  </Grid>
-                </Grid>
+                <SocialStats transaction={transaction} />
               </Grid>
             </Grid>
             <Grid>

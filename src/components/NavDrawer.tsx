@@ -27,7 +27,11 @@ import {
 } from "@mui/icons-material";
 
 import { formatAmount } from "../utils/transactionUtils";
-import { isAppUser, type authMachine } from "../machines/authMachine";
+import {
+  isAppUser,
+  type AuthUser,
+  type authMachine,
+} from "../machines/authMachine";
 
 const PREFIX = "NavDrawer";
 
@@ -112,60 +116,49 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
 
 const drawerWidth = 240;
 
-export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boolean) => (
+const MAIN_NAV_ITEMS = [
+  { to: "/", dataTest: "sidenav-home", label: "Home", Icon: HomeIcon },
+  {
+    to: "/user/settings",
+    dataTest: "sidenav-user-settings",
+    label: "My Account",
+    Icon: PersonIcon,
+  },
+  {
+    to: "/bankaccounts",
+    dataTest: "sidenav-bankaccounts",
+    label: "Bank Accounts",
+    Icon: AccountBalanceIcon,
+  },
+  {
+    to: "/notifications",
+    dataTest: "sidenav-notifications",
+    label: "Notifications",
+    Icon: NotificationsIcon,
+  },
+];
+
+export const mainListItems = (
+  toggleDrawer: () => void,
+  showTemporaryDrawer: boolean,
+) => (
   <div>
-    <ListItemButton
-      onClick={() => {
-        if (showTemporaryDrawer) toggleDrawer();
-      }}
-      component={RouterLink}
-      to="/"
-      data-test="sidenav-home"
-    >
-      <ListItemIcon>
-        <HomeIcon />
-      </ListItemIcon>
-      <ListItemText primary="Home" />
-    </ListItemButton>
-    <ListItemButton
-      onClick={() => {
-        if (showTemporaryDrawer) toggleDrawer();
-      }}
-      component={RouterLink}
-      to="/user/settings"
-      data-test="sidenav-user-settings"
-    >
-      <ListItemIcon>
-        <PersonIcon />
-      </ListItemIcon>
-      <ListItemText primary="My Account" />
-    </ListItemButton>
-    <ListItemButton
-      onClick={() => {
-        if (showTemporaryDrawer) toggleDrawer();
-      }}
-      component={RouterLink}
-      to="/bankaccounts"
-      data-test="sidenav-bankaccounts"
-    >
-      <ListItemIcon>
-        <AccountBalanceIcon />
-      </ListItemIcon>
-      <ListItemText primary="Bank Accounts" />
-    </ListItemButton>
-    <ListItemButton
-      onClick={() => {
-        if (showTemporaryDrawer) toggleDrawer();
-      }}
-      component={RouterLink}
-      to="/notifications"
-      data-test="sidenav-notifications"
-    >
-      <ListItemIcon>
-        <NotificationsIcon />
-      </ListItemIcon>
-      <ListItemText primary="Notifications" />
-    </ListItemButton>
+    {MAIN_NAV_ITEMS.map(({ to, dataTest, label, Icon }) => (
+      <ListItemButton
+        key={to}
+        onClick={() => {
+          if (showTemporaryDrawer) toggleDrawer();
+        }}
+        component={RouterLink}
+        to={to}
+        data-test={dataTest}
+      >
+        <ListItemIcon>
+          <Icon />
+        </ListItemIcon>
+        <ListItemText primary={label} />
+      </ListItemButton>
+    ))}
   </div>
 );
 
@@ -192,6 +185,113 @@ interface Props {
   authService: ActorRefFrom<typeof authMachine>;
 }
 
+const ProfileIdentity: React.FC<{ currentUser: AuthUser | undefined }> = ({
+  currentUser,
+}) => (
+  <>
+    <Grid>
+      {currentUser && (
+        <Avatar
+          className={classes.avatar}
+          alt={`${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`}
+          {...(currentUser.avatar ? { src: currentUser.avatar } : {})}
+        />
+      )}
+    </Grid>
+    <Grid>
+      {currentUser && (
+        <>
+          <Typography
+            variant="subtitle1"
+            color="textPrimary"
+            data-test="sidenav-user-full-name"
+          >
+            {currentUser.firstName} {head(currentUser.lastName)}
+          </Typography>
+          <Typography
+            variant="subtitle2"
+            color="inherit"
+            gutterBottom
+            data-test="sidenav-username"
+          >
+            @{currentUser.username}
+          </Typography>
+        </>
+      )}
+    </Grid>
+  </>
+);
+
+const ProfileBalance: React.FC<{ currentUser: AuthUser | undefined }> = ({
+  currentUser,
+}) => (
+  <Grid>
+    {currentUser && isAppUser(currentUser) && (
+      <>
+        <Typography
+          variant="h6"
+          color="textPrimary"
+          className={classes.amount}
+          data-test="sidenav-user-balance"
+        >
+          {currentUser.balance
+            ? formatAmount(currentUser.balance)
+            : formatAmount(0)}
+        </Typography>
+        <Typography variant="subtitle2" color="inherit" gutterBottom>
+          Account Balance
+        </Typography>
+      </>
+    )}
+  </Grid>
+);
+
+const DrawerProfile: React.FC<{
+  drawerOpen: boolean;
+  currentUser: AuthUser | undefined;
+  toggleDrawer: () => void;
+  showTemporaryDrawer: boolean;
+  onSignOut: () => void;
+}> = ({
+  drawerOpen,
+  currentUser,
+  toggleDrawer,
+  showTemporaryDrawer,
+  onSignOut,
+}) => (
+  <>
+    <Grid
+      container
+      direction="row"
+      className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+      sx={{ justifyContent: "space-between", alignItems: "center" }}
+    >
+      <ProfileIdentity currentUser={currentUser} />
+      <Grid style={{ width: "30%" }}></Grid>
+    </Grid>
+    <Grid
+      container
+      direction="row"
+      className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+      sx={{ justifyContent: "space-between", alignItems: "center" }}
+    >
+      <ProfileBalance currentUser={currentUser} />
+      <Grid>
+        <Divider />
+      </Grid>
+      <Grid>
+        <List>{mainListItems(toggleDrawer, showTemporaryDrawer)}</List>
+      </Grid>
+      <Grid>
+        <Divider />
+      </Grid>
+      <Grid>
+        <List>{secondaryListItems(onSignOut)}</List>
+      </Grid>
+    </Grid>
+  </>
+);
+
 const NavDrawer: React.FC<Props> = ({
   toggleDrawer,
   closeMobileDrawer,
@@ -202,17 +302,15 @@ const NavDrawer: React.FC<Props> = ({
   const [authState, sendAuth] = useSharedActor(authService);
   const showTemporaryDrawer = useMediaQuery(theme.breakpoints.only("xs"));
 
-  const currentUser = authState.context.user;
-  const signOut = () => {
-    sendAuth({ type: "LOGOUT" });
-  };
-
   return (
     <StyledDrawer
       data-test="sidenav"
       variant={showTemporaryDrawer ? "temporary" : "persistent"}
       classes={{
-        paper: clsx(classes.drawerPaper, !drawerOpen && classes.drawerPaperClose),
+        paper: clsx(
+          classes.drawerPaper,
+          !drawerOpen && classes.drawerPaperClose,
+        ),
       }}
       open={drawerOpen}
       onClose={closeMobileDrawer}
@@ -220,80 +318,13 @@ const NavDrawer: React.FC<Props> = ({
         closeAfterTransition: showTemporaryDrawer,
       }}
     >
-      <Grid
-        container
-        direction="row"
-        className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
-        sx={{ justifyContent: "space-between", alignItems: "center" }}
-      >
-        <Grid>
-          {currentUser && (
-            <Avatar
-              className={classes.avatar}
-              alt={`${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`}
-              {...(currentUser.avatar ? { src: currentUser.avatar } : {})}
-            />
-          )}
-        </Grid>
-        <Grid>
-          {currentUser && (
-            <>
-              <Typography
-                variant="subtitle1"
-                color="textPrimary"
-                data-test="sidenav-user-full-name"
-              >
-                {currentUser.firstName} {head(currentUser.lastName)}
-              </Typography>
-              <Typography
-                variant="subtitle2"
-                color="inherit"
-                gutterBottom
-                data-test="sidenav-username"
-              >
-                @{currentUser.username}
-              </Typography>
-            </>
-          )}
-        </Grid>
-        <Grid style={{ width: "30%" }}></Grid>
-      </Grid>
-      <Grid
-        container
-        direction="row"
-        className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
-        sx={{ justifyContent: "space-between", alignItems: "center" }}
-      >
-        <Grid>
-          {currentUser && isAppUser(currentUser) && (
-            <>
-              <Typography
-                variant="h6"
-                color="textPrimary"
-                className={classes.amount}
-                data-test="sidenav-user-balance"
-              >
-                {currentUser.balance ? formatAmount(currentUser.balance) : formatAmount(0)}
-              </Typography>
-              <Typography variant="subtitle2" color="inherit" gutterBottom>
-                Account Balance
-              </Typography>
-            </>
-          )}
-        </Grid>
-        <Grid>
-          <Divider />
-        </Grid>
-        <Grid>
-          <List>{mainListItems(toggleDrawer, showTemporaryDrawer)}</List>
-        </Grid>
-        <Grid>
-          <Divider />
-        </Grid>
-        <Grid>
-          <List>{secondaryListItems(signOut)}</List>
-        </Grid>
-      </Grid>
+      <DrawerProfile
+        drawerOpen={drawerOpen}
+        currentUser={authState.context.user}
+        toggleDrawer={toggleDrawer}
+        showTemporaryDrawer={showTemporaryDrawer}
+        onSignOut={() => sendAuth({ type: "LOGOUT" })}
+      />
     </StyledDrawer>
   );
 };

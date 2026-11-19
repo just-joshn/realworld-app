@@ -42,9 +42,11 @@ const classes = {
 };
 
 const StyledContainer = styled(
-  (props: React.ComponentProps<typeof Container> & { component?: React.ElementType }) => (
-    <Container {...props} />
-  )
+  (
+    props: React.ComponentProps<typeof Container> & {
+      component?: React.ElementType;
+    },
+  ) => <Container {...props} />,
 )(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
@@ -75,6 +77,134 @@ export interface Props {
   authService: ActorRefFrom<typeof authMachine>;
 }
 
+const UsernameField = () => (
+  <Field name="username">
+    {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
+      <TextField
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        id="username"
+        label="Username"
+        type="text"
+        autoFocus
+        data-test="signin-username"
+        error={(touched || value !== initialValue) && Boolean(error)}
+        // reserve the helper line so a validation message doesn't shift the links below
+        helperText={((touched || value !== initialValue) && error) || " "}
+        {...field}
+      />
+    )}
+  </Field>
+);
+
+const PasswordField = () => (
+  <Field name="password">
+    {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
+      <TextField
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        label="Password"
+        type="password"
+        id="password"
+        data-test="signin-password"
+        error={touched && value !== initialValue && Boolean(error)}
+        helperText={(touched && value !== initialValue && error) || " "}
+        {...field}
+      />
+    )}
+  </Field>
+);
+
+const RememberMeField = () => (
+  <FormControlLabel
+    control={
+      <Field name={"remember"}>
+        {({ field }: FieldProps) => {
+          return (
+            <Checkbox
+              color="primary"
+              data-test="signin-remember-me"
+              {...field}
+            />
+          );
+        }}
+      </Field>
+    }
+    label="Remember me"
+  />
+);
+
+const SignInFields: React.FC<{ disabled: boolean }> = ({ disabled }) => (
+  <Form className={classes.form}>
+    <UsernameField />
+    <PasswordField />
+    <RememberMeField />
+    <Button
+      type="submit"
+      fullWidth
+      variant="contained"
+      color="primary"
+      className={classes.submit}
+      data-test="signin-submit"
+      disabled={disabled}
+    >
+      Sign In
+    </Button>
+    <Grid container>
+      <Grid size={{ xs: "grow" }}></Grid>
+      <Grid>
+        <Link data-test="signup" to="/signup">
+          {"Don't have an account? Sign Up"}
+        </Link>
+      </Grid>
+    </Grid>
+  </Form>
+);
+
+const SignInView: React.FC<{
+  message: string | undefined;
+  initialValues: SignInPayload;
+  onSubmit: (values: SignInPayload) => void;
+}> = ({ message, initialValues, onSubmit }) => (
+  <StyledContainer component="main" maxWidth="xs">
+    <CssBaseline />
+    <div className={classes.paper}>
+      {message && (
+        <Alert
+          data-test="signin-error"
+          severity="error"
+          className={classes.alertMessage}
+        >
+          {message}
+        </Alert>
+      )}
+      <div>
+        <RWALogo className={classes.logo} />
+      </div>
+      <Typography component="h1" variant="h5">
+        Sign in
+      </Typography>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={(values, { setSubmitting }) => {
+          setSubmitting(true);
+          onSubmit(values);
+        }}
+      >
+        {({ isValid, isSubmitting }) => (
+          <SignInFields disabled={!isValid || isSubmitting} />
+        )}
+      </Formik>
+    </div>
+    <Box sx={{ mt: 8 }}>
+      <Footer />
+    </Box>
+  </StyledContainer>
+);
+
 const SignInForm: React.FC<Props> = ({ authService }) => {
   const [authState, sendAuth] = useSharedActor(authService);
   const initialValues: SignInPayload = {
@@ -83,107 +213,12 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
     remember: false,
   };
 
-  const signInPending = (payload: SignInPayload) => {
-    sendAuth({ type: "LOGIN", ...payload });
-  };
-
   return (
-    <StyledContainer component="main" maxWidth="xs">
-      <CssBaseline />
-      <div className={classes.paper}>
-        {authState.context.message && (
-          <Alert data-test="signin-error" severity="error" className={classes.alertMessage}>
-            {authState.context.message}
-          </Alert>
-        )}
-        <div>
-          <RWALogo className={classes.logo} />
-        </div>
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={(values, { setSubmitting }) => {
-            setSubmitting(true);
-
-            signInPending(values);
-          }}
-        >
-          {({ isValid, isSubmitting }) => (
-            <Form className={classes.form}>
-              <Field name="username">
-                {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    id="username"
-                    label="Username"
-                    type="text"
-                    autoFocus
-                    data-test="signin-username"
-                    error={(touched || value !== initialValue) && Boolean(error)}
-                    // reserve the helper line so a validation message doesn't shift the links below
-                    helperText={((touched || value !== initialValue) && error) || " "}
-                    {...field}
-                  />
-                )}
-              </Field>
-              <Field name="password">
-                {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    id="password"
-                    data-test="signin-password"
-                    error={touched && value !== initialValue && Boolean(error)}
-                    helperText={(touched && value !== initialValue && error) || " "}
-                    {...field}
-                  />
-                )}
-              </Field>
-              <FormControlLabel
-                control={
-                  <Field name={"remember"}>
-                    {({ field }: FieldProps) => {
-                      return <Checkbox color="primary" data-test="signin-remember-me" {...field} />;
-                    }}
-                  </Field>
-                }
-                label="Remember me"
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-                data-test="signin-submit"
-                disabled={!isValid || isSubmitting}
-              >
-                Sign In
-              </Button>
-              <Grid container>
-                <Grid size={{ xs: "grow" }}></Grid>
-                <Grid>
-                  <Link data-test="signup" to="/signup">
-                    {"Don't have an account? Sign Up"}
-                  </Link>
-                </Grid>
-              </Grid>
-            </Form>
-          )}
-        </Formik>
-      </div>
-      <Box sx={{ mt: 8 }}>
-        <Footer />
-      </Box>
-    </StyledContainer>
+    <SignInView
+      message={authState.context.message}
+      initialValues={initialValues}
+      onSubmit={(values) => sendAuth({ type: "LOGIN", ...values })}
+    />
   );
 };
 

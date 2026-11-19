@@ -4,7 +4,6 @@ import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 import { LoginCallback, useOktaAuth, withOktaAuth } from "@okta/okta-react";
-import { toRelativeUrl } from "@okta/okta-auth-js";
 import { Route, Routes } from "react-router";
 
 import { snackbarMachine } from "../machines/snackbarMachine";
@@ -12,6 +11,7 @@ import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
 import { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import SecureRoute from "./SecureRoute";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
 
 const PREFIX = "appOkta";
@@ -25,20 +25,6 @@ const Root = styled("div")(() => ({
     display: "flex",
   },
 }));
-
-// okta-react's own SecureRoute only supports react-router 5, so this sends signed-out visitors to Okta.
-function SecureRoute() {
-  const { authState, oktaAuth } = useOktaAuth();
-
-  useEffect(() => {
-    if (authState && !authState.isAuthenticated) {
-      oktaAuth.setOriginalUri(toRelativeUrl(window.location.href, window.location.origin));
-      void oktaAuth.signInWithRedirect();
-    }
-  }, [authState, oktaAuth]);
-
-  return null;
-}
 
 const AppOkta: React.FC = () => {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();

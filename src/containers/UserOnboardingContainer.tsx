@@ -20,7 +20,7 @@ import { userOnboardingMachine } from "../machines/userOnboardingMachine";
 import type { BankAccountPayload } from "../models";
 import BankAccountForm from "../components/BankAccountForm";
 import type { bankAccountsMachine } from "../machines/bankAccountsMachine";
-import type { authMachine } from "../machines/authMachine";
+import type { authMachine, AuthMachineContext } from "../machines/authMachine";
 import NavigatorIllustration from "../components/SvgUndrawNavigatorA479";
 import PersonalFinance from "../components/SvgUndrawPersonalFinanceTqcd";
 
@@ -68,9 +68,36 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
         {userOnboardingState.matches("stepTwo") && "Create Bank Account"}
         {userOnboardingState.matches("stepThree") && "Finished"}
       </DialogTitle>
+      <OnboardingContent
+        step={userOnboardingState}
+        currentUser={currentUser}
+        createBankAccount={createBankAccountWithNextStep}
+      />
+      <OnboardingActions
+        isStepTwo={userOnboardingState.matches("stepTwo")}
+        isStepThree={userOnboardingState.matches("stepThree")}
+        onLogout={() => {
+          sendAuth({ type: "LOGOUT" });
+        }}
+        onNext={nextStep}
+      />
+    </Dialog>
+  );
+};
+
+type OnboardingState = ReturnType<typeof useMachine<typeof userOnboardingMachine>>[0];
+
+interface ContentProps {
+  step: OnboardingState;
+  currentUser: AuthMachineContext["user"];
+  createBankAccount: (payload: BankAccountPayload) => void;
+}
+
+function OnboardingContent({ step, currentUser, createBankAccount }: ContentProps) {
+  return (
       <DialogContent data-test="user-onboarding-dialog-content">
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {userOnboardingState.matches("stepOne") && (
+          {step.matches("stepOne") && (
             <>
               <NavigatorIllustration />
               <br />
@@ -82,14 +109,14 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
               </DialogContentText>
             </>
           )}
-          {userOnboardingState.matches("stepTwo") && currentUser && (
+          {step.matches("stepTwo") && currentUser && (
             <BankAccountForm
               userId={currentUser.id}
-              createBankAccount={createBankAccountWithNextStep}
+              createBankAccount={createBankAccount}
               onboarding
             />
           )}
-          {userOnboardingState.matches("stepThree") && (
+          {step.matches("stepThree") && (
             <>
               <PersonalFinance />
               <br />
@@ -103,14 +130,24 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
           )}
         </Box>
       </DialogContent>
+  );
+}
+
+interface ActionsProps {
+  isStepTwo: boolean;
+  isStepThree: boolean;
+  onLogout: () => void;
+  onNext: () => void;
+}
+
+function OnboardingActions({ isStepTwo, isStepThree, onLogout, onNext }: ActionsProps) {
+  return (
       <DialogActions>
         <Grid container sx={{ justifyContent: "space-between" }}>
           <Grid>
             <Button
               style={{ paddingRight: "80%" }}
-              onClick={() => {
-                sendAuth({ type: "LOGOUT" });
-              }}
+              onClick={onLogout}
               color="secondary"
               data-test="user-onboarding-logout"
             >
@@ -118,22 +155,19 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
             </Button>
           </Grid>
           <Grid>
-            {!userOnboardingState.matches("stepTwo") && (
+            {!isStepTwo && (
               <Button
-                onClick={() => {
-                  nextStep();
-                }}
+                onClick={onNext}
                 color="primary"
                 data-test="user-onboarding-next"
               >
-                {userOnboardingState.matches("stepThree") ? "Done" : "Next"}
+                {isStepThree ? "Done" : "Next"}
               </Button>
             )}
           </Grid>
         </Grid>
       </DialogActions>
-    </Dialog>
   );
-};
+}
 
 export default UserOnboardingContainer;
