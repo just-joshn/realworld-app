@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import clsx from "clsx";
 import type { ActorRefFrom } from "xstate";
 import { useSharedActor } from "../utils/useSharedActor";
@@ -23,8 +23,8 @@ import { Link as RouterLink, useLocation } from "react-router";
 
 import type { notificationsMachine } from "../machines/notificationsMachine";
 import TransactionNavTabs from "./TransactionNavTabs";
-import RWALogo from "./SvgRwaLogo";
-import RWALogoIcon from "./SvgRwaIconLogo";
+import rwaLogoLight from "../svgs/rwa-logo-light.svg";
+import rwaLogoIcon from "../svgs/rwa-icon-logo.svg";
 
 const drawerWidth = 240;
 
@@ -41,7 +41,7 @@ const classes = {
   customBadge: `${PREFIX}-customBadge`,
 };
 
-const StyledAppBar = styled(AppBar)(({ theme }) => ({
+const styledAppBarStyles1 = (theme: Theme) => ({
   [`& .${classes.toolbar}`]: {
     paddingRight: 24,
   },
@@ -75,7 +75,9 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
     color: "white",
     verticalAlign: "bottom",
   },
+});
 
+const styledAppBarStyles2 = () => ({
   [`& .${classes.newTransactionButton}`]: {
     fontSize: 16,
     backgroundColor: "#00C853",
@@ -94,6 +96,11 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
     backgroundColor: "red",
     color: "white",
   },
+});
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  ...styledAppBarStyles1(theme),
+  ...styledAppBarStyles2(),
 }));
 
 interface NavBarProps {
@@ -102,14 +109,67 @@ interface NavBarProps {
   notificationsService: ActorRefFrom<typeof notificationsMachine>;
 }
 
+function NavBarLogo() {
+  const theme = useTheme();
+  const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
+  return (
+    <Link
+      to="/"
+      style={{ color: "#fff", textDecoration: "none" }}
+      component={RouterLink}
+      underline="hover"
+    >
+      {xsBreakpoint ? (
+        <img src={rwaLogoIcon} alt="" className={classes.logo} />
+      ) : (
+        <img src={rwaLogoLight} alt="" className={classes.logo} />
+      )}
+    </Link>
+  );
+}
+
+function NotificationsLink({ count }: { count: number }) {
+  return (
+    <IconButton
+      color="inherit"
+      component={RouterLink}
+      to="/notifications"
+      data-test="nav-top-notifications-link"
+      aria-label={`${String(count)} unread notifications`}
+      size="large"
+    >
+      <Badge
+        badgeContent={count}
+        data-test="nav-top-notifications-count"
+        classes={{ badge: classes.customBadge }}
+      >
+        <NotificationsIcon />
+      </Badge>
+    </IconButton>
+  );
+}
+
+function NewTransactionButton() {
+  return (
+    <Button
+      className={classes.newTransactionButton}
+      variant="contained"
+      color="inherit"
+      component={RouterLink}
+      to="/transaction/new"
+      data-test="nav-top-new-transaction"
+    >
+      <AttachMoneyIcon /> New
+    </Button>
+  );
+}
+
 const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notificationsService }) => {
   const match = useLocation();
 
-  const theme = useTheme();
   const [notificationsState] = useSharedActor(notificationsService);
 
   const allNotifications = notificationsState.context.results;
-  const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
 
   return (
     <StyledAppBar
@@ -137,45 +197,10 @@ const NavBar: React.FC<NavBarProps> = ({ drawerOpen, toggleDrawer, notifications
           className={classes.title}
           data-test="app-name-logo"
         >
-          <Link
-            to="/"
-            style={{ color: "#fff", textDecoration: "none" }}
-            component={RouterLink}
-            underline="hover"
-          >
-            {xsBreakpoint ? (
-              <RWALogoIcon className={classes.logo} />
-            ) : (
-              <RWALogo className={classes.logo} />
-            )}
-          </Link>
+          <NavBarLogo />
         </Typography>
-        <Button
-          className={classes.newTransactionButton}
-          variant="contained"
-          color="inherit"
-          component={RouterLink}
-          to="/transaction/new"
-          data-test="nav-top-new-transaction"
-        >
-          <AttachMoneyIcon /> New
-        </Button>
-        <IconButton
-          color="inherit"
-          component={RouterLink}
-          to="/notifications"
-          data-test="nav-top-notifications-link"
-          aria-label={`${String(allNotifications.length)} unread notifications`}
-          size="large"
-        >
-          <Badge
-            badgeContent={allNotifications.length}
-            data-test="nav-top-notifications-count"
-            classes={{ badge: classes.customBadge }}
-          >
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
+        <NewTransactionButton />
+        <NotificationsLink count={allNotifications.length} />
       </Toolbar>
       {(match.pathname === "/" || RegExp("/(?:public|contacts|personal)").test(match.pathname)) && (
         <TransactionNavTabs />

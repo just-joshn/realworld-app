@@ -25,6 +25,117 @@ export interface TransactionCreateStepThreeProps {
   createTransactionService: ActorRefFrom<typeof createTransactionMachine>;
 }
 
+type Receiver = { avatar?: string | undefined; firstName: string; lastName: string };
+type Details = {
+  transactionType?: string | undefined;
+  amount?: string | number | undefined;
+  description?: string;
+};
+
+function ReceiverBox({ receiver }: { receiver: Receiver }) {
+  return (
+    <Box
+      style={{ paddingTop: "5%" }}
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        width: "95%",
+        minHeight: 200,
+        height: 200,
+      }}
+    >
+      <Grid
+        container
+        direction="row"
+        spacing={4}
+        sx={{ justifyContent: "space-around", alignItems: "center" }}
+      >
+        <Grid>
+          <Grid
+            container
+            sx={{
+              justifyContent: "flex-start",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
+          >
+            <Grid>
+              <Avatar src={receiver.avatar} />
+            </Grid>
+            <Grid>
+              <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                {receiver.firstName} {receiver.lastName}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
+function SummaryBox({ details }: { details: Details }) {
+  return (
+    <Box
+      style={{ paddingBottom: "5%" }}
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        width: "100%",
+        height: "100",
+      }}
+    >
+      <Grid container direction="row" sx={{ justifyContent: "center", alignItems: "center" }}>
+        <Grid>
+          <Typography component="h2" variant="h6" color="primary" gutterBottom>
+            {details.transactionType === "payment" ? "Paid " : "Requested "}
+            {details.amount && formatAmount(Math.round(Number(details.amount) * 100))} for{" "}
+            {details.description}
+          </Typography>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
+function ActionsBox({ onCreateAnother }: { onCreateAnother: () => void }) {
+  return (
+    <Box
+      style={{ paddingBottom: "5%" }}
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        width: "100%",
+        height: "100",
+      }}
+    >
+      <Grid container direction="row" sx={{ justifyContent: "space-around", alignItems: "center" }}>
+        <Grid>
+          <Button
+            variant="contained"
+            size="small"
+            component={RouterLink}
+            to="/"
+            data-test="new-transaction-return-to-transactions"
+          >
+            Return To Transactions
+          </Button>
+        </Grid>
+        <Grid>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={onCreateAnother}
+            data-test="new-transaction-create-another-transaction"
+          >
+            Create Another Transaction
+          </Button>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
 const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
   createTransactionService,
 }) => {
@@ -39,89 +150,14 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
 
   return (
     <StyledPaper className={classes.paper} elevation={0}>
-      <Box
-        style={{ paddingTop: "5%" }}
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          width: "95%",
-          minHeight: 200,
-          height: 200,
+      <ReceiverBox receiver={receiver} />
+      <SummaryBox details={transactionDetails} />
+      <ActionsBox
+        onCreateAnother={() => {
+          sendCreateTransaction({ type: "RESET" });
+          void navigate("/transaction/new");
         }}
-      >
-        <Grid
-          container
-          direction="row"
-          spacing={4}
-          sx={{ justifyContent: "space-around", alignItems: "center" }}
-        >
-          <Grid>
-            <Grid
-              container
-              sx={{ justifyContent: "flex-start", alignItems: "center", flexDirection: "column" }}
-            >
-              <Grid>
-                <Avatar src={receiver.avatar} />
-              </Grid>
-              <Grid>
-                <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                  {receiver.firstName} {receiver.lastName}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Box>
-      <Box
-        style={{ paddingBottom: "5%" }}
-        sx={{ display: "flex", justifyContent: "center", width: "100%", height: "100" }}
-      >
-        <Grid container direction="row" sx={{ justifyContent: "center", alignItems: "center" }}>
-          <Grid>
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              {transactionDetails.transactionType === "payment" ? "Paid " : "Requested "}
-              {transactionDetails.amount &&
-                formatAmount(Math.round(Number(transactionDetails.amount) * 100))}{" "}
-              for {transactionDetails.description}
-            </Typography>
-          </Grid>
-        </Grid>
-      </Box>
-      <Box
-        style={{ paddingBottom: "5%" }}
-        sx={{ display: "flex", justifyContent: "center", width: "100%", height: "100" }}
-      >
-        <Grid
-          container
-          direction="row"
-          sx={{ justifyContent: "space-around", alignItems: "center" }}
-        >
-          <Grid>
-            <Button
-              variant="contained"
-              size="small"
-              component={RouterLink}
-              to="/"
-              data-test="new-transaction-return-to-transactions"
-            >
-              Return To Transactions
-            </Button>
-          </Grid>
-          <Grid>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => {
-                sendCreateTransaction({ type: "RESET" });
-                void navigate("/transaction/new");
-              }}
-              data-test="new-transaction-create-another-transaction"
-            >
-              Create Another Transaction
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
+      />
     </StyledPaper>
   );
 };

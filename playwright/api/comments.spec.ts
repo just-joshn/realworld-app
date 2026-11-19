@@ -34,7 +34,9 @@ test.describe("POST /comments/:transactionId", { tag: ["@api", "@comments"] }, (
       );
     }
   });
+});
 
+test.describe("POST /comments/:transactionId", { tag: ["@api", "@comments"] }, () => {
   test("422 — missing content", async ({ createUser, apiAs }) => {
     const sender = await createUser({ balance: 1_000 });
     const api = await apiAs(sender);

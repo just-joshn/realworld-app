@@ -1,6 +1,7 @@
 import { Container, Typography } from "@mui/material";
 
-import CypressLogo from "../components/SvgCypressLogo";
+import cypressLogo from "../svgs/cypress-logo.svg";
+import { cypressUrl } from "./footerConfig";
 
 export default function Footer() {
   return (
@@ -11,9 +12,11 @@ export default function Footer() {
           style={{ textDecoration: "none" }}
           target="_blank"
           rel="noopener noreferrer"
-          href="https://cypress.io"
+          href={cypressUrl}
         >
-          <CypressLogo
+          <img
+            src={cypressLogo}
+            alt=""
             style={{
               marginTop: -2,
               marginLeft: 5,

@@ -1,14 +1,10 @@
-import React from "react";
 import { styled } from "@mui/material/styles";
-import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { Container, CssBaseline } from "@mui/material";
 
-import { snackbarMachine } from "../machines/snackbarMachine";
-import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import { useAppServices } from "./useAppServices";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
 import { GoogleLogin, useGoogleLogin } from "@matheusluizn/react-google-login";
 
@@ -32,14 +28,7 @@ const Root = styled("div")(({ theme }) => ({
   },
 }));
 
-const AppGoogle: React.FC = () => {
-  const [authState] = useSharedActor(authService);
-  const [, , notificationsService] = useMachine(notificationsMachine);
-
-  const [, , snackbarService] = useMachine(snackbarMachine);
-
-  const [, , bankAccountsService] = useMachine(bankAccountsMachine);
-
+function useGoogleSync() {
   const clientId = process.env["VITE_GOOGLE_CLIENTID"];
   if (!clientId) {
     throw new Error("Missing VITE_GOOGLE_CLIENTID");
@@ -48,15 +37,26 @@ const AppGoogle: React.FC = () => {
   useGoogleLogin({
     clientId,
     onSuccess: (res) => {
-      console.log("onSuccess", res);
       if (!("profileObj" in res)) {
         throw new Error("Missing Google profile in login response");
       }
-      authService.send({ type: "GOOGLE", user: res.profileObj, token: res.tokenId });
+      authService.send({
+        type: "GOOGLE",
+        user: res.profileObj,
+        token: res.tokenId,
+      });
     },
     cookiePolicy: "single_host_origin",
     isSignedIn: true,
   });
+  return clientId;
+}
+
+function AppGoogle() {
+  const [authState] = useSharedActor(authService);
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
+
+  const clientId = useGoogleSync();
 
   const isLoggedIn = authState.matches("authorized");
 
@@ -90,6 +90,6 @@ const AppGoogle: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 export default AppGoogle;

@@ -9,6 +9,15 @@ import jwksRsa from "jwks-rsa";
 
 import OktaJwtVerifier from "@okta/jwt-verifier";
 import awsConfig from "../src/aws-exports";
+import {
+  auth0Issuer,
+  auth0JwksUri,
+  cognitoIssuer,
+  cognitoJwksUri,
+  googleIssuer,
+  googleJwksUri,
+  oktaIssuer,
+} from "./config/auth-providers.config";
 
 dotenv.config();
 
@@ -17,16 +26,16 @@ const auth0JwtConfig: Params = {
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: `https://${process.env["VITE_AUTH0_DOMAIN"] ?? ""}/.well-known/jwks.json`,
+    jwksUri: auth0JwksUri,
   }),
 
   audience: process.env["VITE_AUTH0_AUDIENCE"],
-  issuer: `https://${process.env["VITE_AUTH0_DOMAIN"] ?? ""}/`,
+  issuer: auth0Issuer,
   algorithms: ["RS256"],
 };
 
 const oktaJwtVerifier = new OktaJwtVerifier({
-  issuer: `https://${process.env["VITE_OKTA_DOMAIN"] ?? ""}/oauth2/default`,
+  issuer: oktaIssuer,
   clientId: process.env["VITE_OKTA_CLIENTID"] ?? "",
   assertClaims: {
     aud: "api://default",
@@ -38,11 +47,11 @@ const googleJwtConfig: Params = {
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: "https://www.googleapis.com/oauth2/v3/certs",
+    jwksUri: googleJwksUri,
   }),
 
   audience: process.env["VITE_GOOGLE_CLIENTID"],
-  issuer: "accounts.google.com",
+  issuer: googleIssuer,
   algorithms: ["RS256"],
 };
 
@@ -60,7 +69,8 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
         next();
       })
       .catch((err: unknown) => {
-        console.log("error", err);
+        console.error("Okta access token verification failed:", err);
+        res.status(401).send({ error: "Unauthorized" });
       });
   } else {
     res.status(401).send({
@@ -74,10 +84,10 @@ const userPoolId = awsConfig.Auth.Cognito.userPoolId;
 const region = required(userPoolId.split("_")[0], "Cognito region");
 const awsCognitoJwtConfig: Params = {
   secret: jwksRsa.expressJwtSecret({
-    jwksUri: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`,
+    jwksUri: cognitoJwksUri(region, userPoolId),
   }),
 
-  issuer: `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`,
+  issuer: cognitoIssuer(region, userPoolId),
   algorithms: ["RS256"],
 };
 

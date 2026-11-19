@@ -112,22 +112,27 @@ describe("verifyOktaToken", () => {
     });
     expect(req.user).toEqual({ sub: undefined });
   });
+});
 
+describe("verifyOktaToken failures", () => {
   test("logs and does not continue when verification fails", async () => {
     const error = new Error("expired");
     okta.verifyAccessToken.mockRejectedValue(error);
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
     const next = buildNext();
+    const res = buildResponse();
 
     verifyOktaToken(
       buildRequest({ headers: { authorization: "Bearer bad-token" } }),
-      asResponse(buildResponse()),
+      asResponse(res),
       next
     );
 
     await vi.waitFor(() => {
-      expect(log).toHaveBeenCalledWith("error", error);
+      expect(log).toHaveBeenCalledWith("Okta access token verification failed:", error);
     });
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.send).toHaveBeenCalledWith({ error: "Unauthorized" });
     expect(next).not.toHaveBeenCalled();
   });
 });

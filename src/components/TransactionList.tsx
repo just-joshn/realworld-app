@@ -10,9 +10,12 @@ import SkeletonList from "./SkeletonList";
 import type { TransactionResponseItem } from "../models";
 import EmptyList from "./EmptyList";
 import TransactionInfiniteList from "./TransactionInfiniteList";
-import TransferMoneyIllustration from "./SvgUndrawTransferMoneyRywa";
+import transferMoneyIllustration from "../svgs/undraw_transfer_money_rywa.svg";
 
-const paginationSchema = object({ page: number().required(), hasNextPages: boolean().required() });
+const paginationSchema = object({
+  page: number().required(),
+  hasNextPages: boolean().required(),
+});
 
 const PREFIX = "TransactionList";
 
@@ -34,6 +37,44 @@ export interface TransactionListProps {
   loadNextPage: (page: number) => void;
   pagination: object | undefined;
   filterComponent: ReactNode;
+}
+
+function EmptyTransactions({ showCreateButton }: { showCreateButton?: boolean | undefined }) {
+  return (
+    <EmptyList entity="Transactions">
+      <Grid
+        container
+        style={{ width: "100%" }}
+        spacing={2}
+        sx={{
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <Grid>
+          <img
+            src={transferMoneyIllustration}
+            alt=""
+            style={{ height: 200, width: 300, marginBottom: 30 }}
+          />
+        </Grid>
+        <Grid>
+          {showCreateButton && (
+            <Button
+              data-test="transaction-list-empty-create-transaction-button"
+              variant="contained"
+              color="primary"
+              component={RouterLink}
+              to="/transaction/new"
+            >
+              Create A Transaction
+            </Button>
+          )}
+        </Grid>
+      </Grid>
+    </EmptyList>
+  );
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({
@@ -63,33 +104,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           pagination={paginationData}
         />
       )}
-      {showEmptyList && (
-        <EmptyList entity="Transactions">
-          <Grid
-            container
-            style={{ width: "100%" }}
-            spacing={2}
-            sx={{ justifyContent: "center", alignItems: "center", flexDirection: "column" }}
-          >
-            <Grid>
-              <TransferMoneyIllustration style={{ height: 200, width: 300, marginBottom: 30 }} />
-            </Grid>
-            <Grid>
-              {showCreateButton && (
-                <Button
-                  data-test="transaction-list-empty-create-transaction-button"
-                  variant="contained"
-                  color="primary"
-                  component={RouterLink}
-                  to="/transaction/new"
-                >
-                  Create A Transaction
-                </Button>
-              )}
-            </Grid>
-          </Grid>
-        </EmptyList>
-      )}
+      {showEmptyList && <EmptyTransactions showCreateButton={showCreateButton} />}
     </StyledPaper>
   );
 };

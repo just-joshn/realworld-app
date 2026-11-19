@@ -27,7 +27,7 @@ import bankTransferRoutes from "./banktransfer-routes";
 import testDataRoutes from "./testdata-routes";
 import { checkAuth0Jwt, verifyOktaToken, checkCognitoJwt, checkGoogleJwt } from "./helpers";
 import resolvers from "./graphql/resolvers";
-import { frontendPort } from "../src/utils/portUtils";
+import { frontendPort, localOrigin } from "../src/utils/apiConfig";
 import { getBackendPort } from "./backend-port";
 
 import dotenv from "dotenv";
@@ -35,7 +35,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const corsOption = {
-  origin: `http://localhost:${frontendPort ?? "3000"}`,
+  origin: localOrigin(frontendPort ?? "3000"),
   credentials: true,
 };
 
@@ -121,6 +121,13 @@ app.use("/bankTransfers", bankTransferRoutes);
 
 app.use(express.static(join(__dirname, "../public")));
 
-void getBackendPort().then((port) => {
-  app.listen(port);
-});
+getBackendPort()
+  .then((port) => {
+    // getBackendPort already logged why detection failed; listening on a random port would hide it
+    if (port === undefined) process.exit(1);
+    app.listen(port);
+  })
+  .catch((error: unknown) => {
+    console.error("Backend server failed to start:", error);
+    process.exit(1);
+  });

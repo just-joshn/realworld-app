@@ -42,6 +42,12 @@ test.describe("user settings", { tag: ["@e2e", "@settings"] }, () => {
     }
     await expect(settings.saveButton).toBeDisabled();
   });
+});
+
+test.describe("user settings", { tag: ["@e2e", "@settings"] }, () => {
+  test.beforeEach(async ({ userSettingsPage }) => {
+    await userSettingsPage.goto();
+  });
 
   test("the settings form explains invalid details", async ({
     page,

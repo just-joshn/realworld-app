@@ -50,6 +50,53 @@ export interface BankAccountFormProps {
   onboarding?: boolean;
 }
 
+function BankField({ name, placeholder }: { name: string; placeholder: string }) {
+  return (
+    <Field name={name}>
+      {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
+        <TextField
+          variant="outlined"
+          margin="dense"
+          fullWidth
+          required
+          id={`bankaccount-${name}-input`}
+          type="text"
+          placeholder={placeholder}
+          data-test={`bankaccount-${name}-input`}
+          error={(touched || value !== initialValue) && Boolean(error)}
+          helperText={touched || value !== initialValue ? error : ""}
+          {...field}
+        />
+      )}
+    </Field>
+  );
+}
+
+function BankSubmit({ disabled }: { disabled: boolean }) {
+  return (
+    <Grid
+      container
+      spacing={2}
+      direction="row"
+      sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
+    >
+      <Grid>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          className={classes.submit}
+          data-test="bankaccount-submit"
+          disabled={disabled}
+        >
+          Save
+        </Button>
+      </Grid>
+    </Grid>
+  );
+}
+
 const BankAccountForm: React.FC<BankAccountFormProps> = ({
   userId,
   createBankAccount,
@@ -80,77 +127,10 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
     >
       {({ isValid, isSubmitting }) => (
         <Form className={classes.form} data-test="bankaccount-form">
-          <Field name="bankName">
-            {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-              <TextField
-                variant="outlined"
-                margin="dense"
-                fullWidth
-                required
-                id={"bankaccount-bankName-input"}
-                type="text"
-                placeholder="Bank Name"
-                data-test={"bankaccount-bankName-input"}
-                error={(touched || value !== initialValue) && Boolean(error)}
-                helperText={touched || value !== initialValue ? error : ""}
-                {...field}
-              />
-            )}
-          </Field>
-          <Field name="routingNumber">
-            {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-              <TextField
-                variant="outlined"
-                margin="dense"
-                fullWidth
-                required
-                id={"bankaccount-routingNumber-input"}
-                type="text"
-                placeholder="Routing Number"
-                data-test={"bankaccount-routingNumber-input"}
-                error={(touched || value !== initialValue) && Boolean(error)}
-                helperText={touched || value !== initialValue ? error : ""}
-                {...field}
-              />
-            )}
-          </Field>
-          <Field name="accountNumber">
-            {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-              <TextField
-                variant="outlined"
-                margin="dense"
-                fullWidth
-                required
-                id={"bankaccount-accountNumber-input"}
-                type="text"
-                placeholder="Account Number"
-                data-test={"bankaccount-accountNumber-input"}
-                error={(touched || value !== initialValue) && Boolean(error)}
-                helperText={touched || value !== initialValue ? error : ""}
-                {...field}
-              />
-            )}
-          </Field>
-          <Grid
-            container
-            spacing={2}
-            direction="row"
-            sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
-          >
-            <Grid>
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-                data-test="bankaccount-submit"
-                disabled={!isValid || isSubmitting}
-              >
-                Save
-              </Button>
-            </Grid>
-          </Grid>
+          <BankField name="bankName" placeholder="Bank Name" />
+          <BankField name="routingNumber" placeholder="Routing Number" />
+          <BankField name="accountNumber" placeholder="Account Number" />
+          <BankSubmit disabled={!isValid || isSubmitting} />
         </Form>
       )}
     </StyledFormik>

@@ -15,26 +15,22 @@ import {
 } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { renderWithRouter } from "../../test/browser/render";
+import { sendUntilAuthState } from "./authStateTesting";
 import TransactionDetailContainer from "./TransactionDetailContainer";
 
+// A later handler shadows the earlier one, so serving a changed value never edits the old one.
+function serveTransaction(transaction: TransactionResponseItem) {
+  worker.use(http.get(apiUrl("/transactions/txn1"), () => HttpResponse.json({ transaction })));
+}
+
 async function renderDetail(transaction: TransactionResponseItem, user = buildUser()) {
-  worker.use(
-    http.post(apiUrl("/login"), () => HttpResponse.json({ user })),
-    http.get(apiUrl("/transactions/txn1"), () => HttpResponse.json({ transaction }))
-  );
+  worker.use(http.post(apiUrl("/login"), () => HttpResponse.json({ user })));
+  serveTransaction(transaction);
   const authService = createActor(authMachine).start();
   onTestFinished(() => {
     authService.stop();
   });
-  await new Promise<void>((resolve) => {
-    const subscription = authService.subscribe((state) => {
-      if (state.matches("authorized")) {
-        subscription.unsubscribe();
-        resolve();
-      }
-    });
-    authService.send({ type: "LOGIN" });
-  });
+  await sendUntilAuthState(authService, { type: "LOGIN" }, "authorized");
   return renderWithRouter(
     <Routes>
       <Route
@@ -63,7 +59,7 @@ test("likes a transaction and prevents liking it again", async () => {
   worker.use(
     http.post(apiUrl("/likes/txn1"), async ({ request }) => {
       received(await request.json());
-      transaction.likes = [buildLike({ userId: "user1" })];
+      serveTransaction({ ...transaction, likes: [buildLike({ userId: "user1" })] });
       return HttpResponse.json({});
     })
   );
@@ -80,7 +76,7 @@ test("adds a comment with Enter and shows the saved comment", async () => {
     http.post(apiUrl("/comments/txn1"), async ({ request }) => {
       const payload = object({ content: string().required() }).validateSync(await request.json());
       received(payload);
-      transaction.comments = [buildComment({ content: payload.content })];
+      serveTransaction({ ...transaction, comments: [buildComment({ content: payload.content })] });
       return HttpResponse.json({});
     })
   );
@@ -109,7 +105,7 @@ for (const [action, status] of [
     worker.use(
       http.patch(apiUrl("/transactions/txn1"), async ({ request }) => {
         received(await request.json());
-        transaction.requestStatus = status;
+        serveTransaction({ ...transaction, requestStatus: status });
         return HttpResponse.json({});
       })
     );

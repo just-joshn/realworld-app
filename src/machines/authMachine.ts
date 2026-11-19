@@ -12,7 +12,7 @@ import { omit } from "lodash/fp";
 import { httpClient, getAuthTokenName } from "../utils/asyncUtils";
 import { history } from "../utils/historyUtils";
 import type { User } from "../models";
-import { backendPort } from "../utils/portUtils";
+import { apiUrl } from "../utils/apiConfig";
 
 export type AuthMachineEvents =
   | ({ type: "LOGIN" } & Partial<Pick<User, "username" | "password">>)
@@ -72,17 +72,14 @@ const fromEvent = <TOutput>(run: (event: AuthMachineEvents) => Promise<TOutput>)
 
 const performSignup = fromEvent<ProfileResult>(async (event) => {
   const payload = omit("type", event);
-  const resp = await httpClient.post<unknown>(
-    `http://localhost:${String(backendPort)}/users`,
-    payload
-  );
+  const resp = await httpClient.post<unknown>(apiUrl("/users"), payload);
   history.push("/signin");
   return authResponseSchema.validateSync(resp.data);
 });
 
 const performLogin = fromEvent<ProfileResult>(async (event) => {
   return await httpClient
-    .post<unknown>(`http://localhost:${String(backendPort)}/login`, event)
+    .post<unknown>(apiUrl("/login"), event)
     .then(({ data }) => {
       history.push("/");
       return authResponseSchema.validateSync(data);
@@ -93,7 +90,7 @@ const performLogin = fromEvent<ProfileResult>(async (event) => {
 });
 
 const getUserProfile = fromEvent<ProfileResult>(async () => {
-  const resp = await httpClient.get<unknown>(`http://localhost:${String(backendPort)}/checkAuth`);
+  const resp = await httpClient.get<unknown>(apiUrl("/checkAuth"));
   return authResponseSchema.validateSync(resp.data);
 });
 
@@ -160,15 +157,12 @@ const getCognitoUserProfile = fromEvent<ProfileResult>(async (event) => {
 const updateProfile = fromEvent<undefined>(async (event) => {
   if (event.type !== "UPDATE") throw new Error("Expected UPDATE event");
   const payload = omit("type", event);
-  await httpClient.patch<unknown>(
-    `http://localhost:${String(backendPort)}/users/${String(payload.id)}`,
-    payload
-  );
+  await httpClient.patch<unknown>(apiUrl(`/users/${String(payload.id)}`), payload);
 });
 
 const performLogout = fromEvent<unknown>(async () => {
   localStorage.removeItem("authState");
-  return await httpClient.post<unknown>(`http://localhost:${String(backendPort)}/logout`);
+  return await httpClient.post<unknown>(apiUrl("/logout"));
 });
 
 const setMessage = assign<AuthMachineContext, ErrorActorEvent, undefined, AuthMachineEvents, never>(
@@ -190,6 +184,33 @@ const onSuccess = assign<
   AuthMachineEvents,
   never
 >({ user: ({ event }) => event.output.user, message: undefined });
+
+type ActorName =
+  | "performSignup"
+  | "performLogin"
+  | "getUserProfile"
+  | "getOktaUserProfile"
+  | "getGoogleUserProfile"
+  | "getAuth0UserProfile"
+  | "getCognitoUserProfile";
+
+const loggableOut = { LOGOUT: "logout" } as const;
+
+const invokeState = <
+  Src extends ActorName,
+  Target extends "authorized" | "unauthorized" | "refreshing",
+>(
+  src: Src,
+  target: Target,
+  onDoneActions: typeof setUser
+) => ({
+  invoke: {
+    src,
+    input: ({ event }: { event: AuthMachineEvents }) => event,
+    onDone: { target, actions: onDoneActions },
+    onError: { target: "unauthorized" as const, actions: setMessage },
+  },
+});
 
 export const authMachine = setup({
   types: typed<{
@@ -227,22 +248,8 @@ export const authMachine = setup({
         COGNITO: "cognito",
       },
     },
-    signup: {
-      invoke: {
-        src: "performSignup",
-        input: ({ event }) => event,
-        onDone: { target: "unauthorized", actions: onSuccess },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-    },
-    loading: {
-      invoke: {
-        src: "performLogin",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: onSuccess },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-    },
+    signup: invokeState("performSignup", "unauthorized", onSuccess),
+    loading: invokeState("performLogin", "authorized", onSuccess),
     updating: {
       invoke: {
         src: "updateProfile",
@@ -251,28 +258,8 @@ export const authMachine = setup({
         onError: { target: "unauthorized", actions: setMessage },
       },
     },
-    refreshing: {
-      invoke: {
-        src: "getUserProfile",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: setUser },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-      on: {
-        LOGOUT: "logout",
-      },
-    },
-    google: {
-      invoke: {
-        src: "getGoogleUserProfile",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: setUser },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-      on: {
-        LOGOUT: "logout",
-      },
-    },
+    refreshing: { ...invokeState("getUserProfile", "authorized", setUser), on: loggableOut },
+    google: { ...invokeState("getGoogleUserProfile", "authorized", setUser), on: loggableOut },
     logout: {
       invoke: {
         src: "performLogout",
@@ -284,7 +271,7 @@ export const authMachine = setup({
     authorized: {
       entry: () => {
         if (history.location.pathname === "/signin") {
-          window.location.pathname = "/";
+          window.location.assign("/");
         }
       },
       on: {
@@ -293,39 +280,9 @@ export const authMachine = setup({
         LOGOUT: "logout",
       },
     },
-    auth0: {
-      invoke: {
-        src: "getAuth0UserProfile",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: setUser },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-      on: {
-        LOGOUT: "logout",
-      },
-    },
-    okta: {
-      invoke: {
-        src: "getOktaUserProfile",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: setUser },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-      on: {
-        LOGOUT: "logout",
-      },
-    },
-    cognito: {
-      invoke: {
-        src: "getCognitoUserProfile",
-        input: ({ event }) => event,
-        onDone: { target: "authorized", actions: setUser },
-        onError: { target: "unauthorized", actions: setMessage },
-      },
-      on: {
-        LOGOUT: "logout",
-      },
-    },
+    auth0: { ...invokeState("getAuth0UserProfile", "authorized", setUser), on: loggableOut },
+    okta: { ...invokeState("getOktaUserProfile", "authorized", setUser), on: loggableOut },
+    cognito: { ...invokeState("getCognitoUserProfile", "authorized", setUser), on: loggableOut },
   },
 });
 

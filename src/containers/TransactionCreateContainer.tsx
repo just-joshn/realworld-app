@@ -3,20 +3,47 @@ import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import type { User } from "../models";
 import TransactionCreateStepOne from "../components/TransactionCreateStepOne";
-import type { TransactionCreateStepTwoProps } from "../components/TransactionCreateStepTwo";
 import TransactionCreateStepTwo from "../components/TransactionCreateStepTwo";
 import TransactionCreateStepThree from "../components/TransactionCreateStepThree";
 import { createTransactionMachine } from "../machines/createTransactionMachine";
 import { usersMachine } from "../machines/usersMachine";
 import { debounce } from "lodash/fp";
 import type { ActorRefFrom } from "xstate";
-import { isAppUser, type authMachine } from "../machines/authMachine";
+import { isAppUser, type AuthMachineContext, type authMachine } from "../machines/authMachine";
 import type { snackbarMachine, SnackbarContext } from "../machines/snackbarMachine";
 import { Stepper, Step, StepLabel } from "@mui/material";
 
 export interface Props {
   authService: ActorRefFrom<typeof authMachine>;
   snackbarService: ActorRefFrom<typeof snackbarMachine>;
+}
+
+type CreateTransactionState = ReturnType<typeof useMachine<typeof createTransactionMachine>>[0];
+
+function appUserOrUndefined(user: AuthMachineContext["user"]) {
+  return user && isAppUser(user) ? user : undefined;
+}
+
+function activeStepIndex(state: CreateTransactionState) {
+  if (state.matches("stepTwo")) return 1;
+  if (state.matches("stepThree")) return 3;
+  return 0;
+}
+
+function CreateTransactionStepper({ activeStep }: { activeStep: number }) {
+  return (
+    <Stepper activeStep={activeStep}>
+      <Step key={"stepOne"}>
+        <StepLabel>Select Contact</StepLabel>
+      </Step>
+      <Step key={"stepTwo"}>
+        <StepLabel>Payment</StepLabel>
+      </Step>
+      <Step key={"stepThree"}>
+        <StepLabel>Complete</StepLabel>
+      </Step>
+    </Stepper>
+  );
 }
 
 const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarService }) => {
@@ -27,53 +54,23 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     useMachine(createTransactionMachine);
 
   const [usersState, sendUsers] = useMachine(usersMachine);
-
   useEffect(() => {
     sendUsers({ type: "FETCH" });
   }, [sendUsers]);
 
-  const sender =
-    authState.context.user && isAppUser(authState.context.user)
-      ? authState.context.user
-      : undefined;
+  const sender = appUserOrUndefined(authState.context.user);
   const receiver = createTransactionState.context.receiver;
   const setReceiver = (receiver: User) => {
     if (!sender) return;
     sendCreateTransaction({ type: "SET_USERS", sender, receiver });
   };
-  const createTransaction: TransactionCreateStepTwoProps["createTransaction"] = (payload) => {
-    sendCreateTransaction({ type: "CREATE", ...payload });
-  };
   const userListSearch = debounce(200, (payload: { q: string }) => {
     sendUsers({ type: "FETCH", ...payload });
   });
 
-  const showSnackbar = (payload: SnackbarContext) => {
-    sendSnackbar({ type: "SHOW", ...payload });
-  };
-
-  let activeStep;
-  if (createTransactionState.matches("stepTwo")) {
-    activeStep = 1;
-  } else if (createTransactionState.matches("stepThree")) {
-    activeStep = 3;
-  } else {
-    activeStep = 0;
-  }
-
   return (
     <>
-      <Stepper activeStep={activeStep}>
-        <Step key={"stepOne"}>
-          <StepLabel>Select Contact</StepLabel>
-        </Step>
-        <Step key={"stepTwo"}>
-          <StepLabel>Payment</StepLabel>
-        </Step>
-        <Step key={"stepThree"}>
-          <StepLabel>Complete</StepLabel>
-        </Step>
-      </Stepper>
+      <CreateTransactionStepper activeStep={activeStepIndex(createTransactionState)} />
       {createTransactionState.matches("stepOne") && (
         <TransactionCreateStepOne
           setReceiver={setReceiver}
@@ -85,8 +82,12 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
         <TransactionCreateStepTwo
           receiver={receiver}
           sender={sender}
-          createTransaction={createTransaction}
-          showSnackbar={showSnackbar}
+          createTransaction={(payload) => {
+            sendCreateTransaction({ type: "CREATE", ...payload });
+          }}
+          showSnackbar={(payload: SnackbarContext) => {
+            sendSnackbar({ type: "SHOW", ...payload });
+          }}
         />
       )}
       {createTransactionState.matches("stepThree") && (

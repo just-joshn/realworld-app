@@ -132,7 +132,9 @@ test.describe("POST /notifications/bulk", { tag: ["@api", "@notifications"] }, (
       ],
     });
   });
+});
 
+test.describe("POST /notifications/bulk", { tag: ["@api", "@notifications"] }, () => {
   test("422 — unknown notification type", async ({ createUser, apiAs }) => {
     const api = await apiAs(await createUser());
 

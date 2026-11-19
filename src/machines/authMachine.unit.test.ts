@@ -5,6 +5,7 @@ import { startService } from "../../test/machines";
 import { buildUser } from "../../test/factories";
 import { createMemoryStorage } from "../../test/memoryStorage";
 import { history } from "../utils/historyUtils";
+import { apiUrl } from "../utils/apiConfig";
 import { authMachine } from "./authMachine";
 
 // authMachine reads localStorage while it is imported.
@@ -18,12 +19,13 @@ vi.mock(import("../utils/historyUtils"), async () => {
   return { history: UNSAFE_createMemoryHistory({ v5Compat: true }) };
 });
 
-const api = "http://localhost:3001";
+const api = apiUrl("");
 const ada = buildUser({ id: "user1" });
 
 beforeEach(() => {
   vi.stubGlobal("localStorage", createMemoryStorage());
-  vi.stubGlobal("window", { location: { pathname: "/" } });
+  vi.stubGlobal("window", { location: { pathname: "/", assign: vi.fn() } });
+  vi.stubEnv("VITE_AUTH_TOKEN_NAME", "authAccessToken");
   history.replace("/");
 });
 
@@ -90,15 +92,15 @@ describe("SIGNUP", () => {
   });
 });
 
-describe("when authorized", () => {
-  async function authorizedService() {
-    server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
-    const service = startService(authMachine);
-    service.send({ type: "LOGIN" });
-    await expect.poll(() => service.getSnapshot().value).toBe("authorized");
-    return service;
-  }
+async function authorizedService() {
+  server.use(http.post(`${api}/login`, () => HttpResponse.json({ user: ada })));
+  const service = startService(authMachine);
+  service.send({ type: "LOGIN" });
+  await expect.poll(() => service.getSnapshot().value).toBe("authorized");
+  return service;
+}
 
+describe("when authorized: profile", () => {
   test("UPDATE saves the profile and reloads the user", async () => {
     const updated = vi.fn();
     server.use(
@@ -141,7 +143,9 @@ describe("when authorized", () => {
     await expect.poll(() => service.getSnapshot().value).toBe("unauthorized");
     expect(service.getSnapshot().context.user).toBeUndefined();
   });
+});
 
+describe("when authorized: logout", () => {
   test("LOGOUT ends the session and clears the saved auth state", async () => {
     const loggedOut = vi.fn();
     server.use(
@@ -208,10 +212,6 @@ const providerEvents = {
 } as const;
 
 describe("identity provider sign-in", () => {
-  beforeEach(() => {
-    vi.stubEnv("VITE_AUTH_TOKEN_NAME", "authAccessToken");
-  });
-
   test("AUTH0 stores the token and maps the profile", async () => {
     const service = startService(authMachine);
 
@@ -258,7 +258,9 @@ describe("identity provider sign-in", () => {
     });
     expect(localStorage.getItem("authAccessToken")).toBe("google-token");
   });
+});
 
+describe("identity provider sign-in: cognito and logout", () => {
   test("COGNITO stores the access token", async () => {
     const service = startService(authMachine);
 
@@ -307,14 +309,14 @@ describe("identity provider sign-in", () => {
 });
 
 test("reaching authorized on the sign-in page redirects home", async () => {
-  vi.stubEnv("VITE_AUTH_TOKEN_NAME", "authAccessToken");
-  vi.stubGlobal("window", { location: { pathname: "/signin" } });
+  const assign = vi.fn();
+  vi.stubGlobal("window", { location: { pathname: "/signin", assign } });
   history.replace("/signin");
   const service = startService(authMachine);
 
   service.send(providerEvents.AUTH0);
 
-  await expect.poll(() => window.location.pathname).toBe("/");
+  await expect.poll(() => assign).toHaveBeenCalledWith("/");
 });
 
 describe("authService", () => {

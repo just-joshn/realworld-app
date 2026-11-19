@@ -7,7 +7,10 @@ import type { User } from "../src/models/user";
 import { getAllUsers, getUserById } from "./database";
 
 import { Strategy as LocalStrategy } from "passport-local";
+import { REMEMBER_ME_MAX_AGE_MS, setSessionCookieMaxAge } from "./session-cookie";
+
 const router = express.Router();
+const loginSchema = yup.object({ remember: yup.boolean().default(false) });
 
 passport.use(
   new LocalStrategy(function (username: string, password: string, done) {
@@ -40,11 +43,8 @@ passport.deserializeUser(function (id: string, done) {
 const typedPassport: passport.Authenticator<RequestHandler, RequestHandler> = passport;
 const authenticate = typedPassport.authenticate("local");
 router.post("/login", authenticate, (req: Request, res: Response): void => {
-  if (yup.object({ remember: yup.boolean().default(false) }).validateSync(req.body).remember) {
-    req.session.cookie.maxAge = 24 * 60 * 60 * 1000 * 30;
-  } else {
-    req.session.cookie.maxAge = undefined;
-  }
+  const { remember } = loginSchema.validateSync(req.body);
+  setSessionCookieMaxAge(req, remember ? REMEMBER_ME_MAX_AGE_MS : undefined);
 
   res.send({ user: req.user });
 });

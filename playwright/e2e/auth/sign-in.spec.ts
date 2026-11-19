@@ -29,7 +29,9 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
       await expect(transactionFeedPage.everyoneTab).toHaveAttribute("aria-selected", "true");
     }
   );
+});
 
+test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
   test.describe("rejected credentials", () => {
     test.use({
       allowedBrowserErrors: [/401 \(Unauthorized\).*\/login/],
@@ -63,7 +65,9 @@ test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
     await expect(page.getByText("Password must contain at least 4 characters")).toBeVisible();
     await expect(signInPage.signInButton).toBeDisabled();
   });
+});
 
+test.describe("sign in", { tag: ["@e2e", "@auth"] }, () => {
   test("remember me keeps the session for 30 days", async ({
     page,
     context,

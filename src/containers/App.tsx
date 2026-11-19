@@ -1,18 +1,14 @@
-import React from "react";
 import { styled } from "@mui/material/styles";
 import { Routes, Route, Navigate } from "react-router";
-import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
-import { snackbarMachine } from "../machines/snackbarMachine";
-import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
 import SignInForm from "../components/SignInForm";
 import SignUpForm from "../components/SignUpForm";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
+import { useAppServices } from "./useAppServices";
 
 const PREFIX = "App";
 
@@ -26,13 +22,9 @@ const Root = styled("div")(() => ({
   },
 }));
 
-const App: React.FC = () => {
+function App() {
   const [authState] = useSharedActor(authService);
-  const [, , notificationsService] = useMachine(notificationsMachine);
-
-  const [, , snackbarService] = useMachine(snackbarMachine);
-
-  const [, , bankAccountsService] = useMachine(bankAccountsMachine);
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
   const isLoggedIn =
     authState.matches("authorized") ||
@@ -62,6 +54,6 @@ const App: React.FC = () => {
       <AlertBar snackbarService={snackbarService} />
     </Root>
   );
-};
+}
 
 export default App;

@@ -3,8 +3,9 @@ import { describe, expect, test, vi } from "vitest";
 import { server } from "../../test/msw";
 import { createMemoryStorage } from "../../test/memoryStorage";
 import { getAuthTokenName, httpClient } from "./asyncUtils";
+import { apiUrl } from "./apiConfig";
 
-const url = "http://localhost:3001/checkAuth";
+const url = apiUrl("/checkAuth");
 
 function captureAuthorizationHeader() {
   const received = vi.fn<(authorization: string | null) => void>();

@@ -44,7 +44,9 @@ test.describe("POST /login", { tag: ["@api", "@auth"] }, () => {
 
     expect(response.status()).toBe(401);
   });
+});
 
+test.describe("POST /login", { tag: ["@api", "@auth"] }, () => {
   test("401 — unknown username", async ({ request, fake }) => {
     const response = await request.post("/login", {
       data: { username: `nobody-${fake.string.uuid()}`, password: "s3cret" },

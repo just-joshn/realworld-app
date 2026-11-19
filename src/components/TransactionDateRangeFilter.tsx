@@ -34,6 +34,143 @@ export type TransactionListDateRangeFilterProps = {
   resetDateRange: () => void;
 };
 
+const formatButtonDate = (date: Date) => {
+  return formatDate(date, "MMM, d yyyy");
+};
+
+const dateRangeLabel = (dateRangeFields: Value) => {
+  if (dateRangeFields && !(dateRangeFields instanceof Date)) {
+    const [dateRangeStart, dateRangeEnd] = dateRangeFields;
+    if (!dateRangeStart || !dateRangeEnd) {
+      throw new Error("A complete date range is required to format the label");
+    }
+    const label = `${formatButtonDate(dateRangeStart)} - ${formatButtonDate(dateRangeEnd)}`;
+    return label;
+  }
+  return "ALL";
+};
+
+const DateRangeChip: React.FC<{
+  queryHasDateFields: boolean;
+  label: string;
+  onOpen: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onClear: () => void;
+}> = ({ queryHasDateFields, label, onOpen, onClear }) =>
+  queryHasDateFields ? (
+    <Chip
+      color="primary"
+      variant="outlined"
+      onClick={onOpen}
+      data-test="transaction-list-filter-date-range-button"
+      label={`Date: ${label}`}
+      deleteIcon={<CancelIcon data-test="transaction-list-filter-date-clear-button" />}
+      onDelete={onClear}
+    />
+  ) : (
+    <Chip
+      color="primary"
+      variant="outlined"
+      onClick={onOpen}
+      data-test="transaction-list-filter-date-range-button"
+      label={"Date: ALL"}
+      deleteIcon={<ArrowDropDownIcon />}
+      onDelete={onOpen}
+    />
+  );
+
+type DateRangePickerProps = {
+  id: string | undefined;
+  open: boolean;
+  anchorEl: HTMLDivElement | null;
+  xsBreakpoint: boolean;
+  onClose: () => void;
+  onCalendarSelect: (value: Value) => void;
+  calendarValue: Value;
+};
+
+const DateRangePicker: React.FC<DateRangePickerProps> = ({
+  id,
+  open,
+  anchorEl,
+  xsBreakpoint,
+  onClose,
+  onCalendarSelect,
+  calendarValue,
+}) => {
+  const calendar = (
+    <RangeCalendar
+      onCalendarSelect={onCalendarSelect}
+      xsBreakpoint={xsBreakpoint}
+      color={indigo}
+      dataTest="transaction-list-filter-date-range"
+      defaultValue={calendarValue}
+    />
+  );
+  if (xsBreakpoint) {
+    return (
+      <Drawer
+        id={id}
+        open={open}
+        ModalProps={{ onClose }}
+        anchor="bottom"
+        data-test="date-range-filter-drawer"
+      >
+        <Button data-test="date-range-filter-drawer-close" onClick={onClose}>
+          Close
+        </Button>
+        {calendar}
+      </Drawer>
+    );
+  }
+  return (
+    <Popover
+      id={id}
+      open={open}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+      transformOrigin={{ vertical: "top", horizontal: "left" }}
+      className={classes.popover}
+    >
+      {calendar}
+    </Popover>
+  );
+};
+
+function useDateRangeFilter({
+  filterDateRange,
+  resetDateRange,
+}: Pick<TransactionListDateRangeFilterProps, "filterDateRange" | "resetDateRange">) {
+  const [calendarValue, setCalendarValue] = useState<Value>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+
+  return {
+    calendarValue,
+    anchorEl,
+    open: (event: React.MouseEvent<HTMLDivElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+    close: () => {
+      setAnchorEl(null);
+    },
+    clear: () => {
+      setCalendarValue(null);
+      resetDateRange();
+    },
+    select: (val: Value) => {
+      if (val && !(val instanceof Date)) {
+        const [rangeStart, rangeEnd] = val;
+        setCalendarValue(val);
+        filterDateRange({
+          dateRangeStart: localDateToUTCISOString(rangeStart),
+          dateRangeEnd: localDateToUTCISOString(rangeEnd),
+        });
+        setAnchorEl(null);
+      }
+    },
+  };
+}
+
 const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterProps> = ({
   filterDateRange,
   dateRangeFilters,
@@ -42,127 +179,26 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
   const theme = useTheme();
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
   const queryHasDateFields = hasDateQueryFields(dateRangeFilters);
-  const [calendarValue, setCalendarValue] = useState<Value>(null);
-
-  const [dateRangeAnchorEl, setDateRangeAnchorEl] = React.useState<HTMLDivElement | null>(null);
-
-  const onCalendarSelect = (val: Value) => {
-    if (val && !(val instanceof Date)) {
-      const [rangeStart, rangeEnd] = val;
-      const calValue = {
-        dateRangeStart: localDateToUTCISOString(rangeStart),
-        dateRangeEnd: localDateToUTCISOString(rangeEnd),
-      };
-      setCalendarValue(val);
-      filterDateRange(calValue);
-      setDateRangeAnchorEl(null);
-    }
-  };
-
-  const handleDateRangeClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    setDateRangeAnchorEl(event.currentTarget);
-  };
-
-  const handleDateRangeClose = () => {
-    setDateRangeAnchorEl(null);
-  };
-
-  const dateRangeOpen = Boolean(dateRangeAnchorEl);
-  const dateRangeId = dateRangeOpen ? "date-range-popover" : undefined;
-
-  const formatButtonDate = (date: Date) => {
-    return formatDate(date, "MMM, d yyyy");
-  };
-
-  const dateRangeLabel = (dateRangeFields: Value) => {
-    if (dateRangeFields && !(dateRangeFields instanceof Date)) {
-      const [dateRangeStart, dateRangeEnd] = dateRangeFields;
-      if (!dateRangeStart || !dateRangeEnd) {
-        throw new Error("A complete date range is required to format the label");
-      }
-      const label = `${formatButtonDate(dateRangeStart)} - ${formatButtonDate(dateRangeEnd)}`;
-      return label;
-    }
-    return "ALL";
-  };
+  const range = useDateRangeFilter({ filterDateRange, resetDateRange });
+  const dateRangeOpen = Boolean(range.anchorEl);
 
   return (
     <Root>
-      {!queryHasDateFields && (
-        <Chip
-          color="primary"
-          variant="outlined"
-          onClick={handleDateRangeClick}
-          data-test="transaction-list-filter-date-range-button"
-          label={"Date: ALL"}
-          deleteIcon={<ArrowDropDownIcon />}
-          onDelete={handleDateRangeClick}
-        />
-      )}
-      {queryHasDateFields && (
-        <Chip
-          color="primary"
-          variant="outlined"
-          onClick={handleDateRangeClick}
-          data-test="transaction-list-filter-date-range-button"
-          label={`Date: ${dateRangeLabel(calendarValue)}`}
-          deleteIcon={<CancelIcon data-test="transaction-list-filter-date-clear-button" />}
-          onDelete={() => {
-            setCalendarValue(null);
-            resetDateRange();
-          }}
-        />
-      )}
-      {!xsBreakpoint && (
-        <Popover
-          id={dateRangeId}
-          open={dateRangeOpen}
-          anchorEl={dateRangeAnchorEl}
-          onClose={handleDateRangeClose}
-          anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          className={classes.popover}
-        >
-          <RangeCalendar
-            onCalendarSelect={onCalendarSelect}
-            xsBreakpoint={xsBreakpoint}
-            color={indigo}
-            dataTest="transaction-list-filter-date-range"
-            defaultValue={calendarValue}
-          />
-        </Popover>
-      )}
-      {xsBreakpoint && (
-        <Drawer
-          id={dateRangeId}
-          open={dateRangeOpen}
-          ModalProps={{ onClose: handleDateRangeClose }}
-          anchor="bottom"
-          data-test="date-range-filter-drawer"
-        >
-          <Button
-            data-test="date-range-filter-drawer-close"
-            onClick={() => {
-              handleDateRangeClose();
-            }}
-          >
-            Close
-          </Button>
-          <RangeCalendar
-            onCalendarSelect={onCalendarSelect}
-            xsBreakpoint={xsBreakpoint}
-            color={indigo}
-            dataTest="transaction-list-filter-date-range"
-            defaultValue={calendarValue}
-          />
-        </Drawer>
-      )}
+      <DateRangeChip
+        queryHasDateFields={queryHasDateFields}
+        label={dateRangeLabel(range.calendarValue)}
+        onOpen={range.open}
+        onClear={range.clear}
+      />
+      <DateRangePicker
+        id={dateRangeOpen ? "date-range-popover" : undefined}
+        open={dateRangeOpen}
+        anchorEl={range.anchorEl}
+        xsBreakpoint={xsBreakpoint}
+        onClose={range.close}
+        onCalendarSelect={range.select}
+        calendarValue={range.calendarValue}
+      />
     </Root>
   );
 };

@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, test, vi } from "vitest";
 import { server } from "../../test/msw";
 import { startService } from "../../test/machines";
+import { apiUrl } from "../utils/apiConfig";
 import { buildTransactionResponseItem, buildUser } from "../../test/factories";
 import { createTransactionMachine } from "./createTransactionMachine";
 import { transactionDetailMachine } from "./transactionDetailMachine";
@@ -17,7 +18,7 @@ vi.mock(import("../utils/historyUtils"), async () => {
   return { history: UNSAFE_createMemoryHistory({ v5Compat: true }) };
 });
 
-const api = "http://localhost:3001";
+const api = apiUrl("");
 
 function serveTransaction(id: string) {
   const fetched = vi.fn();
@@ -74,7 +75,9 @@ describe("transactionDetailMachine", () => {
       });
     }
   );
+});
 
+describe("transactionDetailMachine: UPDATE", () => {
   test("UPDATE patches the transaction named in the event when none is loaded", async () => {
     serveTransaction("txn1");
     const patched = vi.fn();
@@ -96,29 +99,29 @@ describe("transactionDetailMachine", () => {
   });
 });
 
+const sender = buildUser({ id: "user1" });
+const receiver = buildUser({ id: "user2", firstName: "Grace" });
+const details = {
+  amount: "25",
+  description: "Lunch",
+  receiverId: "user2",
+  senderId: "user1",
+  transactionType: "payment",
+};
+
+// Every test that sends CREATE waits for its POST, so no request outlives its test.
+function servePostTransaction() {
+  const posted = vi.fn();
+  server.use(
+    http.post(`${api}/transactions`, async ({ request }) => {
+      posted(await request.json());
+      return HttpResponse.json({ transaction: { id: "txn1" } });
+    })
+  );
+  return posted;
+}
+
 describe("createTransactionMachine", () => {
-  const sender = buildUser({ id: "user1" });
-  const receiver = buildUser({ id: "user2", firstName: "Grace" });
-  const details = {
-    amount: "25",
-    description: "Lunch",
-    receiverId: "user2",
-    senderId: "user1",
-    transactionType: "payment",
-  };
-
-  // Every test that sends CREATE waits for its POST, so no request outlives its test.
-  function servePostTransaction() {
-    const posted = vi.fn();
-    server.use(
-      http.post(`${api}/transactions`, async ({ request }) => {
-        posted(await request.json());
-        return HttpResponse.json({ transaction: { id: "txn1" } });
-      })
-    );
-    return posted;
-  }
-
   test("SET_USERS moves to step two", () => {
     const service = startService(createTransactionMachine);
 
@@ -137,7 +140,9 @@ describe("createTransactionMachine", () => {
     expect(service.getSnapshot().value).toBe("stepThree");
     await expect.poll(() => posted.mock.calls).toEqual([[details]]);
   });
+});
 
+describe("createTransactionMachine: reset and context", () => {
   test("RESET returns to step one", async () => {
     const posted = servePostTransaction();
     const service = startService(createTransactionMachine);

@@ -1,5 +1,9 @@
 import { setupWorker } from "msw/browser";
 
-export const apiUrl = (path: string) => `http://localhost:3001${path}`;
+import { localOrigin } from "../../src/utils/apiConfig";
+
+const mockBackendPort = 3001;
+
+export const apiUrl = (path: string) => `${localOrigin(mockBackendPort)}${path}`;
 
 export const worker = setupWorker();

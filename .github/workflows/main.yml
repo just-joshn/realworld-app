@@ -29,6 +29,7 @@ jobs:
       - run: bun run lint
       - run: bun run copy:mock:awsexports
       - run: bun run test:unit
+      - run: bun run style:check
       - run: bun fmt --check
       - run: node scripts/check-playwright-practices.mjs
       - run: bun run build:ci
@@ -36,6 +37,10 @@ jobs:
   vitest:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    # Browsers and their OS deps are baked in. check-playwright-practices keeps the tag equal to @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --user 1001
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,25 +49,14 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - uses: oven-sh/setup-bun@v2
+      # setup-bun extracts a zip with `unzip`, which the Playwright image does not ship.
+      - name: Setup Bun
+        run: |
+          npm install --global --prefix "$HOME/.bun-npm" bun
+          echo "$HOME/.bun-npm/bin" >> "$GITHUB_PATH"
 
       - run: bun ci
       - run: bun run copy:mock:awsexports
-
-      - name: Cache Playwright browsers
-        id: browser-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers
-        if: steps.browser-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
-
-      - name: Install Playwright OS dependencies
-        if: steps.browser-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
 
       - run: bun run test:component
       - run: bun run test:integration
@@ -71,6 +65,10 @@ jobs:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    # Browsers and their OS deps are baked in. check-playwright-practices keeps the tag equal to @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --user 1001
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,24 +77,13 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - uses: oven-sh/setup-bun@v2
+      # setup-bun extracts a zip with `unzip`, which the Playwright image does not ship.
+      - name: Setup Bun
+        run: |
+          npm install --global --prefix "$HOME/.bun-npm" bun
+          echo "$HOME/.bun-npm/bin" >> "$GITHUB_PATH"
 
       - run: bun ci
-
-      - name: Cache Playwright browsers
-        id: browser-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install Playwright browsers
-        if: steps.browser-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
-
-      - name: Install Playwright OS dependencies
-        if: steps.browser-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
 
       - name: Run Playwright tests
         run: npx playwright test --grep-invert @flaky

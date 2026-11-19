@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import { Button, Typography, Grid, Avatar, Paper, IconButton } from "@mui/material";
 import { AvatarGroup } from "@mui/material";
 import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
@@ -28,7 +28,7 @@ const classes = {
   greenButton: `${PREFIX}-greenButton`,
 };
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
+const styledPaperStyles1 = (theme: Theme) => ({
   [`&.${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
@@ -60,7 +60,9 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   [`& .${classes.avatarGroup}`]: {
     margin: 10,
   },
+});
 
+const styledPaperStyles2 = (theme: Theme) => ({
   [`& .${classes.redButton}`]: {
     backgrounColor: "red",
     color: "#ffffff",
@@ -90,6 +92,11 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
       boxShadow: "none",
     },
   },
+});
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  ...styledPaperStyles1(theme),
+  ...styledPaperStyles2(theme),
 }));
 
 type TransactionProps = {
@@ -100,6 +107,180 @@ type TransactionProps = {
   currentUser: User;
 };
 
+type SummaryProps = { transaction: TransactionResponseItem };
+
+function SummaryAvatars({ transaction }: { transaction: TransactionResponseItem }) {
+  return (
+    <Grid container direction="row">
+      <AvatarGroup className={classes.avatarGroup} max={2}>
+        <Avatar
+          data-test="transaction-sender-avatar"
+          className={classes.avatarLarge}
+          src={transaction.senderAvatar}
+        />
+        <Avatar
+          data-test="transaction-receiver-avatar"
+          className={classes.avatarLarge}
+          src={transaction.receiverAvatar}
+        />
+      </AvatarGroup>
+      <Grid sx={{ width: "100%" }} />
+    </Grid>
+  );
+}
+
+function TransactionSummary({ transaction }: SummaryProps) {
+  return (
+    <Grid
+      container
+      direction="row"
+      data-test={`transaction-item-${transaction.id}`}
+      sx={{ justifyContent: "space-between", alignItems: "center" }}
+    >
+      <Grid className={classes.headline}>
+        <SummaryAvatars transaction={transaction} />
+        <Grid
+          container
+          sx={{ justifyContent: "flex-start", alignItems: "flex-start", flexDirection: "column" }}
+        >
+          <Grid></Grid>
+          <Grid>
+            <TransactionTitle transaction={transaction} />
+          </Grid>
+          <Grid>
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              gutterBottom
+              data-test="transaction-description"
+            >
+              {transaction.description}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid>
+        <TransactionAmount transaction={transaction} />
+      </Grid>
+    </Grid>
+  );
+}
+
+type RequestActionsProps = Pick<
+  TransactionProps,
+  "transaction" | "currentUser" | "transactionUpdate"
+>;
+
+function RequestActions({ transaction, currentUser, transactionUpdate }: RequestActionsProps) {
+  return (
+    <>
+      {receiverIsCurrentUser(currentUser, transaction) &&
+        isPendingRequestTransaction(transaction) && (
+          <Grid>
+            <Button
+              className={classes.greenButton}
+              variant="contained"
+              size="small"
+              onClick={() => {
+                transactionUpdate({
+                  id: transaction.id,
+                  requestStatus: TransactionRequestStatus.accepted,
+                });
+              }}
+              data-test={`transaction-accept-request-${transaction.id}`}
+            >
+              Accept Request
+            </Button>
+            <Button
+              variant="contained"
+              className={classes.redButton}
+              size="small"
+              onClick={() => {
+                transactionUpdate({
+                  id: transaction.id,
+                  requestStatus: TransactionRequestStatus.rejected,
+                });
+              }}
+              data-test={`transaction-reject-request-${transaction.id}`}
+            >
+              Reject Request
+            </Button>
+          </Grid>
+        )}
+    </>
+  );
+}
+
+function LikeControls({
+  transaction,
+  currentUser,
+  transactionLike,
+  transactionUpdate,
+}: Pick<
+  TransactionProps,
+  "transaction" | "currentUser" | "transactionLike" | "transactionUpdate"
+>) {
+  return (
+    <Grid
+      container
+      direction="row"
+      spacing={2}
+      sx={{ justifyContent: "flex-start", alignItems: "center" }}
+    >
+      <Grid data-test={`transaction-like-count-${transaction.id}`}>
+        {transaction.likes.length}{" "}
+      </Grid>
+      <Grid>
+        <IconButton
+          color="primary"
+          disabled={currentUserLikesTransaction(currentUser, transaction)}
+          onClick={() => {
+            transactionLike(transaction.id);
+          }}
+          data-test={`transaction-like-button-${transaction.id}`}
+          aria-label="Like"
+          size="large"
+        >
+          <LikeIcon />
+        </IconButton>
+      </Grid>
+      <Grid>
+        <RequestActions
+          transaction={transaction}
+          currentUser={currentUser}
+          transactionUpdate={transactionUpdate}
+        />
+      </Grid>
+    </Grid>
+  );
+}
+
+function DetailHeader() {
+  return (
+    <Typography
+      component="h2"
+      variant="h6"
+      color="primary"
+      gutterBottom
+      data-test="transaction-detail-header"
+    >
+      Transaction Detail
+    </Typography>
+  );
+}
+
+function CommentsPanel({ comments }: { comments: TransactionResponseItem["comments"] }) {
+  if (comments.length === 0) return null;
+  return (
+    <Paper className={classes.paperComments}>
+      <Typography component="h2" variant="h6" color="primary" gutterBottom>
+        <CommentIcon /> Comments
+      </Typography>
+      <CommentsList comments={comments} />
+    </Paper>
+  );
+}
+
 const TransactionDetail: React.FC<TransactionProps> = ({
   transaction,
   transactionLike,
@@ -109,61 +290,8 @@ const TransactionDetail: React.FC<TransactionProps> = ({
 }) => {
   return (
     <StyledPaper className={classes.paper}>
-      <Typography
-        component="h2"
-        variant="h6"
-        color="primary"
-        gutterBottom
-        data-test="transaction-detail-header"
-      >
-        Transaction Detail
-      </Typography>
-      <Grid
-        container
-        direction="row"
-        data-test={`transaction-item-${transaction.id}`}
-        sx={{ justifyContent: "space-between", alignItems: "center" }}
-      >
-        <Grid className={classes.headline}>
-          <Grid container direction="row">
-            <AvatarGroup className={classes.avatarGroup} max={2}>
-              <Avatar
-                data-test="transaction-sender-avatar"
-                className={classes.avatarLarge}
-                src={transaction.senderAvatar}
-              />
-              <Avatar
-                data-test="transaction-receiver-avatar"
-                className={classes.avatarLarge}
-                src={transaction.receiverAvatar}
-              />
-            </AvatarGroup>
-            <Grid sx={{ width: "100%" }} />
-          </Grid>
-          <Grid
-            container
-            sx={{ justifyContent: "flex-start", alignItems: "flex-start", flexDirection: "column" }}
-          >
-            <Grid></Grid>
-            <Grid>
-              <TransactionTitle transaction={transaction} />
-            </Grid>
-            <Grid>
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                gutterBottom
-                data-test="transaction-description"
-              >
-                {transaction.description}
-              </Typography>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid>
-          <TransactionAmount transaction={transaction} />
-        </Grid>
-      </Grid>
+      <DetailHeader />
+      <TransactionSummary transaction={transaction} />
       <Grid
         container
         direction="row"
@@ -171,65 +299,12 @@ const TransactionDetail: React.FC<TransactionProps> = ({
         sx={{ justifyContent: "flex-start", alignItems: "center" }}
       >
         <Grid>
-          <Grid
-            container
-            direction="row"
-            spacing={2}
-            sx={{ justifyContent: "flex-start", alignItems: "center" }}
-          >
-            <Grid data-test={`transaction-like-count-${transaction.id}`}>
-              {transaction.likes.length}{" "}
-            </Grid>
-            <Grid>
-              <IconButton
-                color="primary"
-                disabled={currentUserLikesTransaction(currentUser, transaction)}
-                onClick={() => {
-                  transactionLike(transaction.id);
-                }}
-                data-test={`transaction-like-button-${transaction.id}`}
-                aria-label="Like"
-                size="large"
-              >
-                <LikeIcon />
-              </IconButton>
-            </Grid>
-            <Grid>
-              {receiverIsCurrentUser(currentUser, transaction) &&
-                isPendingRequestTransaction(transaction) && (
-                  <Grid>
-                    <Button
-                      className={classes.greenButton}
-                      variant="contained"
-                      size="small"
-                      onClick={() => {
-                        transactionUpdate({
-                          id: transaction.id,
-                          requestStatus: TransactionRequestStatus.accepted,
-                        });
-                      }}
-                      data-test={`transaction-accept-request-${transaction.id}`}
-                    >
-                      Accept Request
-                    </Button>
-                    <Button
-                      variant="contained"
-                      className={classes.redButton}
-                      size="small"
-                      onClick={() => {
-                        transactionUpdate({
-                          id: transaction.id,
-                          requestStatus: TransactionRequestStatus.rejected,
-                        });
-                      }}
-                      data-test={`transaction-reject-request-${transaction.id}`}
-                    >
-                      Reject Request
-                    </Button>
-                  </Grid>
-                )}
-            </Grid>
-          </Grid>
+          <LikeControls
+            transaction={transaction}
+            currentUser={currentUser}
+            transactionLike={transactionLike}
+            transactionUpdate={transactionUpdate}
+          />
           <Grid>
             <CommentForm
               transactionId={transaction.id}
@@ -240,14 +315,7 @@ const TransactionDetail: React.FC<TransactionProps> = ({
           </Grid>
         </Grid>
       </Grid>
-      {transaction.comments.length > 0 && (
-        <Paper className={classes.paperComments}>
-          <Typography component="h2" variant="h6" color="primary" gutterBottom>
-            <CommentIcon /> Comments
-          </Typography>
-          <CommentsList comments={transaction.comments} />
-        </Paper>
-      )}
+      <CommentsPanel comments={transaction.comments} />
     </StyledPaper>
   );
 };

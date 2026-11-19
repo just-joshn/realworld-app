@@ -32,7 +32,9 @@ test.describe("GET /bankTransfers", { tag: ["@api", "@bank-transfers"] }, () => 
     });
     expect((await getCurrentUser(senderApi)).balance).toBe(0);
   });
+});
 
+test.describe("GET /bankTransfers", { tag: ["@api", "@bank-transfers"] }, () => {
   test("lists nothing when payments fit the balance", async ({ createUser, apiAs }) => {
     const sender = await createUser({ balance: 10_000 });
     const senderApi = await apiAs(sender);

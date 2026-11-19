@@ -31,18 +31,14 @@ export const transactionFiltersMachine = setup({
       states: {
         none: {
           entry: assign({ dateRangeStart: undefined, dateRangeEnd: undefined }),
-          on: {
-            DATE_FILTER: "filter",
-          },
+          on: { DATE_FILTER: "filter" },
         },
         filter: {
           entry: assign(({ event }) => ({
             dateRangeStart: "dateRangeStart" in event ? event.dateRangeStart : undefined,
             dateRangeEnd: "dateRangeEnd" in event ? event.dateRangeEnd : undefined,
           })),
-          on: {
-            DATE_RESET: "none",
-          },
+          on: { DATE_RESET: "none" },
         },
       },
     },
@@ -51,9 +47,7 @@ export const transactionFiltersMachine = setup({
       states: {
         none: {
           entry: assign({ amountMin: undefined, amountMax: undefined }),
-          on: {
-            AMOUNT_FILTER: "filter",
-          },
+          on: { AMOUNT_FILTER: "filter" },
         },
         filter: {
           entry: assign(({ event }) => ({

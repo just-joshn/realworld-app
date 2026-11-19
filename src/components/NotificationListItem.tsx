@@ -60,14 +60,9 @@ const StyledListItem = styled(ListItem)({
   },
 });
 
-const NotificationListItem: React.FC<NotificationListItemProps> = ({
-  notification,
-  updateNotification,
-}) => {
-  const theme = useTheme();
+function describeNotification(notification: NotificationResponseItem) {
   let listItemText = undefined;
   let listItemIcon = undefined;
-  const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
 
   if (isCommentNotification(notification)) {
     listItemIcon = <CommentIcon />;
@@ -88,6 +83,17 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
       listItemText = `${notification.userFullName} received payment.`;
     }
   }
+
+  return { listItemIcon, listItemText };
+}
+
+const NotificationListItem: React.FC<NotificationListItemProps> = ({
+  notification,
+  updateNotification,
+}) => {
+  const theme = useTheme();
+  const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
+  const { listItemIcon, listItemText } = describeNotification(notification);
 
   return (
     <StyledListItem data-test={`notification-list-item-${notification.id}`}>

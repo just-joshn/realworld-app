@@ -3,7 +3,7 @@ import { assign, fromPromise, setup } from "xstate";
 import { httpClient } from "../utils/asyncUtils";
 import type { User, TransactionCreatePayload } from "../models";
 import { authService } from "./authMachine";
-import { backendPort } from "../utils/portUtils";
+import { apiUrl } from "../utils/apiConfig";
 import { typed } from "./service";
 
 export type CreateTransactionMachineEvents =
@@ -20,10 +20,7 @@ export interface CreateTransactionMachineContext {
 const postTransaction = fromPromise<unknown, CreateTransactionMachineEvents>(async ({ input }) => {
   if (input.type !== "CREATE") throw new Error("Expected CREATE event");
   const payload = omit("type", input);
-  const resp = await httpClient.post<unknown>(
-    `http://localhost:${String(backendPort)}/transactions`,
-    payload
-  );
+  const resp = await httpClient.post<unknown>(apiUrl("/transactions"), payload);
   authService.send({ type: "REFRESH" });
   return resp.data;
 });

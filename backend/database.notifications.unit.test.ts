@@ -149,7 +149,9 @@ describe("formatNotificationForApiResponse", () => {
 
     expect(formatted.userFullName).toBe("Alan Turing");
   });
+});
 
+describe("formatNotificationForApiResponse for likes and comments", () => {
   test("names the liker for a like notification", () => {
     seedPeople({
       transactions: [paymentFromAdaToGrace()],

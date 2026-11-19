@@ -87,12 +87,12 @@ describe("drawerMachine", () => {
 describe("userOnboardingMachine", () => {
   test("NEXT walks through every step to done", () => {
     const service = startService(userOnboardingMachine);
-    const visited = [service.getSnapshot().value];
-
-    for (let step = 0; step < 3; step++) {
+    const initial = service.getSnapshot().value;
+    const later = Array.from({ length: 3 }, () => {
       service.send({ type: "NEXT" });
-      visited.push(service.getSnapshot().value);
-    }
+      return service.getSnapshot().value;
+    });
+    const visited = [initial, ...later];
 
     expect(visited).toEqual(["stepOne", "stepTwo", "stepThree", "done"]);
     expect(service.getSnapshot().status).toBe("done");

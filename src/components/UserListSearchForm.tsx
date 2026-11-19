@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import { styled } from "@mui/material/styles";
 import { TextField } from "@mui/material";
 
@@ -28,7 +28,7 @@ export interface UserListSearchFormProps {
 }
 
 const UserListSearchForm: React.FC<UserListSearchFormProps> = ({ userListSearch }) => {
-  const inputEl = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
 
   return (
     <Root>
@@ -41,15 +41,13 @@ const UserListSearchForm: React.FC<UserListSearchFormProps> = ({ userListSearch 
           type="text"
           placeholder="Search..."
           id="user-list-search-input"
-          inputRef={inputEl}
+          value={query}
           slotProps={{ htmlInput: { "data-test": "user-list-search-input" } }}
           onFocus={() => {
-            if (null !== inputEl.current) {
-              inputEl.current.value = "";
-              inputEl.current.focus();
-            }
+            setQuery("");
           }}
           onChange={({ target: { value: q } }) => {
+            setQuery(q);
             userListSearch({ q });
           }}
         />

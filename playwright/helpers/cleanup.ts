@@ -3,7 +3,7 @@ type RecordedDelete = () => Promise<void>;
 let records: RecordedDelete[] | undefined;
 
 export function recordDelete(deleteRecord: RecordedDelete) {
-  records?.push(deleteRecord);
+  if (records !== undefined) records = [...records, deleteRecord];
 }
 
 export function startRecordedDeletes() {
@@ -13,7 +13,7 @@ export function startRecordedDeletes() {
 export async function runRecordedDeletes() {
   const pending = records ?? [];
   records = [];
-  for (const deleteRecord of pending.reverse()) {
+  for (const deleteRecord of pending.toReversed()) {
     await deleteRecord();
   }
 }

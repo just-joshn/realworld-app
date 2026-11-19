@@ -47,7 +47,9 @@ test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
     }
     await expect(page.getByText(/ received payment\.$/).first()).toBeVisible();
   });
+});
 
+test.describe("notifications", { tag: ["@e2e", "@notifications"] }, () => {
   test("dismissing every notification leaves an empty inbox", async ({
     page,
     notificationsPage,

@@ -1,3 +1,4 @@
+import React from "react";
 import { styled } from "@mui/material/styles";
 import { Skeleton } from "@mui/material";
 const PREFIX = "ListSkeleton";
@@ -15,53 +16,25 @@ const Root = styled("div")(({ theme }) => ({
   },
 }));
 
+const SKELETON_GROUPS = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
 const ListSkeleton = () => {
   return (
     <Root className={classes.root} data-test="list-skeleton">
       <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
-      <br />
-      <br />
-      <Skeleton />
-      <Skeleton animation={false} />
-      <Skeleton animation="wave" />
+      {SKELETON_GROUPS.map((group) => (
+        <React.Fragment key={group}>
+          {group > 0 && (
+            <>
+              <br />
+              <br />
+            </>
+          )}
+          <Skeleton />
+          <Skeleton animation={false} />
+          <Skeleton animation="wave" />
+        </React.Fragment>
+      ))}
     </Root>
   );
 };

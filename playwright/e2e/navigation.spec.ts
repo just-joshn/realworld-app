@@ -41,6 +41,12 @@ test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
     await expect(page).toHaveURL(routes.home);
     await expect(transactionFeedPage.everyoneTab).toBeVisible();
   });
+});
+
+test.describe("navigation", { tag: ["@e2e", "@navigation"] }, () => {
+  test.beforeEach(async ({ transactionFeedPage }) => {
+    await transactionFeedPage.goto();
+  });
 
   test("the notification bell shows the unread count and opens notifications", async ({
     page,

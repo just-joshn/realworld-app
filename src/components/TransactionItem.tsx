@@ -64,6 +64,47 @@ const SmallAvatar = styled(Avatar)(({ theme }: { theme: Theme }) => {
   };
 });
 
+const ItemAvatars: React.FC<TransactionProps> = ({ transaction }) => (
+  <ListItemAvatar>
+    <Badge
+      overlap="circular"
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      badgeContent={
+        <SmallAvatar src={transaction.receiverAvatar} classes={{ root: classes.root }} />
+      }
+    >
+      <Avatar src={transaction.senderAvatar} />
+    </Badge>
+  </ListItemAvatar>
+);
+
+const SocialStats: React.FC<TransactionProps> = ({ transaction }) => (
+  <Grid
+    container
+    direction="row"
+    spacing={1}
+    className={classes.socialStats}
+    sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
+  >
+    <Grid>
+      <LikeIcon className={classes.countIcons} />
+    </Grid>
+    <Grid>
+      <Typography data-test="transaction-like-count" className={classes.countText}>
+        {transaction.likes.length}
+      </Typography>
+    </Grid>
+    <Grid>
+      <CommentIcon className={classes.countIcons} />
+    </Grid>
+    <Grid>
+      <Typography data-test="transaction-comment-count" className={classes.countText}>
+        {transaction.comments.length}
+      </Typography>
+    </Grid>
+  </Grid>
+);
+
 const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
   const navigate = useNavigate();
 
@@ -82,25 +123,7 @@ const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
       <Paper className={classes.paper} elevation={0}>
         <Grid container spacing={2}>
           <Grid>
-            <ListItemAvatar>
-              <Badge
-                overlap="circular"
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "right",
-                }}
-                badgeContent={
-                  <SmallAvatar
-                    src={transaction.receiverAvatar}
-                    classes={{
-                      root: classes.root,
-                    }}
-                  />
-                }
-              >
-                <Avatar src={transaction.senderAvatar} />
-              </Badge>
-            </ListItemAvatar>
+            <ItemAvatars transaction={transaction} />
           </Grid>
           <Grid container size={{ xs: 12, sm: "grow" }}>
             <Grid container spacing={2} size={{ xs: "grow" }} sx={{ flexDirection: "column" }}>
@@ -109,30 +132,7 @@ const TransactionItem: React.FC<TransactionProps> = ({ transaction }) => {
                 <Typography variant="body2" color="textSecondary" gutterBottom>
                   {transaction.description}
                 </Typography>
-                <Grid
-                  container
-                  direction="row"
-                  spacing={1}
-                  className={classes.socialStats}
-                  sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
-                >
-                  <Grid>
-                    <LikeIcon className={classes.countIcons} />
-                  </Grid>
-                  <Grid>
-                    <Typography data-test="transaction-like-count" className={classes.countText}>
-                      {transaction.likes.length}
-                    </Typography>
-                  </Grid>
-                  <Grid>
-                    <CommentIcon className={classes.countIcons} />
-                  </Grid>
-                  <Grid>
-                    <Typography data-test="transaction-comment-count" className={classes.countText}>
-                      {transaction.comments.length}
-                    </Typography>
-                  </Grid>
-                </Grid>
+                <SocialStats transaction={transaction} />
               </Grid>
             </Grid>
             <Grid>

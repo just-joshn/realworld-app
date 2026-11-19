@@ -63,29 +63,7 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
 
   return (
     <StyledPaper className={classes.paper}>
-      <Grid
-        container
-        direction="row"
-        sx={{ justifyContent: "space-between", alignItems: "center" }}
-      >
-        <Grid>
-          <Typography component="h2" variant="h6" color="primary" gutterBottom>
-            Bank Accounts
-          </Typography>
-        </Grid>
-        <Grid>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            component={RouterLink}
-            to="/bankaccounts/new"
-            data-test="bankaccount-new"
-          >
-            Create
-          </Button>
-        </Grid>
-      </Grid>
+      <BankAccountsHeader />
       <BankAccountList
         bankAccounts={bankAccountsState.context.results}
         deleteBankAccount={deleteBankAccount}
@@ -93,4 +71,28 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
     </StyledPaper>
   );
 };
+function BankAccountsHeader() {
+  return (
+    <Grid container direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+      <Grid>
+        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+          Bank Accounts
+        </Typography>
+      </Grid>
+      <Grid>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          component={RouterLink}
+          to="/bankaccounts/new"
+          data-test="bankaccount-new"
+        >
+          Create
+        </Button>
+      </Grid>
+    </Grid>
+  );
+}
+
 export default BankAccountsContainer;

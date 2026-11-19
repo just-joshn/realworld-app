@@ -1,6 +1,6 @@
 import type {} from "vitest/browser";
 import { HttpResponse } from "msw";
-import { afterAll, afterEach, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 import { worker } from "./msw";
 
 // WebKit serves a repeated GET from its HTTP cache, so without this a test can receive
@@ -11,7 +11,7 @@ const jsonWithoutCaching: typeof HttpResponse.json = (body, init) => {
   headers.set("Cache-Control", "no-store");
   return mockJson(body, { ...init, headers });
 };
-HttpResponse.json = jsonWithoutCaching;
+vi.spyOn(HttpResponse, "json").mockImplementation(jsonWithoutCaching);
 
 // authMachine restores its state from localStorage when it is first imported.
 localStorage.clear();

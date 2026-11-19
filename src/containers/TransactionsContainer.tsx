@@ -1,4 +1,3 @@
-import React from "react";
 import { useMachine } from "@xstate/react";
 import { Routes, Route } from "react-router";
 import TransactionListFilters from "../components/TransactionListFilters";
@@ -8,33 +7,31 @@ import { getDateQueryFields, getAmountQueryFields } from "../utils/transactionUt
 import TransactionPersonalList from "../components/TransactionPersonalList";
 import TransactionPublicList from "../components/TransactionPublicList";
 
-const TransactionsContainer: React.FC = () => {
+type DateFields = ReturnType<typeof getDateQueryFields>;
+type AmountFields = ReturnType<typeof getAmountQueryFields>;
+
+function dateRangeQuery(fields: DateFields) {
+  return {
+    ...(fields.dateRangeStart !== undefined ? { dateRangeStart: fields.dateRangeStart } : {}),
+    ...(fields.dateRangeEnd !== undefined ? { dateRangeEnd: fields.dateRangeEnd } : {}),
+  };
+}
+
+function amountRangeQuery(fields: AmountFields) {
+  return {
+    ...(fields.amountMin !== undefined ? { amountMin: Number(fields.amountMin) } : {}),
+    ...(fields.amountMax !== undefined ? { amountMax: Number(fields.amountMax) } : {}),
+  };
+}
+
+function TransactionsContainer() {
   const [currentFilters, sendFilterEvent] = useMachine(transactionFiltersMachine);
 
-  const hasDateRangeFilter = currentFilters.matches({ dateRange: "filter" });
-  const hasAmountRangeFilter = currentFilters.matches({
-    amountRange: "filter",
-  });
-
-  const dateFields = getDateQueryFields(currentFilters.context);
-  const amountFields = getAmountQueryFields(currentFilters.context);
-  const dateRangeFilters = hasDateRangeFilter
-    ? {
-        ...(dateFields.dateRangeStart !== undefined
-          ? { dateRangeStart: dateFields.dateRangeStart }
-          : {}),
-        ...(dateFields.dateRangeEnd !== undefined ? { dateRangeEnd: dateFields.dateRangeEnd } : {}),
-      }
+  const dateRangeFilters = currentFilters.matches({ dateRange: "filter" })
+    ? dateRangeQuery(getDateQueryFields(currentFilters.context))
     : {};
-  const amountRangeFilters = hasAmountRangeFilter
-    ? {
-        ...(amountFields.amountMin !== undefined
-          ? { amountMin: Number(amountFields.amountMin) }
-          : {}),
-        ...(amountFields.amountMax !== undefined
-          ? { amountMax: Number(amountFields.amountMax) }
-          : {}),
-      }
+  const amountRangeFilters = currentFilters.matches({ amountRange: "filter" })
+    ? amountRangeQuery(getAmountQueryFields(currentFilters.context))
     : {};
 
   const Filters = (
@@ -45,40 +42,17 @@ const TransactionsContainer: React.FC = () => {
     />
   );
 
-  const publicList = (
-    <TransactionPublicList
-      filterComponent={Filters}
-      dateRangeFilters={dateRangeFilters}
-      amountRangeFilters={amountRangeFilters}
-    />
-  );
+  const listProps = { filterComponent: Filters, dateRangeFilters, amountRangeFilters };
+  const publicList = <TransactionPublicList {...listProps} />;
 
   return (
     <Routes>
-      <Route
-        path="/contacts"
-        element={
-          <TransactionContactsList
-            filterComponent={Filters}
-            dateRangeFilters={dateRangeFilters}
-            amountRangeFilters={amountRangeFilters}
-          />
-        }
-      />
-      <Route
-        path="/personal"
-        element={
-          <TransactionPersonalList
-            filterComponent={Filters}
-            dateRangeFilters={dateRangeFilters}
-            amountRangeFilters={amountRangeFilters}
-          />
-        }
-      />
+      <Route path="/contacts" element={<TransactionContactsList {...listProps} />} />
+      <Route path="/personal" element={<TransactionPersonalList {...listProps} />} />
       <Route path="/public" element={publicList} />
       <Route path="/" element={publicList} />
     </Routes>
   );
-};
+}
 
 export default TransactionsContainer;

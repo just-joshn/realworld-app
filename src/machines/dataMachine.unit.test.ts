@@ -55,7 +55,9 @@ describe("dataMachine", () => {
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withoutData" });
   });
+});
 
+describe("dataMachine: paging and retries", () => {
   test("later pages are appended to the loaded results", async () => {
     const fetchData = vi
       .fn()
@@ -83,7 +85,9 @@ describe("dataMachine", () => {
 
     await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
   });
+});
 
+describe("dataMachine: changes", () => {
   test.for(["CREATE", "UPDATE", "DELETE"] as const)(
     "%s from idle runs the change and then reloads",
     async (type) => {
@@ -115,7 +119,9 @@ describe("dataMachine", () => {
       await expect.poll(() => service.getSnapshot().value).toEqual({ success: "withData" });
     }
   );
+});
 
+describe("dataMachine: changes during loads and failures", () => {
   test.for(["CREATE", "UPDATE", "DELETE"] as const)(
     "%s while a load is in flight runs the change and then reloads",
     async (type) => {

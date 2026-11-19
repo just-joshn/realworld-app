@@ -60,6 +60,158 @@ interface FormValues {
   receiverId: string;
 }
 
+const ReceiverHeader: React.FC<{
+  receiver: User;
+  transactionType: string | undefined;
+}> = ({ receiver, transactionType }) => (
+  <Box
+    sx={{
+      display: "flex",
+      height: 200,
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Grid
+      container
+      sx={{
+        justifyContent: "flex-start",
+        alignItems: "center",
+        flexDirection: "column",
+      }}
+    >
+      <Grid>
+        <Avatar src={receiver.avatar} />
+      </Grid>
+      <Grid>
+        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+          {receiver.firstName} {receiver.lastName}
+          {transactionType}
+        </Typography>
+      </Grid>
+    </Grid>
+  </Box>
+);
+
+const AmountField = () => (
+  <Field name="amount">
+    {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
+      <NumericFormat<TextFieldProps>
+        customInput={TextField}
+        variant="outlined"
+        margin="dense"
+        fullWidth
+        required
+        autoFocus
+        id={"transaction-create-amount-input"}
+        type="text"
+        placeholder="Amount"
+        data-test={"transaction-create-amount-input"}
+        error={(touched || value !== initialValue) && Boolean(error)}
+        helperText={touched || value !== initialValue ? error : ""}
+        slotProps={{ htmlInput: { id: "amount" } }}
+        name={field.name}
+        value={amountFieldValue(field.value)}
+        onBlur={field.onBlur}
+        onValueChange={(values) => {
+          void form.setFieldValue(field.name, values.value);
+        }}
+        thousandSeparator
+        valueIsNumericString
+        prefix="$"
+      />
+    )}
+  </Field>
+);
+
+const DescriptionField = () => (
+  <Field name="description">
+    {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
+      <TextField
+        variant="outlined"
+        margin="dense"
+        fullWidth
+        required
+        id={"transaction-create-description-input"}
+        type="text"
+        placeholder="Add a note"
+        data-test={"transaction-create-description-input"}
+        error={(touched || value !== initialValue) && Boolean(error)}
+        helperText={touched || value !== initialValue ? error : ""}
+        {...field}
+      />
+    )}
+  </Field>
+);
+
+const SUBMIT_ACTIONS = [
+  {
+    type: "request",
+    dataTest: "transaction-create-submit-request",
+    label: "Request",
+  },
+  {
+    type: "payment",
+    dataTest: "transaction-create-submit-payment",
+    label: "Pay",
+  },
+];
+
+const SubmitButtons: React.FC<{
+  disabled: boolean;
+  onSelectType: (type: string) => void;
+}> = ({ disabled, onSelectType }) => (
+  <Grid
+    container
+    spacing={2}
+    direction="row"
+    sx={{ justifyContent: "center", alignItems: "center" }}
+  >
+    {SUBMIT_ACTIONS.map(({ type, dataTest, label }) => (
+      <Grid key={type}>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          className={classes.submit}
+          data-test={dataTest}
+          disabled={disabled}
+          onClick={() => {
+            onSelectType(type);
+          }}
+        >
+          {label}
+        </Button>
+      </Grid>
+    ))}
+  </Grid>
+);
+
+const CreateStepTwoForm: React.FC<{
+  initialValues: FormValues;
+  onSelectType: (type: string) => void;
+  onSubmit: (values: FormValues) => void;
+}> = ({ initialValues, onSelectType, onSubmit }) => (
+  <Formik
+    initialValues={initialValues}
+    validationSchema={validationSchema}
+    validateOnMount={true}
+    onSubmit={(values, { setSubmitting }) => {
+      setSubmitting(true);
+      onSubmit(values);
+    }}
+  >
+    {({ isValid, isSubmitting }) => (
+      <Form className={classes.form} data-test="transaction-create-form">
+        <AmountField />
+        <DescriptionField />
+        <SubmitButtons disabled={!isValid || isSubmitting} onSelectType={onSelectType} />
+      </Form>
+    )}
+  </Formik>
+);
+
 const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
   receiver,
   sender,
@@ -76,128 +228,20 @@ const TransactionCreateStepTwo: React.FC<TransactionCreateStepTwoProps> = ({
 
   return (
     <StyledPaper className={classes.paper} elevation={0}>
-      <Box sx={{ display: "flex", height: 200, alignItems: "center", justifyContent: "center" }}>
-        <Grid
-          container
-          sx={{ justifyContent: "flex-start", alignItems: "center", flexDirection: "column" }}
-        >
-          <Grid>
-            <Avatar src={receiver.avatar} />
-          </Grid>
-          <Grid>
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-              {receiver.firstName} {receiver.lastName}
-              {transactionType}
-            </Typography>
-          </Grid>
-        </Grid>
-      </Box>
+      <ReceiverHeader receiver={receiver} transactionType={transactionType} />
       <Container maxWidth="xs">
-        <Formik
+        <CreateStepTwoForm
           initialValues={initialValues}
-          validationSchema={validationSchema}
-          validateOnMount={true}
-          onSubmit={(values, { setSubmitting }) => {
-            setSubmitting(true);
-
+          onSelectType={setTransactionType}
+          onSubmit={(values) => {
             setTransactionType(undefined);
-
             createTransaction({ transactionType, ...values });
             showSnackbar({
               severity: Severities.success,
               message: "Transaction Submitted!",
             });
           }}
-        >
-          {({ isValid, isSubmitting }) => (
-            <Form className={classes.form} data-test="transaction-create-form">
-              <Field name="amount">
-                {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <NumericFormat<TextFieldProps>
-                    customInput={TextField}
-                    variant="outlined"
-                    margin="dense"
-                    fullWidth
-                    required
-                    autoFocus
-                    id={"transaction-create-amount-input"}
-                    type="text"
-                    placeholder="Amount"
-                    data-test={"transaction-create-amount-input"}
-                    error={(touched || value !== initialValue) && Boolean(error)}
-                    helperText={touched || value !== initialValue ? error : ""}
-                    slotProps={{ htmlInput: { id: "amount" } }}
-                    name={field.name}
-                    value={amountFieldValue(field.value)}
-                    onBlur={field.onBlur}
-                    onValueChange={(values) => {
-                      void form.setFieldValue(field.name, values.value);
-                    }}
-                    thousandSeparator
-                    valueIsNumericString
-                    prefix="$"
-                  />
-                )}
-              </Field>
-              <Field name="description">
-                {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                  <TextField
-                    variant="outlined"
-                    margin="dense"
-                    fullWidth
-                    required
-                    id={"transaction-create-description-input"}
-                    type="text"
-                    placeholder="Add a note"
-                    data-test={"transaction-create-description-input"}
-                    error={(touched || value !== initialValue) && Boolean(error)}
-                    helperText={touched || value !== initialValue ? error : ""}
-                    {...field}
-                  />
-                )}
-              </Field>
-              <Grid
-                container
-                spacing={2}
-                direction="row"
-                sx={{ justifyContent: "center", alignItems: "center" }}
-              >
-                <Grid>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.submit}
-                    data-test="transaction-create-submit-request"
-                    disabled={!isValid || isSubmitting}
-                    onClick={() => {
-                      setTransactionType("request");
-                    }}
-                  >
-                    Request
-                  </Button>
-                </Grid>
-                <Grid>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.submit}
-                    data-test="transaction-create-submit-payment"
-                    disabled={!isValid || isSubmitting}
-                    onClick={() => {
-                      setTransactionType("payment");
-                    }}
-                  >
-                    Pay
-                  </Button>
-                </Grid>
-              </Grid>
-            </Form>
-          )}
-        </Formik>
+        />
       </Container>
     </StyledPaper>
   );

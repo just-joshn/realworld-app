@@ -209,17 +209,17 @@ describe("notification predicates", () => {
   });
 });
 
-describe("query helpers", () => {
-  const fullQuery = {
-    dateRangeStart: "2026-01-01",
-    dateRangeEnd: "2026-01-31",
-    amountMin: 10,
-    amountMax: 100,
-    page: 2,
-    limit: 10,
-    status: undefined,
-  };
+const fullQuery = {
+  dateRangeStart: "2026-01-01",
+  dateRangeEnd: "2026-01-31",
+  amountMin: 10,
+  amountMax: 100,
+  page: 2,
+  limit: 10,
+  status: undefined,
+};
 
+describe("query helpers", () => {
   test("detects complete date, amount, and pagination field pairs", () => {
     expect(hasDateQueryFields(fullQuery)).toBe(true);
     expect(hasAmountQueryFields(fullQuery)).toBe(true);
@@ -242,7 +242,9 @@ describe("query helpers", () => {
 
     expect(getQueryWithoutDateFields(query)).toBe(query);
   });
+});
 
+describe("query helpers: amount and filter fields", () => {
   test("getQueryWithoutAmountFields drops the amount range when both ends are present", () => {
     expect(getQueryWithoutAmountFields(fullQuery)).not.toHaveProperty("amountMin");
     expect(getQueryWithoutAmountFields(fullQuery)).toHaveProperty("dateRangeStart");

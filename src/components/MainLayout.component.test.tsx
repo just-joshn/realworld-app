@@ -7,6 +7,7 @@ import { notificationsMachine } from "../machines/notificationsMachine";
 import { buildUser } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { history, renderWithRouter } from "../../test/browser/render";
+import { sendUntilAuthState } from "../containers/authStateTesting";
 import MainLayout from "./MainLayout";
 
 // page.viewport() can resolve before the iframe's media queries see the new width.
@@ -27,15 +28,7 @@ async function renderLayout(balance = 10000, loggedIn = true, route = "/") {
     http.post(apiUrl("/logout"), () => HttpResponse.json({}))
   );
   if (loggedIn) {
-    await new Promise<void>((resolve) => {
-      const sub = authService.subscribe((state) => {
-        if (state.matches("authorized")) {
-          sub.unsubscribe();
-          resolve();
-        }
-      });
-      authService.send({ type: "LOGIN" });
-    });
+    await sendUntilAuthState(authService, { type: "LOGIN" }, "authorized");
   }
   return renderWithRouter(
     <MainLayout authService={authService} notificationsService={notificationsService}>

@@ -1,3 +1,4 @@
+import { exampleAvatar } from "./test-config";
 import { objectContaining } from "./test-matchers";
 import * as yup from "yup";
 import { describe, expect, test } from "vitest";
@@ -87,7 +88,7 @@ test("GET /profile/:username returns only public profile fields", async () => {
   const { body } = await dispatch(router, { method: "GET", url: "/profile/grace" });
 
   expect(body).toEqual({
-    user: { firstName: "Grace", lastName: "Hopper", avatar: "https://example.com/grace.png" },
+    user: { firstName: "Grace", lastName: "Hopper", avatar: exampleAvatar("grace") },
   });
 });
 

@@ -1,6 +1,7 @@
 import { test as base, expect, type APIRequestContext } from "@playwright/test";
 import type { Faker } from "@faker-js/faker";
 import { createBankAccount, createUser } from "../helpers/api";
+import { defaultApiUrl, defaultWebUrl } from "../helpers/origins.config";
 import { runRecordedDeletes, startRecordedDeletes, stopRecordedDeletes } from "../helpers/cleanup";
 import {
   buildBankAccount,
@@ -33,8 +34,8 @@ type BaseFixtures = {
 export const NO_SESSION = { cookies: [], origins: [] };
 
 export const test = base.extend<BaseFixtures, AppOptions>({
-  apiURL: ["http://localhost:3301", { option: true, scope: "worker" }],
-  webURL: ["http://localhost:3300", { option: true, scope: "worker" }],
+  apiURL: [defaultApiUrl, { option: true, scope: "worker" }],
+  webURL: [defaultWebUrl, { option: true, scope: "worker" }],
 
   fake: async ({}, use, testInfo) => {
     await use(seededFaker([testInfo.testId, testInfo.retry, testInfo.repeatEachIndex].join(":")));
@@ -47,7 +48,7 @@ export const test = base.extend<BaseFixtures, AppOptions>({
   },
 
   apiAs: async ({ playwright, apiURL }, use) => {
-    const contexts: APIRequestContext[] = [];
+    let contexts: ReadonlyArray<APIRequestContext> = [];
     startRecordedDeletes();
     try {
       await use(async (user) => {
@@ -56,7 +57,7 @@ export const test = base.extend<BaseFixtures, AppOptions>({
           storageState: NO_SESSION,
           extraHTTPHeaders: { Accept: "application/json" },
         });
-        contexts.push(api);
+        contexts = [...contexts, api];
         const response = await api.post("/login", {
           data: { username: user.username, password: user.password },
         });

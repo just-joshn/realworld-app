@@ -5,20 +5,13 @@ import { authService } from "../machines/authMachine";
 import { buildBankAccount, buildUser } from "../../test/factories";
 import { worker, apiUrl } from "../../test/browser/msw";
 import { history, renderWithRouter } from "../../test/browser/render";
+import { sendUntilAuthState } from "./authStateTesting";
 import App from "./App";
 
 afterEach(async () => {
   worker.use(http.post(apiUrl("/logout"), () => HttpResponse.json({})));
   if (!authService.getSnapshot().matches("unauthorized")) {
-    await new Promise<void>((resolve) => {
-      const sub = authService.subscribe((state) => {
-        if (state.matches("unauthorized")) {
-          sub.unsubscribe();
-          resolve();
-        }
-      });
-      authService.send({ type: "LOGOUT" });
-    });
+    await sendUntilAuthState(authService, { type: "LOGOUT" }, "unauthorized");
   }
 });
 

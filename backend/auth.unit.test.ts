@@ -15,20 +15,24 @@ function seedAda() {
   return user;
 }
 
-function loginRequest() {
-  return {
-    session: { cookie: new session.Cookie() },
-    logIn(this: { user?: unknown }, user: unknown, _options: unknown, done: () => void) {
-      this.user = user;
-      done();
-    },
-  };
+// @types/express-session omits the constructor options that the runtime Cookie accepts.
+interface CookieConstructor {
+  new (options: session.CookieOptions): session.Cookie;
+}
+const CookieWithOptions: CookieConstructor = session.Cookie;
+
+function loginRequest(expectedUser?: unknown, maxAge?: number) {
+  // passport's real logIn stores the user on the request; the double starts with it in place
+  const logIn = vi.fn((_user: unknown, _options: unknown, done: () => void) => {
+    done();
+  });
+  return { user: expectedUser, session: { cookie: new CookieWithOptions({ maxAge }) }, logIn };
 }
 
 describe("POST /login", () => {
   test("logs in with valid credentials for the browser session", async () => {
     const ada = seedAda();
-    const request = loginRequest();
+    const request = loginRequest(ada);
 
     const result = await dispatch(router, {
       method: "POST",
@@ -38,13 +42,12 @@ describe("POST /login", () => {
     });
 
     expect(result).toEqual({ status: 200, body: { user: ada } });
+    expect(request.logIn).toHaveBeenCalledWith(ada, expect.anything(), expect.any(Function));
     expect(request.session.cookie.maxAge).toBeUndefined();
   });
 
   test("a string false remember value keeps a browser session", async () => {
-    seedAda();
-    const request = loginRequest();
-    request.session.cookie.maxAge = thirtyDays;
+    const request = loginRequest(seedAda(), thirtyDays);
 
     const result = await dispatch(router, {
       method: "POST",
@@ -58,8 +61,7 @@ describe("POST /login", () => {
   });
 
   test("keeps the session for thirty days when asked to remember the user", async () => {
-    seedAda();
-    const request = loginRequest();
+    const request = loginRequest(seedAda());
 
     await dispatch(router, {
       method: "POST",
@@ -72,7 +74,9 @@ describe("POST /login", () => {
     expect(ttl).toBeLessThanOrEqual(thirtyDays);
     expect(ttl).toBeGreaterThan(thirtyDays - 10);
   });
+});
 
+describe("POST /login with bad credentials", () => {
   test.for([
     { username: "nobody", password: "s3cret" },
     { username: "ada", password: "wrong" },

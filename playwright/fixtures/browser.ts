@@ -50,15 +50,15 @@ export const test = base.extend<{ allowedBrowserErrors: RegExp[] } & PageObjects
   page: async ({ page, allowedBrowserErrors }, use, testInfo) => {
     const ignored = [...ignoredBrowserErrors, ...allowedBrowserErrors];
     const isIgnored = (text: string) => ignored.some((pattern) => pattern.test(text));
-    const errors: string[] = [];
+    let errors: ReadonlyArray<string> = [];
     const onConsole = (message: ConsoleMessage) => {
       if (message.type() !== "error") return;
       const text = consoleErrorText(message);
-      if (!isIgnored(text)) errors.push(text);
+      if (!isIgnored(text)) errors = [...errors, text];
     };
     const onPageError = (error: Error) => {
       const text = error.stack ?? error.message;
-      if (!isIgnored(text)) errors.push(text);
+      if (!isIgnored(text)) errors = [...errors, text];
     };
     page.on("console", onConsole);
     page.on("pageerror", onPageError);

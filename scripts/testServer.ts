@@ -2,7 +2,7 @@ import path from "path";
 import express from "express";
 import history from "connect-history-api-fallback";
 import setupProxy from "../src/setupProxy";
-import { frontendPort } from "../src/utils/portUtils";
+import { frontendPort } from "../src/utils/apiConfig";
 
 const app = express();
 

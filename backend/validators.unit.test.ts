@@ -1,3 +1,4 @@
+import { exampleAvatar } from "./test-config";
 import type { Request } from "express";
 import { validationResult } from "express-validator";
 import { describe, expect, test } from "vitest";
@@ -64,7 +65,7 @@ describe("isUserValidator", () => {
       body: {
         firstName: "Ada",
         balance: "100",
-        avatar: "https://example.com/a.png",
+        avatar: exampleAvatar("a"),
         defaultPrivacyLevel: "private",
       },
     });

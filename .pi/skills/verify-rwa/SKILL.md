@@ -67,7 +67,7 @@ RUN_ID=my-change $S/drive.sh <journey> [--headed]
 $S/drive.sh            # lists journeys
 ```
 
-Each journey is a scripted user path in `scripts/drive.cjs`. It runs in a fresh browser context with a 1280×900 viewport, where the desktop nav drawer is open by default. It fills the real forms and clicks the real buttons. It then checks three things: what's visible, the server session (`/checkAuth` fetched from inside the page, so it uses the browser's cookie), and the stored rows in `data/database.json`. It prints `ok` or `FAIL` for each check. Exit codes:
+Each journey is a scripted user path in `scripts/drive.cjs` (journeys in `scripts/drive/`). It runs in a fresh browser context with a 1280×900 viewport, where the desktop nav drawer is open by default. It fills the real forms and clicks the real buttons. It then checks three things: what's visible, the server session (`/checkAuth` fetched from inside the page, so it uses the browser's cookie), and the stored rows in `data/database.json`. It prints `ok` or `FAIL` for each check. Exit codes:
 
 - 0: every check passed.
 - 1: a check failed.
@@ -76,7 +76,7 @@ Each journey is a scripted user path in `scripts/drive.cjs`. It runs in a fresh 
 
 Current journeys are listed in `features/README.md`. Journeys that involve two people use `signInAs(username)`. It opens a fresh browser context, so each person has their own cookies and `localStorage`, like two different machines. Money checks read balances from `data/database.json` in cents and compare them to the side nav's `$X,XXX.XX`. Selectors are the app's `data-test` attributes. MUI `TextField`s put `data-test` on the wrapper, so the harness targets `[data-test=X] input`. The settings form is the exception: its `data-test` is on the input itself.
 
-To add a journey, add a function to the `journeys` object in `drive.cjs` and follow the existing pattern:
+To add a journey, add a function to a `scripts/drive/journeys-*.cjs` module (exported by name) and follow the existing pattern:
 
 - `step(label, fn)` for each user action.
 - `check(desc, ok, actual)` for each observable.
