@@ -6,7 +6,9 @@ import { startProviderSession } from "../../test/browser/auth-providers-helpers"
 import AppOkta from "./AppOkta";
 
 const sdk = vi.hoisted(() => ({
-  state: { isAuthenticated: true, accessToken: { accessToken: "okta-token" } },
+  authenticated: { isAuthenticated: true, accessToken: { accessToken: "okta-token" } },
+  signedOut: { isAuthenticated: false, accessToken: { accessToken: "okta-token" } },
+  authState: vi.fn(),
   auth: {
     getUser: vi.fn(() =>
       Promise.resolve({
@@ -28,16 +30,16 @@ vi.mock("@okta/okta-react", async (importOriginal) => {
   return {
     ...original,
     withOktaAuth: <P extends object>(Component: ComponentType<P>) => Component,
-    useOktaAuth: vi.fn(() => ({
-      authState: sdk.state,
+    useOktaAuth: () => ({
+      authState: sdk.authState(),
       oktaAuth: sdk.auth,
-    })),
+    }),
     LoginCallback: () => <p>Completing Okta sign in</p>,
   };
 });
 
 test("shows the signed-in Okta user's name and username", async () => {
-  sdk.state.isAuthenticated = true;
+  sdk.authState.mockReturnValue(sdk.authenticated);
   startProviderSession();
   const screen = await renderWithRouter(<AppOkta />, { route: "/notifications" });
 
@@ -47,7 +49,7 @@ test("shows the signed-in Okta user's name and username", async () => {
 });
 
 test("sends a signed-out visitor to Okta sign-in", async () => {
-  sdk.state.isAuthenticated = false;
+  sdk.authState.mockReturnValue(sdk.signedOut);
   startProviderSession();
   const screen = await renderWithRouter(<AppOkta />);
 
@@ -55,7 +57,7 @@ test("sends a signed-out visitor to Okta sign-in", async () => {
 });
 
 test("shows the provider callback while completing Okta sign-in", async () => {
-  sdk.state.isAuthenticated = false;
+  sdk.authState.mockReturnValue(sdk.signedOut);
   startProviderSession();
   const screen = await renderWithRouter(<AppOkta />, { route: "/implicit/callback" });
 
@@ -63,7 +65,7 @@ test("shows the provider callback while completing Okta sign-in", async () => {
 });
 
 test("removes the private app when the Okta user logs out", async () => {
-  sdk.state.isAuthenticated = true;
+  sdk.authState.mockReturnValue(sdk.authenticated);
   startProviderSession();
   const screen = await renderWithRouter(<AppOkta />, { route: "/notifications" });
   await screen.getByRole("button", { name: "open drawer" }).click();

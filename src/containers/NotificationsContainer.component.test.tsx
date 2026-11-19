@@ -43,27 +43,41 @@ test("explains when there are no notifications", async () => {
   await expect.element(screen.getByText("No Notifications")).toBeVisible();
 });
 
+function initialNotifications(): NotificationResponseItem[] {
+  return [
+    { ...buildCommentNotification(), userFullName: "Grace Hopper" },
+    { ...buildLikeNotification(), userFullName: "Alan Turing" },
+    { ...buildPaymentNotification(), userFullName: "Katherine Johnson" },
+    {
+      ...buildPaymentNotification({ id: "request", status: PaymentNotificationStatus.requested }),
+      userFullName: "Dorothy Vaughan",
+    },
+  ];
+}
+
+// Each dismissal serves the remaining items with fresh handlers instead of editing a shared list.
+function serveNotifications(
+  results: NotificationResponseItem[],
+  received: (body: unknown) => void
+) {
+  worker.use(
+    http.get(apiUrl("/notifications"), () => HttpResponse.json({ results })),
+    http.patch(apiUrl("/notifications/:id"), async ({ request, params }) => {
+      received(await request.json());
+      serveNotifications(
+        results.filter((item) => item.id !== params["id"]),
+        received
+      );
+      return HttpResponse.json({});
+    })
+  );
+}
+
 for (const mobile of [false, true]) {
   test(`dismisses comments, likes and payments ${mobile ? "on mobile" : "on desktop"}`, async () => {
     await page.viewport(mobile ? 390 : 1280, 900);
-    let results: NotificationResponseItem[] = [
-      { ...buildCommentNotification(), userFullName: "Grace Hopper" },
-      { ...buildLikeNotification(), userFullName: "Alan Turing" },
-      { ...buildPaymentNotification(), userFullName: "Katherine Johnson" },
-      {
-        ...buildPaymentNotification({ id: "request", status: PaymentNotificationStatus.requested }),
-        userFullName: "Dorothy Vaughan",
-      },
-    ];
     const received = vi.fn();
-    worker.use(
-      http.get(apiUrl("/notifications"), () => HttpResponse.json({ results })),
-      http.patch(apiUrl("/notifications/:id"), async ({ request, params }) => {
-        received(await request.json());
-        results = results.filter((item) => item.id !== params["id"]);
-        return HttpResponse.json({});
-      })
-    );
+    serveNotifications(initialNotifications(), received);
     const screen = await renderWithRouter(<NotificationsContainer {...services()} />);
     for (const text of [
       "Grace Hopper commented on a transaction.",

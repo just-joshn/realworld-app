@@ -6,6 +6,7 @@ import { snackbarMachine } from "../machines/snackbarMachine";
 import { buildUser } from "../../test/factories";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { history, renderWithRouter } from "../../test/browser/render";
+import { sendUntilAuthState } from "./authStateTesting";
 import TransactionCreateContainer from "./TransactionCreateContainer";
 
 const receiver = buildUser({
@@ -29,15 +30,7 @@ async function renderCreate({ signedIn = true } = {}) {
     snackbarService.stop();
   });
   if (signedIn) {
-    await new Promise<void>((resolve) => {
-      const subscription = authService.subscribe((state) => {
-        if (state.matches("authorized")) {
-          subscription.unsubscribe();
-          resolve();
-        }
-      });
-      authService.send({ type: "LOGIN" });
-    });
+    await sendUntilAuthState(authService, { type: "LOGIN" }, "authorized");
   }
   return renderWithRouter(
     <TransactionCreateContainer authService={authService} snackbarService={snackbarService} />,
