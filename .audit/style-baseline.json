@@ -1,71 +1,10 @@
 {
-  "filesScanned": 278,
+  "filesScanned": 279,
   "violationCount": 0,
-  "noteCount": 12,
+  "noteCount": 0,
   "byRule": {},
   "overMaxFiles": [],
   "overWarnFiles": [],
   "violations": [],
-  "notes": [
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/TransactionCreateStepThree.tsx",
-      "detail": "fn near L28 spans ~103 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/NavBar.tsx",
-      "detail": "fn near L105 spans ~84 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/BankAccountForm.tsx",
-      "detail": "fn near L53 spans ~109 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/TransactionList.tsx",
-      "detail": "fn near L39 spans ~60 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/UserSettingsForm.tsx",
-      "detail": "fn near L51 spans ~119 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/TransactionListAmountRangeFilter.tsx",
-      "detail": "fn near L34 spans ~70 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/NotificationListItem.tsx",
-      "detail": "fn near L63 spans ~64 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/components/TransactionDetail.tsx",
-      "detail": "fn near L103 spans ~154 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/AppOkta.tsx",
-      "detail": "fn near L29 spans ~60 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/AppAuth0.tsx",
-      "detail": "fn near L27 spans ~54 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/PrivateRoutesContainer.tsx",
-      "detail": "fn near L27 spans ~84 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "src/containers/AppGoogle.tsx",
-      "detail": "fn near L35 spans ~61 lines > 50"
-    }
-  ]
+  "notes": []
 }

@@ -1,16 +1,13 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 import { LoginCallback, useOktaAuth, withOktaAuth } from "@okta/okta-react";
 import { Route, Routes } from "react-router";
 
-import { snackbarMachine } from "../machines/snackbarMachine";
-import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import { useAppServices } from "./useAppServices";
 import SecureRoute from "./SecureRoute";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
 
@@ -26,15 +23,8 @@ const Root = styled("div")(() => ({
   },
 }));
 
-const AppOkta: React.FC = () => {
+function useOktaSync() {
   const { authState: oktaAuthState, oktaAuth: oktaAuthService } = useOktaAuth();
-
-  const [authState] = useSharedActor(authService);
-  const [, , notificationsService] = useMachine(notificationsMachine);
-
-  const [, , snackbarService] = useMachine(snackbarMachine);
-
-  const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
     const token = oktaAuthState?.accessToken?.accessToken;
@@ -53,6 +43,14 @@ const AppOkta: React.FC = () => {
       subscription.unsubscribe();
     };
   }, [oktaAuthService]);
+}
+
+const AppOkta: React.FC = () => {
+  const [authState] = useSharedActor(authService);
+  const { notificationsService, snackbarService, bankAccountsService } =
+    useAppServices();
+
+  useOktaSync();
 
   const isLoggedIn =
     authState.matches("authorized") ||

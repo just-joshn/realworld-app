@@ -1,14 +1,11 @@
 import React, { useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { useMachine } from "@xstate/react";
 import { useSharedActor } from "../utils/useSharedActor";
 import { CssBaseline } from "@mui/material";
 
-import { snackbarMachine } from "../machines/snackbarMachine";
-import { notificationsMachine } from "../machines/notificationsMachine";
 import { authService } from "../machines/authMachine";
 import AlertBar from "../components/AlertBar";
-import { bankAccountsMachine } from "../machines/bankAccountsMachine";
+import { useAppServices } from "./useAppServices";
 import PrivateRoutesContainer from "./PrivateRoutesContainer";
 import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 
@@ -24,15 +21,8 @@ const Root = styled("div")(() => ({
   },
 }));
 
-const AppAuth0: React.FC = () => {
+function useAuth0Sync() {
   const { isAuthenticated, user, getAccessTokenSilently, logout } = useAuth0();
-
-  const [authState] = useSharedActor(authService);
-  const [, , notificationsService] = useMachine(notificationsMachine);
-
-  const [, , snackbarService] = useMachine(snackbarMachine);
-
-  const [, , bankAccountsService] = useMachine(bankAccountsMachine);
 
   useEffect(() => {
     void (async function waitForToken() {
@@ -50,6 +40,14 @@ const AppAuth0: React.FC = () => {
       subscription.unsubscribe();
     };
   }, [logout]);
+}
+
+const AppAuth0: React.FC = () => {
+  const [authState] = useSharedActor(authService);
+  const { notificationsService, snackbarService, bankAccountsService } =
+    useAppServices();
+
+  useAuth0Sync();
 
   const isLoggedIn =
     authState.matches("authorized") ||

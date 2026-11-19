@@ -24,6 +24,73 @@ export interface Props {
   bankAccountsService: ActorRefFrom<typeof bankAccountsMachine>;
 }
 
+function guard(path: string, isLoggedIn: boolean, element: React.ReactNode) {
+  return (
+    <Route
+      key={path}
+      path={path}
+      element={<PrivateRoute isLoggedIn={isLoggedIn}>{element}</PrivateRoute>}
+    />
+  );
+}
+
+function accountRoutes(p: Props) {
+  const { isLoggedIn, authService, notificationsService, bankAccountsService } =
+    p;
+  return [
+    guard(
+      "/user/settings",
+      isLoggedIn,
+      <UserSettingsContainer authService={authService} />,
+    ),
+    guard(
+      "/notifications",
+      isLoggedIn,
+      <NotificationsContainer
+        authService={authService}
+        notificationsService={notificationsService}
+      />,
+    ),
+    guard(
+      "/bankaccounts/*",
+      isLoggedIn,
+      <BankAccountsContainer
+        authService={authService}
+        bankAccountsService={bankAccountsService}
+      />,
+    ),
+  ];
+}
+
+function transactionRoutes(p: Props) {
+  const { isLoggedIn, authService, snackbarService } = p;
+  return [
+    guard(
+      "/transaction/new",
+      isLoggedIn,
+      <TransactionCreateContainer
+        authService={authService}
+        snackbarService={snackbarService}
+      />,
+    ),
+    guard(
+      "/transaction/:transactionId",
+      isLoggedIn,
+      <TransactionDetailContainer authService={authService} />,
+    ),
+    guard("/*", isLoggedIn, <TransactionsContainer />),
+  ];
+}
+
+function PrivateRouteList(props: Props) {
+  return (
+    <Routes>
+      {accountRoutes(props)}
+      {transactionRoutes(props)}
+    </Routes>
+  );
+}
+
 const PrivateRoutesContainer: React.FC<Props> = ({
   isLoggedIn,
   authService,
@@ -38,70 +105,21 @@ const PrivateRoutesContainer: React.FC<Props> = ({
   }, [sendNotifications]);
 
   return (
-    <MainLayout notificationsService={notificationsService} authService={authService}>
+    <MainLayout
+      notificationsService={notificationsService}
+      authService={authService}
+    >
       <UserOnboardingContainer
         authService={authService}
         bankAccountsService={bankAccountsService}
       />
-      <Routes>
-        <Route
-          path="/user/settings"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <UserSettingsContainer authService={authService} />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <NotificationsContainer
-                authService={authService}
-                notificationsService={notificationsService}
-              />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/bankaccounts/*"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <BankAccountsContainer
-                authService={authService}
-                bankAccountsService={bankAccountsService}
-              />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/transaction/new"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <TransactionCreateContainer
-                authService={authService}
-                snackbarService={snackbarService}
-              />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/transaction/:transactionId"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <TransactionDetailContainer authService={authService} />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            <PrivateRoute isLoggedIn={isLoggedIn}>
-              <TransactionsContainer />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
+      <PrivateRouteList
+        isLoggedIn={isLoggedIn}
+        authService={authService}
+        notificationsService={notificationsService}
+        snackbarService={snackbarService}
+        bankAccountsService={bankAccountsService}
+      />
     </MainLayout>
   );
 };
