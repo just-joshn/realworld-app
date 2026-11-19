@@ -14,10 +14,10 @@ test.describe("updating user settings", { tag: ["@e2e", "@settings"] }, () => {
     fake,
   }) => {
     const edits = {
-      firstName: fake.name.firstName(),
-      lastName: fake.name.lastName(),
+      firstName: fake.person.firstName(),
+      lastName: fake.person.lastName(),
       email: fake.internet.email(),
-      phoneNumber: fake.phone.phoneNumber("###-###-####"),
+      phoneNumber: fake.helpers.replaceSymbols("###-###-####"),
     };
     await signInPage.goto();
     await signInPage.signIn(onboardedUser);

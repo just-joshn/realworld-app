@@ -45,8 +45,8 @@ test.describe("POST /users", { tag: ["@api", "@users"] }, () => {
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
       errors: expect.arrayContaining([
-        expect.objectContaining({ param: "avatar" }),
-        expect.objectContaining({ param: "defaultPrivacyLevel" }),
+        expect.objectContaining({ path: "avatar" }),
+        expect.objectContaining({ path: "defaultPrivacyLevel" }),
       ]),
     });
   });
@@ -103,7 +103,7 @@ test.describe("GET /users/search", { tag: ["@api", "@users"] }, () => {
     const response = await api.get("/users/search");
 
     expect(response.status()).toBe(422);
-    expect(await readJson(response)).toEqual({ errors: [expect.objectContaining({ param: "q" })] });
+    expect(await readJson(response)).toEqual({ errors: [expect.objectContaining({ path: "q" })] });
   });
 
   test("401 — no session", async ({ request }) => {
@@ -169,10 +169,10 @@ test.describe("PATCH /users/:userId", { tag: ["@api", "@users"] }, () => {
     const me = await createUser();
     const api = await apiAs(me);
     const edits = {
-      firstName: fake.name.firstName(),
-      lastName: fake.name.lastName(),
+      firstName: fake.person.firstName(),
+      lastName: fake.person.lastName(),
       email: fake.internet.email(),
-      phoneNumber: fake.phone.phoneNumber("###-###-####"),
+      phoneNumber: fake.helpers.replaceSymbols("###-###-####"),
       defaultPrivacyLevel: "private",
     };
 
@@ -193,7 +193,7 @@ test.describe("PATCH /users/:userId", { tag: ["@api", "@users"] }, () => {
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "defaultPrivacyLevel" })],
+      errors: [expect.objectContaining({ path: "defaultPrivacyLevel" })],
     });
   });
 

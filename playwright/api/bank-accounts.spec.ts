@@ -35,8 +35,8 @@ test.describe("POST /bankAccounts", { tag: ["@api", "@bank-accounts"] }, () => {
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
       errors: expect.arrayContaining([
-        expect.objectContaining({ param: "accountNumber" }),
-        expect.objectContaining({ param: "routingNumber" }),
+        expect.objectContaining({ path: "accountNumber" }),
+        expect.objectContaining({ path: "routingNumber" }),
       ]),
     });
   });

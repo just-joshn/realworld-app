@@ -116,7 +116,7 @@ export async function readBody<S extends yup.AnyObjectSchema>(
 
 export const validationErrorsSchema = yup.object({
   errors: yup
-    .array(yup.object({ param: text(), msg: text(), location: text(), value: yup.mixed() }))
+    .array(yup.object({ path: text(), msg: text(), location: text(), type: text(), value: yup.mixed() }))
     .defined(),
 });
 

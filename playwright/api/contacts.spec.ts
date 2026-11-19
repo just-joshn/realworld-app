@@ -32,7 +32,7 @@ test.describe("POST /contacts", { tag: ["@api", "@contacts"] }, () => {
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "contactUserId" })],
+      errors: [expect.objectContaining({ path: "contactUserId" })],
     });
   });
 

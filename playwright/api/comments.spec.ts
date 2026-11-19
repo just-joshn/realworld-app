@@ -49,7 +49,7 @@ test.describe("POST /comments/:transactionId", { tag: ["@api", "@comments"] }, (
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "content" })],
+      errors: [expect.objectContaining({ path: "content" })],
     });
   });
 

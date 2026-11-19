@@ -42,7 +42,7 @@ test.describe("GET /testData/:entity", { tag: ["@api", "@test-data"] }, () => {
 
     expect(response.status()).toBe(422);
     expect(await readJson(response)).toEqual({
-      errors: [expect.objectContaining({ param: "entity", value: "secrets" })],
+      errors: [expect.objectContaining({ path: "entity", value: "secrets" })],
     });
   });
 });
