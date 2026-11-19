@@ -82,13 +82,12 @@ export function buildRequest(overrides: Record<string, unknown> = {}): Request {
     isAuthenticated: () => true,
     ...rest,
   };
-  const url = isQueryRecord(query)
-    ? withQuery(String(merged["url"] ?? base.url), query)
-    : undefined;
-  const req: Request = Object.create(
+  const givenUrl = typeof merged["url"] === "string" ? merged["url"] : base.url;
+  const url = isQueryRecord(query) ? withQuery(givenUrl, query) : undefined;
+  const req = Object.create(
     base,
     describeProps(url === undefined ? merged : { ...merged, url })
-  );
+  ) as Request;
   writableQuery(req);
   return req;
 }
