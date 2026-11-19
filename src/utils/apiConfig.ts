@@ -8,3 +8,5 @@ export const localOrigin = (port: string | number | undefined) =>
   `http://${appHost}:${String(port)}`;
 
 export const apiUrl = (path: string) => `${localOrigin(backendPort)}${path}`;
+
+export const oktaIssuer = (domain: string) => `https://${domain}/oauth2/default`;

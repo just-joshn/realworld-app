@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import { describe, expect, test, vi } from "vitest";
 import { server } from "../../test/msw";
 import { startService } from "../../test/machines";
+import { apiUrl } from "../utils/apiConfig";
 import {
   buildBankAccount,
   buildUser,
@@ -16,7 +17,7 @@ import { personalTransactionsMachine } from "./personalTransactionsMachine";
 import { publicTransactionsMachine } from "./publicTransactionsMachine";
 import { usersMachine } from "./usersMachine";
 
-const api = "http://localhost:3001";
+const api = apiUrl("");
 
 // Records each request's path and query string, and answers with one result.
 function respondWithResults(method: "get" | "patch", path: string) {
@@ -144,19 +145,19 @@ describe("notificationsMachine", () => {
   });
 });
 
+const bankApi = graphql.link(`${api}/graphql`);
+
+function serveAccounts() {
+  const accounts = [buildBankAccount()];
+  server.use(
+    bankApi.query("ListBankAccount", () =>
+      HttpResponse.json({ data: { listBankAccount: accounts } })
+    )
+  );
+  return accounts;
+}
+
 describe("bankAccountsMachine", () => {
-  const bankApi = graphql.link(`${api}/graphql`);
-
-  function serveAccounts() {
-    const accounts = [buildBankAccount()];
-    server.use(
-      bankApi.query("ListBankAccount", () =>
-        HttpResponse.json({ data: { listBankAccount: accounts } })
-      )
-    );
-    return accounts;
-  }
-
   test("FETCH lists bank accounts over GraphQL", async () => {
     serveAccounts();
     const service = startService(bankAccountsMachine);
@@ -194,7 +195,9 @@ describe("bankAccountsMachine", () => {
       routingNumber: "987654321",
     });
   });
+});
 
+describe("bankAccountsMachine: DELETE", () => {
   test("DELETE sends the account id as a mutation variable", async () => {
     serveAccounts();
     const variables = vi.fn();

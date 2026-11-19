@@ -6,6 +6,7 @@ import { OktaAuth, toRelativeUrl } from "@okta/okta-auth-js";
 import { Security } from "@okta/okta-react";
 import { history, HistoryRouter } from "./utils/historyUtils";
 import AppOkta from "./containers/AppOkta";
+import { oktaIssuer } from "./utils/apiConfig";
 
 const theme = createTheme({
   palette: {
@@ -26,7 +27,7 @@ if (process.env["VITE_OKTA"]) {
   const clientId = process.env["VITE_OKTA_CLIENTID"];
   if (!domain || !clientId) throw new Error("Missing VITE_OKTA_DOMAIN or VITE_OKTA_CLIENTID");
   const oktaAuth = new OktaAuth({
-    issuer: `https://${domain}/oauth2/default`,
+    issuer: oktaIssuer(domain),
     clientId,
     redirectUri: window.location.origin + "/implicit/callback",
   });

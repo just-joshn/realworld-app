@@ -12,7 +12,7 @@ import { omit } from "lodash/fp";
 import { httpClient, getAuthTokenName } from "../utils/asyncUtils";
 import { history } from "../utils/historyUtils";
 import type { User } from "../models";
-import { backendPort } from "../utils/apiConfig";
+import { apiUrl } from "../utils/apiConfig";
 
 export type AuthMachineEvents =
   | ({ type: "LOGIN" } & Partial<Pick<User, "username" | "password">>)
@@ -72,17 +72,14 @@ const fromEvent = <TOutput>(run: (event: AuthMachineEvents) => Promise<TOutput>)
 
 const performSignup = fromEvent<ProfileResult>(async (event) => {
   const payload = omit("type", event);
-  const resp = await httpClient.post<unknown>(
-    `http://localhost:${String(backendPort)}/users`,
-    payload
-  );
+  const resp = await httpClient.post<unknown>(apiUrl("/users"), payload);
   history.push("/signin");
   return authResponseSchema.validateSync(resp.data);
 });
 
 const performLogin = fromEvent<ProfileResult>(async (event) => {
   return await httpClient
-    .post<unknown>(`http://localhost:${String(backendPort)}/login`, event)
+    .post<unknown>(apiUrl("/login"), event)
     .then(({ data }) => {
       history.push("/");
       return authResponseSchema.validateSync(data);
@@ -93,7 +90,7 @@ const performLogin = fromEvent<ProfileResult>(async (event) => {
 });
 
 const getUserProfile = fromEvent<ProfileResult>(async () => {
-  const resp = await httpClient.get<unknown>(`http://localhost:${String(backendPort)}/checkAuth`);
+  const resp = await httpClient.get<unknown>(apiUrl("/checkAuth"));
   return authResponseSchema.validateSync(resp.data);
 });
 
@@ -160,15 +157,12 @@ const getCognitoUserProfile = fromEvent<ProfileResult>(async (event) => {
 const updateProfile = fromEvent<undefined>(async (event) => {
   if (event.type !== "UPDATE") throw new Error("Expected UPDATE event");
   const payload = omit("type", event);
-  await httpClient.patch<unknown>(
-    `http://localhost:${String(backendPort)}/users/${String(payload.id)}`,
-    payload
-  );
+  await httpClient.patch<unknown>(apiUrl(`/users/${String(payload.id)}`), payload);
 });
 
 const performLogout = fromEvent<unknown>(async () => {
   localStorage.removeItem("authState");
-  return await httpClient.post<unknown>(`http://localhost:${String(backendPort)}/logout`);
+  return await httpClient.post<unknown>(apiUrl("/logout"));
 });
 
 const setMessage = assign<AuthMachineContext, ErrorActorEvent, undefined, AuthMachineEvents, never>(
@@ -277,7 +271,7 @@ export const authMachine = setup({
     authorized: {
       entry: () => {
         if (history.location.pathname === "/signin") {
-          window.location.pathname = "/";
+          window.location.assign("/");
         }
       },
       on: {
