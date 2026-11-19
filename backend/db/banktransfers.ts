@@ -1,13 +1,13 @@
 import { v4 } from "uuid";
 import shortid from "shortid";
 import type { BankTransfer, BankTransferPayload } from "../../src/models";
-import { BANK_TRANSFER_TABLE, db, getBy, insertRow, select } from "./store";
+import { BANK_TRANSFER_TABLE, getBy, insertRow, rows, select } from "./store";
 
 export const getBankTransferBy = (key: string, value: unknown) =>
   getBy(BANK_TRANSFER_TABLE, key, value);
 
 export const getBankTransfersBy = (key: string, value: unknown) =>
-  select(db.data.banktransfers, { [key]: value });
+  select(rows(BANK_TRANSFER_TABLE), { [key]: value });
 
 export const getBankTransfersByUserId = (userId: string) => getBankTransfersBy("userId", userId);
 

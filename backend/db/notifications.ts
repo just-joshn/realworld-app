@@ -17,7 +17,7 @@ import {
   isCommentNotification,
 } from "../../src/utils/transactionUtils";
 import { required } from "../required";
-import { NOTIFICATION_TABLE, db, getBy, insertRow, persist, select } from "./store";
+import { NOTIFICATION_TABLE, getBy, insertRow, replaceTable, rows, select } from "./store";
 import { getFullNameForUser } from "./users";
 import { getTransactionById } from "./transactions";
 import { getLikeById } from "./likes";
@@ -27,7 +27,7 @@ export const getNotificationBy = (key: string, value: unknown): NotificationType
   required(getBy(NOTIFICATION_TABLE, key, value), "notification");
 
 export const getNotificationsByObj = (query: object): NotificationType[] =>
-  select(db.data.notifications, query);
+  select(rows(NOTIFICATION_TABLE), query);
 
 export const getUnreadNotificationsByUserId = (userId: string) =>
   formatNotificationsForApiResponse(getNotificationsByObj({ userId, isRead: false }));
@@ -112,13 +112,10 @@ export const updateNotificationById = (
   edits: Partial<NotificationType>
 ) => {
   getNotificationBy("id", notificationId);
-  db.data = {
-    ...db.data,
-    notifications: db.data.notifications.map((row) =>
-      row.id === notificationId ? { ...row, ...edits } : row
-    ),
-  };
-  persist();
+  replaceTable(
+    NOTIFICATION_TABLE,
+    rows(NOTIFICATION_TABLE).map((row) => (row.id === notificationId ? { ...row, ...edits } : row))
+  );
 };
 
 export const formatNotificationForApiResponse = (

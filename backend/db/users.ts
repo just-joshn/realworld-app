@@ -6,9 +6,9 @@ import Fuse, { type IFuseOptions } from "fuse.js";
 import type { User } from "../../src/models";
 import { formatFullName } from "../../src/utils/transactionUtils";
 import { required } from "../required";
-import { USER_TABLE, db, getBy, insertRow, persist } from "./store";
+import { USER_TABLE, getBy, insertRow, replaceTable, rows } from "./store";
 
-export const getAllUsers = () => db.data.users;
+export const getAllUsers = () => rows(USER_TABLE);
 
 export const cleanSearchQuery = (query: string) => query.replace(/[^a-zA-Z0-9]/g, "");
 
@@ -79,11 +79,10 @@ export const createUser = (
 export const updateUserById = (userId: string, edits: Partial<User>) => {
   const user = getUserById(userId);
   if (!user) return;
-  db.data = {
-    ...db.data,
-    users: db.data.users.map((row) => (row.id === userId ? { ...row, ...edits } : row)),
-  };
-  persist();
+  replaceTable(
+    USER_TABLE,
+    rows(USER_TABLE).map((row) => (row.id === userId ? { ...row, ...edits } : row))
+  );
 };
 
 export const getFullNameForUser = (userId: User["id"]): string =>

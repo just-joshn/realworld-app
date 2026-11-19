@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import shortid from "shortid";
 import type { BankAccount } from "../../src/models";
-import { BANK_ACCOUNT_TABLE, db, getBy, insertRow, persist, select } from "./store";
+import { BANK_ACCOUNT_TABLE, getBy, insertRow, replaceTable, rows, select } from "./store";
 
 export const getBankAccountBy = (key: string, value: unknown) =>
   getBy(BANK_ACCOUNT_TABLE, key, value);
@@ -9,7 +9,7 @@ export const getBankAccountBy = (key: string, value: unknown) =>
 export const getBankAccountById = (id: string) => getBankAccountBy("id", id);
 
 export const getBankAccountsBy = (key: string, value: unknown) =>
-  select(db.data.bankaccounts, { [key]: value });
+  select(rows(BANK_ACCOUNT_TABLE), { [key]: value });
 
 export const getBankAccountsByUserId = (userId: string) => getBankAccountsBy("userId", userId);
 
@@ -42,7 +42,10 @@ export const createBankAccountForUser = (
 };
 
 export const removeBankAccountById = (bankAccountId: string) => {
-  const account = getBankAccountById(bankAccountId);
-  if (account) account.isDeleted = true;
-  persist();
+  replaceTable(
+    BANK_ACCOUNT_TABLE,
+    rows(BANK_ACCOUNT_TABLE).map((account) =>
+      account.id === bankAccountId ? { ...account, isDeleted: true } : account
+    )
+  );
 };

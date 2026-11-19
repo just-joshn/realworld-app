@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { LowSync, MemorySync } from "lowdb";
+import { MemorySync } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
 import { parseDatabase } from "../database-schema";
 import type {
@@ -51,20 +51,30 @@ function emptyDatabase(): DbSchema {
 const databaseFile = path.join(__dirname, "../../data/database.json");
 // lowdb's own preset switches to memory for every NODE_ENV=test process, including the API
 // server the integration suite starts. Only the Vitest process itself should skip the file.
-export const db = new LowSync<DbSchema>(
+const adapter =
   process.env["VITEST"] === "true"
     ? new MemorySync<DbSchema>()
-    : new JSONFileSync<DbSchema>(databaseFile),
-  emptyDatabase()
-);
-db.read();
+    : new JSONFileSync<DbSchema>(databaseFile);
 
-export function rows<K extends keyof DbSchema>(entity: K): DbSchema[K] {
-  return db.data[entity];
+let state: DbSchema = adapter.read() ?? emptyDatabase();
+
+/** The current immutable database value. Every write replaces it through `replaceDatabase`. */
+export function snapshot(): DbSchema {
+  return state;
 }
 
-export function persist(): void {
-  db.write();
+/** The only persistence boundary: swap in a new database value and write it out. */
+export function replaceDatabase(next: DbSchema): void {
+  state = next;
+  adapter.write(state);
+}
+
+export function rows<K extends keyof DbSchema>(entity: K): DbSchema[K] {
+  return state[entity];
+}
+
+export function replaceTable<K extends keyof DbSchema>(entity: K, table: DbSchema[K]): void {
+  replaceDatabase({ ...state, [entity]: table });
 }
 
 function rowMatches(item: object, query: object): boolean {
@@ -82,20 +92,13 @@ export const seedDatabase = () => {
     fs.readFileSync(path.join(process.cwd(), "data", "database-seed.json"), "utf-8")
   );
 
-  db.data = parseDatabase(testSeed);
-  persist();
+  replaceDatabase(parseDatabase(testSeed));
 };
 
-export const getAllForEntity = <K extends keyof DbSchema>(entity: K): DbSchema[K] =>
-  db.data[entity];
-
-export function replaceDatabase(state: DbSchema): void {
-  db.data = state;
-  persist();
-}
+export const getAllForEntity = <K extends keyof DbSchema>(entity: K): DbSchema[K] => state[entity];
 
 export function getAllBy(entity: keyof DbSchema, key: string, value: unknown): object[] {
-  const items: readonly object[] = db.data[entity];
+  const items: readonly object[] = state[entity];
   return select(items, { [key]: value });
 }
 
@@ -108,12 +111,11 @@ export function getBy<K extends keyof DbSchema>(
 }
 
 export function getAllByObj(entity: keyof DbSchema, query: object): object[] {
-  const items: readonly object[] = db.data[entity];
+  const items: readonly object[] = state[entity];
   return select(items, query);
 }
 
 export function insertRow<K extends keyof DbSchema>(entity: K, row: DbSchema[K][number]): void {
-  const table: DbSchema[K][number][] = rows(entity);
-  table.push(row);
-  persist();
+  const table: readonly DbSchema[K][number][] = state[entity];
+  replaceDatabase({ ...state, [entity]: [...table, row] });
 }

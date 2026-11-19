@@ -2,13 +2,13 @@ import { v4 } from "uuid";
 import shortid from "shortid";
 import type { Like } from "../../src/models";
 import { required } from "../required";
-import { LIKE_TABLE, db, getBy, insertRow, select } from "./store";
+import { LIKE_TABLE, getBy, insertRow, rows, select } from "./store";
 import { createLikeNotification } from "./notifications";
 import { getTransactionById } from "./transactions";
 
 export const getLikeBy = (key: string, value: unknown): Like =>
   required(getBy(LIKE_TABLE, key, value), "like");
-export const getLikesByObj = (query: object) => select(db.data.likes, query);
+export const getLikesByObj = (query: object) => select(rows(LIKE_TABLE), query);
 
 export const getLikeById = (id: string): Like => getLikeBy("id", id);
 export const getLikesByTransactionId = (transactionId: string) => getLikesByObj({ transactionId });

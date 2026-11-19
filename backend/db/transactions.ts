@@ -32,7 +32,7 @@ import {
   isRequestTransaction,
 } from "../../src/utils/transactionUtils";
 import { required } from "../required";
-import { TRANSACTION_TABLE, db, getBy, insertRow, persist, select } from "./store";
+import { TRANSACTION_TABLE, getBy, insertRow, replaceTable, rows, select } from "./store";
 import { getFullNameForUser, getUserById, updateUserById } from "./users";
 import { getContactIdsForUser } from "./contacts";
 import { createBankTransfer } from "./banktransfers";
@@ -45,7 +45,7 @@ export const getTransactionBy = (key: string, value: unknown) =>
 
 export const getTransactionById = (id: string) => getTransactionBy("id", id);
 
-export const getTransactionsByObj = (query: object) => select(db.data.transactions, query);
+export const getTransactionsByObj = (query: object) => select(rows(TRANSACTION_TABLE), query);
 
 export const getTransactionByIdForApi = (id: string) =>
   formatTransactionForApiResponse(required(getTransactionBy("id", id), "transaction"));
@@ -283,23 +283,22 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
     );
   }
 
-  db.data = {
-    ...db.data,
-    transactions: db.data.transactions.map((row) =>
+  replaceTable(
+    TRANSACTION_TABLE,
+    rows(TRANSACTION_TABLE).map((row) =>
       row.id === transactionId ? { ...row, ...nextEdits } : row
-    ),
-  };
-  persist();
+    )
+  );
 };
 
-export const getAllTransactions = () => db.data.transactions;
+export const getAllTransactions = () => rows(TRANSACTION_TABLE);
 
 export const getAllPublicTransactions = () =>
-  db.data.transactions.filter(
+  rows(TRANSACTION_TABLE).filter(
     (transaction) => transaction.privacyLevel === DefaultPrivacyLevel.public
   );
 
 export const getTransactionsBy = (key: string, value: string) =>
-  select(db.data.transactions, { [key]: value });
+  select(rows(TRANSACTION_TABLE), { [key]: value });
 
 export const getTransactionsByUserId = (userId: string) => getTransactionsBy("receiverId", userId);

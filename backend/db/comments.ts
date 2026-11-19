@@ -2,13 +2,13 @@ import { v4 } from "uuid";
 import shortid from "shortid";
 import type { Comment } from "../../src/models";
 import { required } from "../required";
-import { COMMENT_TABLE, db, getBy, insertRow, select } from "./store";
+import { COMMENT_TABLE, getBy, insertRow, rows, select } from "./store";
 import { createCommentNotification } from "./notifications";
 import { getTransactionById } from "./transactions";
 
 export const getCommentBy = (key: string, value: unknown): Comment =>
   required(getBy(COMMENT_TABLE, key, value), "comment");
-export const getCommentsByObj = (query: object) => select(db.data.comments, query);
+export const getCommentsByObj = (query: object) => select(rows(COMMENT_TABLE), query);
 
 export const getCommentById = (id: string): Comment => getCommentBy("id", id);
 export const getCommentsByTransactionId = (transactionId: string) =>
