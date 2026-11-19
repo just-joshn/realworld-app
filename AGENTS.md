@@ -6,13 +6,12 @@ Shared contracts live in `playwright/helpers/contracts.ts` (domain value sets an
 
 ## 2. Coding style (enforced)
 
-Gate: `bun scripts/style-compliance.mjs` (also `bun run style:check`). Exit 0 is required for style work to be done.
+Gate: `bun run style:check` (`bun scripts/style-compliance.mjs`). It scans every tracked source file (tests, Playwright, scripts included) with no allowlists, and exit 0 is required. Gate self-tests: `bun test scripts/style`.
 
-- Immutability in `src/` and `backend/` product code. Return new objects and arrays. Do not reassign fields on existing domain values.
-- Constructor `this.field =` init is allowed. React Router `history.push` is navigation, not array mutation.
-- Persistence and framework boundaries may write through their APIs (`db.data`, `rows(table).push`, Express `req.session`). Keep those writes at the boundary file, not in UI or domain helpers.
-- Validate external input at HTTP and form boundaries with **Yup** (already in tree via `src/models/schemas.ts`). Do not add Zod alongside Yup.
-- No `console.log` in product code. Use `console.error` in catch paths when logging is required. CLI reporters and server listen banners may write to stdout.
-- Files typically 200–400 lines, hard max 800. Generated `SvgUndraw*` components are excluded from the size fail.
+- Immutability everywhere. Return new objects and arrays; no member assignment, `push`/`sort`/etc., `delete`, or `Object.assign` onto an existing value. Only `this.x =` inside a class `constructor` and router `history.push` are not mutations.
+- Persistence goes through `replaceDatabase` / `replaceTable` in `backend/db/store.ts`, the single place database state is swapped. The one express-session write is `setSessionCookieMaxAge` in `backend/session-cookie.ts`.
+- Files at most 400 lines. Functions under 50 lines. Nesting at most 4.
+- No `console.log`. CLIs write with `process.stdout.write`; errors use `console.error`. No empty `catch` or no-op `.catch`.
+- No URL or host literals outside a module whose basename matches `/config/i`. App and API URLs come from `src/utils/apiConfig.ts`.
+- Validate external input at HTTP and form boundaries with **Yup** (`src/models/schemas.ts`, `backend/request-data.ts`). Do not add Zod.
 - Organize by feature or domain. Prefer many small files over large catch-alls.
-- Prefer small functions (<50 lines) and shallow nesting in product `src/` and `backend/` (not tests, Playwright, or generated `Svg*`). The compliance script reports these as notes until the debt is cleared, then they become fails.
