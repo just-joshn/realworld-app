@@ -3,7 +3,7 @@ import type { TransactionResponseItem } from "../models";
 import { omit, flow } from "lodash/fp";
 import { dataMachine, dataServices } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
-import { backendPort } from "../utils/portUtils";
+import { backendPort } from "../utils/apiConfig";
 import { authService } from "./authMachine";
 
 const { load, change } = dataServices<TransactionResponseItem>();

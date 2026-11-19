@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import detect from "detect-port";
-import { backendPort } from "../src/utils/portUtils";
+import { backendPort } from "../src/utils/apiConfig";
 
 /** Node-only: the browser bundle must not import this, so it lives outside src/utils. */
 export const getBackendPort = async () => {

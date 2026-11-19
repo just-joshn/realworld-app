@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { backendPort } from "../src/utils/portUtils";
+import { backendPort } from "../src/utils/apiConfig";
 import { getBackendPort } from "./backend-port";
 
 // detect-port is overloaded; a typed mock avoids vi.mocked picking the callback overload.

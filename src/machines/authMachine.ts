@@ -12,7 +12,7 @@ import { omit } from "lodash/fp";
 import { httpClient, getAuthTokenName } from "../utils/asyncUtils";
 import { history } from "../utils/historyUtils";
 import type { User } from "../models";
-import { backendPort } from "../utils/portUtils";
+import { backendPort } from "../utils/apiConfig";
 
 export type AuthMachineEvents =
   | ({ type: "LOGIN" } & Partial<Pick<User, "username" | "password">>)

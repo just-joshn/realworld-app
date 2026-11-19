@@ -3,7 +3,7 @@ import { assign, fromPromise, setup } from "xstate";
 import { httpClient } from "../utils/asyncUtils";
 import type { User, TransactionCreatePayload } from "../models";
 import { authService } from "./authMachine";
-import { backendPort } from "../utils/portUtils";
+import { backendPort } from "../utils/apiConfig";
 import { typed } from "./service";
 
 export type CreateTransactionMachineEvents =

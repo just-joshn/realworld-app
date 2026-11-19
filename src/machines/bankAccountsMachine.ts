@@ -4,7 +4,7 @@ import { omit } from "lodash/fp";
 import gql from "graphql-tag";
 import { dataMachine, dataServices } from "./dataMachine";
 import { httpClient } from "../utils/asyncUtils";
-import { backendPort } from "../utils/portUtils";
+import { backendPort } from "../utils/apiConfig";
 
 const listBankAccountQuery = gql`
   query ListBankAccount {
