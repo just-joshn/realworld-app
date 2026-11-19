@@ -112,7 +112,9 @@ describe("verifyOktaToken", () => {
     });
     expect(req.user).toEqual({ sub: undefined });
   });
+});
 
+describe("verifyOktaToken failures", () => {
   test("logs and does not continue when verification fails", async () => {
     const error = new Error("expired");
     okta.verifyAccessToken.mockRejectedValue(error);

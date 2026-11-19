@@ -108,7 +108,9 @@ describe("users", () => {
 
     expect(getUserById("user1")).toMatchObject({ firstName: "Augusta", lastName: "Lovelace" });
   });
+});
 
+describe("random user", () => {
   test("getRandomUser returns one of the stored users", () => {
     seedPeople();
 

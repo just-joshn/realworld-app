@@ -1,3 +1,4 @@
+import { exampleAvatar } from "./test-config";
 import { describe, expect, test } from "vitest";
 import { buildComment, buildLike, buildTransaction } from "../test/factories";
 import { seedPeople } from "../test/database";
@@ -84,8 +85,8 @@ describe("transaction API formatting", () => {
       id: "txn1",
       senderName: "Ada Lovelace",
       receiverName: "Grace Hopper",
-      senderAvatar: "https://example.com/ada.png",
-      receiverAvatar: "https://example.com/grace.png",
+      senderAvatar: exampleAvatar("ada"),
+      receiverAvatar: exampleAvatar("grace"),
       likes: [expect.objectContaining({ id: "like1" })],
       comments: [expect.objectContaining({ id: "comment1" })],
     });
@@ -210,17 +211,17 @@ describe("contact and public feeds", () => {
   });
 });
 
-describe("createTransaction", () => {
-  const details = (overrides = {}) => ({
-    source: "bank1",
-    amount: 25,
-    description: "Lunch",
-    receiverId: "user2",
-    senderId: "user1",
-    status: TransactionStatus.pending,
-    ...overrides,
-  });
+const details = (overrides = {}) => ({
+  source: "bank1",
+  amount: 25,
+  description: "Lunch",
+  receiverId: "user2",
+  senderId: "user1",
+  status: TransactionStatus.pending,
+  ...overrides,
+});
 
+describe("createTransaction payments", () => {
   test("a payment moves money from sender to receiver and completes", () => {
     seedPeople();
 
@@ -258,7 +259,9 @@ describe("createTransaction", () => {
       expect.objectContaining({ amount: 1000, type: "withdrawal", transactionId: transaction.id }),
     ]);
   });
+});
 
+describe("createTransaction requests", () => {
   test("a request stays pending, keeps balances, and notifies the payer", () => {
     seedPeople();
 
