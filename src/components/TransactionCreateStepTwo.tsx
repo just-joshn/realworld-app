@@ -4,16 +4,7 @@ import { NumericFormat } from "react-number-format";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object, number } from "yup";
-import {
-  Paper,
-  Typography,
-  Button,
-  Grid,
-  Container,
-  Avatar,
-  Box,
-  TextField,
-} from "@mui/material";
+import { Paper, Typography, Button, Grid, Container, Avatar, Box, TextField } from "@mui/material";
 import type { TextFieldProps } from "@mui/material";
 import type { User } from "../models";
 import type { SnackbarContext } from "../machines/snackbarMachine";
@@ -58,9 +49,7 @@ const amountFieldValue = (value: unknown): string | number =>
 export interface TransactionCreateStepTwoProps {
   receiver: User;
   sender: User;
-  createTransaction: (
-    payload: FormValues & { transactionType: string | undefined },
-  ) => void;
+  createTransaction: (payload: FormValues & { transactionType: string | undefined }) => void;
   showSnackbar: (payload: SnackbarContext) => void;
 }
 
@@ -106,11 +95,7 @@ const ReceiverHeader: React.FC<{
 
 const AmountField = () => (
   <Field name="amount">
-    {({
-      field,
-      form,
-      meta: { error, value, initialValue, touched },
-    }: FieldProps) => (
+    {({ field, form, meta: { error, value, initialValue, touched } }: FieldProps) => (
       <NumericFormat<TextFieldProps>
         customInput={TextField}
         variant="outlined"
@@ -221,10 +206,7 @@ const CreateStepTwoForm: React.FC<{
       <Form className={classes.form} data-test="transaction-create-form">
         <AmountField />
         <DescriptionField />
-        <SubmitButtons
-          disabled={!isValid || isSubmitting}
-          onSelectType={onSelectType}
-        />
+        <SubmitButtons disabled={!isValid || isSubmitting} onSelectType={onSelectType} />
       </Form>
     )}
   </Formik>

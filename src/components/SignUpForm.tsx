@@ -3,15 +3,7 @@ import { styled } from "@mui/material/styles";
 import { useSharedActor } from "../utils/useSharedActor";
 import type { ActorRefFrom } from "xstate";
 import { Link } from "react-router";
-import {
-  Button,
-  Container,
-  CssBaseline,
-  TextField,
-  Grid,
-  Box,
-  Typography,
-} from "@mui/material";
+import { Button, Container, CssBaseline, TextField, Grid, Box, Typography } from "@mui/material";
 import type { FieldProps } from "formik";
 import { Formik, Form, Field } from "formik";
 import { string, object, ref } from "yup";
@@ -34,8 +26,8 @@ const StyledContainer = styled(
   (
     props: React.ComponentProps<typeof Container> & {
       component?: React.ElementType;
-    },
-  ) => <Container {...props} />,
+    }
+  ) => <Container {...props} />
 )(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
@@ -116,13 +108,7 @@ const SIGN_UP_FIELDS: SignUpFieldConfig[] = [
   },
 ];
 
-const SignUpField: React.FC<SignUpFieldConfig> = ({
-  name,
-  label,
-  type,
-  dataTest,
-  autoFocus,
-}) => (
+const SignUpField: React.FC<SignUpFieldConfig> = ({ name, label, type, dataTest, autoFocus }) => (
   <Field name={name}>
     {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
       <TextField
@@ -191,9 +177,7 @@ const SignUpView: React.FC<{
           onSubmit(values);
         }}
       >
-        {({ isValid, isSubmitting }) => (
-          <SignUpFields disabled={!isValid || isSubmitting} />
-        )}
+        {({ isValid, isSubmitting }) => <SignUpFields disabled={!isValid || isSubmitting} />}
       </Formik>
     </div>
     <Box sx={{ mt: 8 }}>

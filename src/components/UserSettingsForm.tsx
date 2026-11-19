@@ -48,6 +48,53 @@ export interface UserSettingsProps {
   updateUser: (payload: UserSettingsPayload & { id: User["id"] }) => void;
 }
 
+function SettingsField({ name, placeholder }: { name: string; placeholder: string }) {
+  return (
+    <Field name={name}>
+      {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
+        <TextField
+          variant="outlined"
+          margin="dense"
+          fullWidth
+          required
+          id={`user-settings-${name}-input`}
+          type="text"
+          placeholder={placeholder}
+          slotProps={{ htmlInput: { "data-test": `user-settings-${name}-input` } }}
+          error={(touched || value !== initialValue) && Boolean(error)}
+          helperText={touched || value !== initialValue ? error : ""}
+          {...field}
+        />
+      )}
+    </Field>
+  );
+}
+
+function SettingsSubmit({ disabled }: { disabled: boolean }) {
+  return (
+    <Grid
+      container
+      spacing={2}
+      direction="row"
+      sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
+    >
+      <Grid>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          color="primary"
+          sx={{ marginTop: 3, marginLeft: 0, marginBottom: 2 }}
+          data-test="user-settings-submit"
+          disabled={disabled}
+        >
+          Save
+        </Button>
+      </Grid>
+    </Grid>
+  );
+}
+
 const UserSettingsForm: React.FC<UserSettingsProps> = ({ userProfile, updateUser }) => {
   const initialValues: UserSettingsPayload = {
     firstName: userProfile.firstName,
@@ -70,94 +117,11 @@ const UserSettingsForm: React.FC<UserSettingsProps> = ({ userProfile, updateUser
       {({ isValid, isSubmitting }) => (
         <MarginHonoringDiv>
           <Form data-test="user-settings-form">
-            <Field name="firstName">
-              {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                <TextField
-                  variant="outlined"
-                  margin="dense"
-                  fullWidth
-                  required
-                  id={"user-settings-firstName-input"}
-                  type="text"
-                  placeholder="First Name"
-                  slotProps={{ htmlInput: { "data-test": "user-settings-firstName-input" } }}
-                  error={(touched || value !== initialValue) && Boolean(error)}
-                  helperText={touched || value !== initialValue ? error : ""}
-                  {...field}
-                />
-              )}
-            </Field>
-            <Field name="lastName">
-              {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                <TextField
-                  variant="outlined"
-                  margin="dense"
-                  fullWidth
-                  required
-                  id={"user-settings-lastName-input"}
-                  type="text"
-                  placeholder="Last Name"
-                  slotProps={{ htmlInput: { "data-test": "user-settings-lastName-input" } }}
-                  error={(touched || value !== initialValue) && Boolean(error)}
-                  helperText={touched || value !== initialValue ? error : ""}
-                  {...field}
-                />
-              )}
-            </Field>
-            <Field name="email">
-              {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                <TextField
-                  variant="outlined"
-                  margin="dense"
-                  fullWidth
-                  required
-                  id={"user-settings-email-input"}
-                  type="text"
-                  placeholder="Email"
-                  slotProps={{ htmlInput: { "data-test": "user-settings-email-input" } }}
-                  error={(touched || value !== initialValue) && Boolean(error)}
-                  helperText={touched || value !== initialValue ? error : ""}
-                  {...field}
-                />
-              )}
-            </Field>
-            <Field name="phoneNumber">
-              {({ field, meta: { error, value, initialValue, touched } }: FieldProps) => (
-                <TextField
-                  variant="outlined"
-                  margin="dense"
-                  fullWidth
-                  required
-                  id={"user-settings-phoneNumber-input"}
-                  type="text"
-                  placeholder="Phone Number"
-                  slotProps={{ htmlInput: { "data-test": "user-settings-phoneNumber-input" } }}
-                  error={(touched || value !== initialValue) && Boolean(error)}
-                  helperText={touched || value !== initialValue ? error : ""}
-                  {...field}
-                />
-              )}
-            </Field>
-            <Grid
-              container
-              spacing={2}
-              direction="row"
-              sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
-            >
-              <Grid>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  sx={{ marginTop: 3, marginLeft: 0, marginBottom: 2 }}
-                  data-test="user-settings-submit"
-                  disabled={!isValid || isSubmitting}
-                >
-                  Save
-                </Button>
-              </Grid>
-            </Grid>
+            <SettingsField name="firstName" placeholder="First Name" />
+            <SettingsField name="lastName" placeholder="Last Name" />
+            <SettingsField name="email" placeholder="Email" />
+            <SettingsField name="phoneNumber" placeholder="Phone Number" />
+            <SettingsSubmit disabled={!isValid || isSubmitting} />
           </Form>
         </MarginHonoringDiv>
       )}

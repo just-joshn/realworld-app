@@ -27,11 +27,7 @@ import {
 } from "@mui/icons-material";
 
 import { formatAmount } from "../utils/transactionUtils";
-import {
-  isAppUser,
-  type AuthUser,
-  type authMachine,
-} from "../machines/authMachine";
+import { isAppUser, type AuthUser, type authMachine } from "../machines/authMachine";
 
 const PREFIX = "NavDrawer";
 
@@ -138,10 +134,7 @@ const MAIN_NAV_ITEMS = [
   },
 ];
 
-export const mainListItems = (
-  toggleDrawer: () => void,
-  showTemporaryDrawer: boolean,
-) => (
+export const mainListItems = (toggleDrawer: () => void, showTemporaryDrawer: boolean) => (
   <div>
     {MAIN_NAV_ITEMS.map(({ to, dataTest, label, Icon }) => (
       <ListItemButton
@@ -185,9 +178,7 @@ interface Props {
   authService: ActorRefFrom<typeof authMachine>;
 }
 
-const ProfileIdentity: React.FC<{ currentUser: AuthUser | undefined }> = ({
-  currentUser,
-}) => (
+const ProfileIdentity: React.FC<{ currentUser: AuthUser | undefined }> = ({ currentUser }) => (
   <>
     <Grid>
       {currentUser && (
@@ -201,19 +192,10 @@ const ProfileIdentity: React.FC<{ currentUser: AuthUser | undefined }> = ({
     <Grid>
       {currentUser && (
         <>
-          <Typography
-            variant="subtitle1"
-            color="textPrimary"
-            data-test="sidenav-user-full-name"
-          >
+          <Typography variant="subtitle1" color="textPrimary" data-test="sidenav-user-full-name">
             {currentUser.firstName} {head(currentUser.lastName)}
           </Typography>
-          <Typography
-            variant="subtitle2"
-            color="inherit"
-            gutterBottom
-            data-test="sidenav-username"
-          >
+          <Typography variant="subtitle2" color="inherit" gutterBottom data-test="sidenav-username">
             @{currentUser.username}
           </Typography>
         </>
@@ -222,9 +204,7 @@ const ProfileIdentity: React.FC<{ currentUser: AuthUser | undefined }> = ({
   </>
 );
 
-const ProfileBalance: React.FC<{ currentUser: AuthUser | undefined }> = ({
-  currentUser,
-}) => (
+const ProfileBalance: React.FC<{ currentUser: AuthUser | undefined }> = ({ currentUser }) => (
   <Grid>
     {currentUser && isAppUser(currentUser) && (
       <>
@@ -234,9 +214,7 @@ const ProfileBalance: React.FC<{ currentUser: AuthUser | undefined }> = ({
           className={classes.amount}
           data-test="sidenav-user-balance"
         >
-          {currentUser.balance
-            ? formatAmount(currentUser.balance)
-            : formatAmount(0)}
+          {currentUser.balance ? formatAmount(currentUser.balance) : formatAmount(0)}
         </Typography>
         <Typography variant="subtitle2" color="inherit" gutterBottom>
           Account Balance
@@ -252,13 +230,7 @@ const DrawerProfile: React.FC<{
   toggleDrawer: () => void;
   showTemporaryDrawer: boolean;
   onSignOut: () => void;
-}> = ({
-  drawerOpen,
-  currentUser,
-  toggleDrawer,
-  showTemporaryDrawer,
-  onSignOut,
-}) => (
+}> = ({ drawerOpen, currentUser, toggleDrawer, showTemporaryDrawer, onSignOut }) => (
   <>
     <Grid
       container
@@ -307,10 +279,7 @@ const NavDrawer: React.FC<Props> = ({
       data-test="sidenav"
       variant={showTemporaryDrawer ? "temporary" : "persistent"}
       classes={{
-        paper: clsx(
-          classes.drawerPaper,
-          !drawerOpen && classes.drawerPaperClose,
-        ),
+        paper: clsx(classes.drawerPaper, !drawerOpen && classes.drawerPaperClose),
       }}
       open={drawerOpen}
       onClose={closeMobileDrawer}

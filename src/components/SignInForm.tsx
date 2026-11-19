@@ -45,8 +45,8 @@ const StyledContainer = styled(
   (
     props: React.ComponentProps<typeof Container> & {
       component?: React.ElementType;
-    },
-  ) => <Container {...props} />,
+    }
+  ) => <Container {...props} />
 )(({ theme }) => ({
   [`& .${classes.paper}`]: {
     marginTop: theme.spacing(8),
@@ -122,13 +122,7 @@ const RememberMeField = () => (
     control={
       <Field name={"remember"}>
         {({ field }: FieldProps) => {
-          return (
-            <Checkbox
-              color="primary"
-              data-test="signin-remember-me"
-              {...field}
-            />
-          );
+          return <Checkbox color="primary" data-test="signin-remember-me" {...field} />;
         }}
       </Field>
     }
@@ -172,11 +166,7 @@ const SignInView: React.FC<{
     <CssBaseline />
     <div className={classes.paper}>
       {message && (
-        <Alert
-          data-test="signin-error"
-          severity="error"
-          className={classes.alertMessage}
-        >
+        <Alert data-test="signin-error" severity="error" className={classes.alertMessage}>
           {message}
         </Alert>
       )}
@@ -194,9 +184,7 @@ const SignInView: React.FC<{
           onSubmit(values);
         }}
       >
-        {({ isValid, isSubmitting }) => (
-          <SignInFields disabled={!isValid || isSubmitting} />
-        )}
+        {({ isValid, isSubmitting }) => <SignInFields disabled={!isValid || isSubmitting} />}
       </Formik>
     </div>
     <Box sx={{ mt: 8 }}>

@@ -33,14 +33,10 @@ const Root = styled("div")(({ theme }) => ({
 
 export interface CommentFormProps {
   transactionId: string;
-  transactionComment: (
-    payload: Pick<Comment, "transactionId" | "content">,
-  ) => void;
+  transactionComment: (payload: Pick<Comment, "transactionId" | "content">) => void;
 }
 
-const CommentField: React.FC<{ transactionId: string }> = ({
-  transactionId,
-}) => (
+const CommentField: React.FC<{ transactionId: string }> = ({ transactionId }) => (
   <Field name="content">
     {({ field, meta }: FieldProps) => (
       <TextField
@@ -63,10 +59,7 @@ const CommentField: React.FC<{ transactionId: string }> = ({
   </Field>
 );
 
-const CommentForm: React.FC<CommentFormProps> = ({
-  transactionId,
-  transactionComment,
-}) => {
+const CommentForm: React.FC<CommentFormProps> = ({ transactionId, transactionComment }) => {
   const initialValues = { content: "" };
 
   return (

@@ -31,6 +31,32 @@ type AmountRangePanelProps = {
   onClear: () => void;
 };
 
+const AmountRangeHeader: React.FC<Pick<AmountRangePanelProps, "amountRangeValue" | "onClear">> = ({
+  amountRangeValue,
+  onClear,
+}) => (
+  <Grid
+    container
+    direction="row"
+    sx={{
+      width: "100%",
+      justifyContent: "space-between",
+      alignItems: "center",
+    }}
+  >
+    <Grid sx={{ width: "225px" }}>
+      <Typography color="textSecondary" data-test="transaction-list-filter-amount-range-text">
+        Amount Range: {formatAmountRangeValues(amountRangeValue)}
+      </Typography>
+    </Grid>
+    <Grid>
+      <Button data-test="transaction-list-filter-amount-clear-button" onClick={onClear}>
+        Clear
+      </Button>
+    </Grid>
+  </Grid>
+);
+
 const AmountRangePanel: React.FC<AmountRangePanelProps> = ({
   amountRangeValue,
   onChange,
@@ -49,32 +75,7 @@ const AmountRangePanel: React.FC<AmountRangePanelProps> = ({
     }}
   >
     <Grid>
-      <Grid
-        container
-        direction="row"
-        sx={{
-          width: "100%",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Grid sx={{ width: "225px" }}>
-          <Typography
-            color="textSecondary"
-            data-test="transaction-list-filter-amount-range-text"
-          >
-            Amount Range: {formatAmountRangeValues(amountRangeValue)}
-          </Typography>
-        </Grid>
-        <Grid>
-          <Button
-            data-test="transaction-list-filter-amount-clear-button"
-            onClick={onClear}
-          >
-            Clear
-          </Button>
-        </Grid>
-      </Grid>
+      <AmountRangeHeader amountRangeValue={amountRangeValue} onClear={onClear} />
     </Grid>
     <Grid>
       <Slider
@@ -139,18 +140,17 @@ const AmountRangePicker: React.FC<AmountRangePickerProps> = ({
   );
 };
 
-const TransactionListAmountRangeFilter: React.FC<
-  TransactionListAmountRangeFilterProps
-> = ({ filterAmountRange, resetAmountRange }) => {
+const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilterProps> = ({
+  filterAmountRange,
+  resetAmountRange,
+}) => {
   const theme = useTheme();
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
 
   const initialAmountRange = [0, 100];
-  const [amountRangeValue, setAmountRangeValue] =
-    React.useState<number[]>(initialAmountRange);
+  const [amountRangeValue, setAmountRangeValue] = React.useState<number[]>(initialAmountRange);
 
-  const [amountRangeAnchorEl, setAmountRangeAnchorEl] =
-    React.useState<HTMLDivElement | null>(null);
+  const [amountRangeAnchorEl, setAmountRangeAnchorEl] = React.useState<HTMLDivElement | null>(null);
 
   const handleAmountRangeClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAmountRangeAnchorEl(event.currentTarget);
@@ -160,10 +160,7 @@ const TransactionListAmountRangeFilter: React.FC<
     setAmountRangeAnchorEl(null);
   };
 
-  const handleAmountRangeChange = (
-    _event: Event,
-    amountRange: number | number[],
-  ) => {
+  const handleAmountRangeChange = (_event: Event, amountRange: number | number[]) => {
     if (!Array.isArray(amountRange)) return;
     const minimum = amountRange[0];
     const maximum = amountRange.at(-1);
