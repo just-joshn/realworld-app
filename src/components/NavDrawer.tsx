@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import { head } from "lodash/fp";
 import type { ActorRefFrom } from "xstate";
 import { useSharedActor } from "../utils/useSharedActor";
@@ -45,7 +45,7 @@ const classes = {
   cypressLogo: `${PREFIX}-cypressLogo`,
 };
 
-const StyledDrawer = styled(Drawer)(({ theme }) => ({
+const styledDrawerStyles1 = (theme: Theme) => ({
   [`& .${classes.toolbar}`]: {
     paddingRight: 24,
   },
@@ -80,7 +80,9 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
       width: theme.spacing(9),
     },
   },
+});
 
+const styledDrawerStyles2 = (theme: Theme) => ({
   [`& .${classes.userProfile}`]: {
     padding: theme.spacing(2),
   },
@@ -108,6 +110,11 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
   [`& .${classes.cypressLogo}`]: {
     width: "40%",
   },
+});
+
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+  ...styledDrawerStyles1(theme),
+  ...styledDrawerStyles2(theme),
 }));
 
 const drawerWidth = 240;

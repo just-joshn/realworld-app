@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import clsx from "clsx";
 import type { ActorRefFrom } from "xstate";
 import { useSharedActor } from "../utils/useSharedActor";
@@ -41,7 +41,7 @@ const classes = {
   customBadge: `${PREFIX}-customBadge`,
 };
 
-const StyledAppBar = styled(AppBar)(({ theme }) => ({
+const styledAppBarStyles1 = (theme: Theme) => ({
   [`& .${classes.toolbar}`]: {
     paddingRight: 24,
   },
@@ -75,7 +75,9 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
     color: "white",
     verticalAlign: "bottom",
   },
+});
 
+const styledAppBarStyles2 = () => ({
   [`& .${classes.newTransactionButton}`]: {
     fontSize: 16,
     backgroundColor: "#00C853",
@@ -94,6 +96,11 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
     backgroundColor: "red",
     color: "white",
   },
+});
+
+const StyledAppBar = styled(AppBar)(({ theme }) => ({
+  ...styledAppBarStyles1(theme),
+  ...styledAppBarStyles2(),
 }));
 
 interface NavBarProps {

@@ -56,7 +56,7 @@ interface Props {
   notificationsService: ActorRefFrom<typeof notificationsMachine>;
 }
 
-const MainLayout: React.FC<Props> = ({ children, notificationsService, authService }) => {
+function useDrawer() {
   const theme = useTheme();
   const [drawerState, sendDrawer] = useMachine(drawerMachine);
 
@@ -65,36 +65,37 @@ const MainLayout: React.FC<Props> = ({ children, notificationsService, authServi
 
   const desktopDrawerOpen = drawerState.matches({ desktop: "open" });
   const mobileDrawerOpen = drawerState.matches({ mobile: "open" });
-  const toggleDesktopDrawer = () => {
-    sendDrawer({ type: "TOGGLE_DESKTOP" });
-  };
-  const toggleMobileDrawer = () => {
-    sendDrawer({ type: "TOGGLE_MOBILE" });
-  };
-
-  const openDesktopDrawer = (payload: { aboveSmallBreakpoint: boolean }) => {
-    sendDrawer({ type: "OPEN_DESKTOP", ...payload });
-  };
-  const closeMobileDrawer = () => {
-    sendDrawer({ type: "CLOSE_MOBILE" });
-  };
 
   useEffect(() => {
     if (!desktopDrawerOpen && aboveSmallBreakpoint) {
-      openDesktopDrawer({ aboveSmallBreakpoint });
+      sendDrawer({ type: "OPEN_DESKTOP", aboveSmallBreakpoint });
     }
-  }, [aboveSmallBreakpoint, desktopDrawerOpen]);
+  }, [aboveSmallBreakpoint, desktopDrawerOpen, sendDrawer]);
+
+  return {
+    drawerOpen: xsBreakpoint ? mobileDrawerOpen : desktopDrawerOpen,
+    toggleDrawer: () => {
+      sendDrawer({ type: xsBreakpoint ? "TOGGLE_MOBILE" : "TOGGLE_DESKTOP" });
+    },
+    closeMobileDrawer: () => {
+      sendDrawer({ type: "CLOSE_MOBILE" });
+    },
+  };
+}
+
+const MainLayout: React.FC<Props> = ({ children, notificationsService, authService }) => {
+  const { drawerOpen, toggleDrawer, closeMobileDrawer } = useDrawer();
 
   return (
     <Root>
       <NavBar
-        toggleDrawer={xsBreakpoint ? toggleMobileDrawer : toggleDesktopDrawer}
-        drawerOpen={xsBreakpoint ? mobileDrawerOpen : desktopDrawerOpen}
+        toggleDrawer={toggleDrawer}
+        drawerOpen={drawerOpen}
         notificationsService={notificationsService}
       />
       <NavDrawer
-        toggleDrawer={xsBreakpoint ? toggleMobileDrawer : toggleDesktopDrawer}
-        drawerOpen={xsBreakpoint ? mobileDrawerOpen : desktopDrawerOpen}
+        toggleDrawer={toggleDrawer}
+        drawerOpen={drawerOpen}
         closeMobileDrawer={closeMobileDrawer}
         authService={authService}
       />

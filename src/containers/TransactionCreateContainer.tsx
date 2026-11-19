@@ -54,7 +54,6 @@ const TransactionCreateContainer: React.FC<Props> = ({ authService, snackbarServ
     useMachine(createTransactionMachine);
 
   const [usersState, sendUsers] = useMachine(usersMachine);
-
   useEffect(() => {
     sendUsers({ type: "FETCH" });
   }, [sendUsers]);
