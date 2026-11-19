@@ -16,4 +16,4 @@ const awsmobile = {
   },
 };
 
-exports.default = awsmobile;
+Object.defineProperty(exports, "default", { value: awsmobile, enumerable: true });

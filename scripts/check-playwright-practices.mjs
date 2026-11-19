@@ -2,25 +2,20 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
-const findings = [];
 
 function rel(path) {
   return path.startsWith(root) ? path.slice(root.length) : path;
 }
 
 function walk(dir) {
-  const files = [];
-  for (const name of readdirSync(dir)) {
+  return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) files.push(...walk(path));
-    else if (path.endsWith(".ts")) files.push(path);
-  }
-  return files;
+    if (statSync(path).isDirectory()) return walk(path);
+    return path.endsWith(".ts") ? [path] : [];
+  });
 }
 
-function check(ok, label) {
-  findings.push(`${ok ? "ok" : "gap"}  ${label}`);
-}
+const check = (ok, label) => `${ok ? "ok" : "gap"}  ${label}`;
 
 const banned = [
   [/waitForTimeout\s*\(/, "waitForTimeout"],
@@ -35,22 +30,20 @@ const banned = [
   [/\.type\s*\(\s*[^)]/, "locator.type"],
 ];
 
-const suite = walk(join(root, "playwright"));
-const hits = new Map(banned.map(([, label]) => [label, []]));
-for (const file of suite) {
-  const lines = readFileSync(file, "utf8").split("\n");
-  lines.forEach((line, index) => {
-    for (const [pattern, label] of banned) {
-      if (pattern.test(line)) hits.get(label).push(`${rel(file)}:${index + 1}`);
-    }
+const read = (relPath) => readFileSync(join(root, relPath), "utf8");
+const lineRefs = (file, matches) =>
+  readFileSync(file, "utf8")
+    .split("\n")
+    .flatMap((line, index) => (matches(line) ? [`${rel(file)}:${index + 1}`] : []));
+
+function bannedFindings() {
+  const suite = walk(join(root, "playwright"));
+  return banned.map(([pattern, label]) => {
+    const where = suite.flatMap((file) => lineRefs(file, (line) => pattern.test(line)));
+    return check(where.length === 0, where.length === 0 ? `no ${label}` : `${label} at ${where.join(", ")}`);
   });
 }
-for (const [, label] of banned) {
-  const where = hits.get(label);
-  check(where.length === 0, where.length === 0 ? `no ${label}` : `${label} at ${where.join(", ")}`);
-}
 
-const config = readFileSync(join(root, "playwright.config.ts"), "utf8");
 const configNeeds = [
   ["fullyParallel: true", "fullyParallel"],
   ["forbidOnly: isCI", "forbidOnly in CI"],
@@ -63,21 +56,24 @@ const configNeeds = [
   ["reuseExistingServer: !isCI", "reuseExistingServer outside CI"],
   ['["github"]', "github reporter in CI"],
 ];
-for (const [needle, label] of configNeeds) {
-  check(config.includes(needle), `config ${label}`);
-}
-check(!/trace:\s*["']on["']/.test(config), "config trace is not always on");
-check(!/video:\s*["']on["']/.test(config), "config video is not always on");
-check(
-  config.includes('devices["Desktop Chrome"]') && config.includes('devices["Pixel 7"]'),
-  "desktop and Pixel 7 projects"
-);
-check(
-  !/devices\["(Desktop Firefox|Desktop Safari|Pixel 5)"\]/.test(config),
-  "no extra browser projects"
-);
 
-const ci = readFileSync(join(root, ".github/workflows/main.yml"), "utf8");
+function configFindings() {
+  const config = read("playwright.config.ts");
+  return [
+    ...configNeeds.map(([needle, label]) => check(config.includes(needle), `config ${label}`)),
+    check(!/trace:\s*["']on["']/.test(config), "config trace is not always on"),
+    check(!/video:\s*["']on["']/.test(config), "config video is not always on"),
+    check(
+      config.includes('devices["Desktop Chrome"]') && config.includes('devices["Pixel 7"]'),
+      "desktop and Pixel 7 projects"
+    ),
+    check(
+      !/devices\["(Desktop Firefox|Desktop Safari|Pixel 5)"\]/.test(config),
+      "no extra browser projects"
+    ),
+  ];
+}
+
 const ciNeeds = [
   ["playwright test", "runs playwright test"],
   ["playwright install --with-deps", "installs browsers with --with-deps"],
@@ -91,63 +87,83 @@ const ciNeeds = [
   ["test-results/**/*.png", "uploads screenshots"],
   ["test-results/**/*.webm", "uploads videos"],
 ];
-for (const [needle, label] of ciNeeds) {
-  check(ci.includes(needle), `ci ${label}`);
-}
-check(!ci.includes("--grep @smoke"), "ci does not limit pull requests to @smoke");
-const retention = [...ci.matchAll(/retention-days:\s*(\d+)/g)].map((match) => Number(match[1]));
-if (retention.length === 0) check(false, "ci retention-days is 7 to 14");
-else
-  check(
+
+function retentionFinding(ci) {
+  const retention = [...ci.matchAll(/retention-days:\s*(\d+)/g)].map((match) => Number(match[1]));
+  if (retention.length === 0) return check(false, "ci retention-days is 7 to 14");
+  return check(
     retention.every((days) => days >= 7 && days <= 14),
     `ci retention-days is 7 to 14 (found ${retention.join(", ")})`
   );
-const timeout = ci.match(/timeout-minutes:\s*(\d+)/);
-check(
-  Boolean(timeout) && Number(timeout[1]) >= 20 && Number(timeout[1]) <= 30,
-  "ci timeout-minutes is 20 to 30"
-);
+}
 
-const browserFixture = readFileSync(join(root, "playwright/fixtures/browser.ts"), "utf8");
-check(browserFixture.includes('page.on("console"'), "browser tests listen for console");
-check(browserFixture.includes('page.on("pageerror"'), "browser tests listen for pageerror");
+function ciFindings() {
+  const ci = read(".github/workflows/main.yml");
+  const timeout = ci.match(/timeout-minutes:\s*(\d+)/);
+  return [
+    ...ciNeeds.map(([needle, label]) => check(ci.includes(needle), `ci ${label}`)),
+    check(!ci.includes("--grep @smoke"), "ci does not limit pull requests to @smoke"),
+    retentionFinding(ci),
+    check(
+      Boolean(timeout) && Number(timeout[1]) >= 20 && Number(timeout[1]) <= 30,
+      "ci timeout-minutes is 20 to 30"
+    ),
+  ];
+}
 
-const signup = readFileSync(join(root, "playwright/e2e/auth/sign-up.spec.ts"), "utf8");
-const feed = readFileSync(join(root, "playwright/e2e/transaction-feed.spec.ts"), "utf8");
-check(signup.includes("test.step("), "sign-up journey uses test.step");
-check(feed.includes("test.step("), "transaction feed journey uses test.step");
-
-const apiHelpers = readFileSync(join(root, "playwright/helpers/api.ts"), "utf8");
-const baseFixture = readFileSync(join(root, "playwright/fixtures/base.ts"), "utf8");
-check(baseFixture.includes("runRecordedDeletes"), "tests delete records they create");
-check(apiHelpers.includes("/bankAccounts/"), "bank account deletes use the bank account route");
-check(apiHelpers.includes("/contacts/"), "contact deletes use the contact route");
-
-const e2eImports = walk(join(root, "playwright/e2e")).filter((file) =>
-  readFileSync(file, "utf8").includes("fixtures/base")
-);
-check(
-  e2eImports.length === 0,
-  e2eImports.length === 0
-    ? "browser specs import the browser fixture"
-    : `browser specs still import base: ${e2eImports.map(rel).join(", ")}`
-);
+function fixtureFindings() {
+  const browserFixture = read("playwright/fixtures/browser.ts");
+  const apiHelpers = read("playwright/helpers/api.ts");
+  const baseFixture = read("playwright/fixtures/base.ts");
+  return [
+    check(browserFixture.includes('page.on("console"'), "browser tests listen for console"),
+    check(browserFixture.includes('page.on("pageerror"'), "browser tests listen for pageerror"),
+    check(read("playwright/e2e/auth/sign-up.spec.ts").includes("test.step("), "sign-up journey uses test.step"),
+    check(
+      read("playwright/e2e/transaction-feed.spec.ts").includes("test.step("),
+      "transaction feed journey uses test.step"
+    ),
+    check(baseFixture.includes("runRecordedDeletes"), "tests delete records they create"),
+    check(apiHelpers.includes("/bankAccounts/"), "bank account deletes use the bank account route"),
+    check(apiHelpers.includes("/contacts/"), "contact deletes use the contact route"),
+  ];
+}
 
 // Specs may still read text they expect with getByText. Every other locator lives in a page object.
 const specSelector = /\.(getByRole|getByLabel|getByPlaceholder|getByTestId)\s*\(/;
-const specSelectors = walk(join(root, "playwright/e2e")).flatMap((file) =>
-  readFileSync(file, "utf8")
-    .split("\n")
-    .flatMap((line, index) => (specSelector.test(line) ? [`${rel(file)}:${index + 1}`] : []))
-);
-check(
-  specSelectors.length === 0,
-  specSelectors.length === 0
-    ? "e2e specs locate elements through page objects"
-    : `e2e specs locate elements directly at ${specSelectors.join(", ")}`
-);
 
-const failed = findings.filter((line) => line.startsWith("gap"));
-console.log(findings.join("\n"));
-console.log(`\n${findings.length - failed.length} passed, ${failed.length} failed`);
-process.exit(failed.length === 0 ? 0 : 1);
+function specFindings() {
+  const e2eFiles = walk(join(root, "playwright/e2e"));
+  const e2eImports = e2eFiles.filter((file) => readFileSync(file, "utf8").includes("fixtures/base"));
+  const specSelectors = e2eFiles.flatMap((file) => lineRefs(file, (line) => specSelector.test(line)));
+  return [
+    check(
+      e2eImports.length === 0,
+      e2eImports.length === 0
+        ? "browser specs import the browser fixture"
+        : `browser specs still import base: ${e2eImports.map(rel).join(", ")}`
+    ),
+    check(
+      specSelectors.length === 0,
+      specSelectors.length === 0
+        ? "e2e specs locate elements through page objects"
+        : `e2e specs locate elements directly at ${specSelectors.join(", ")}`
+    ),
+  ];
+}
+
+function main() {
+  const findings = [
+    ...bannedFindings(),
+    ...configFindings(),
+    ...ciFindings(),
+    ...fixtureFindings(),
+    ...specFindings(),
+  ];
+  const failed = findings.filter((line) => line.startsWith("gap"));
+  process.stdout.write(`${findings.join("\n")}\n`);
+  process.stdout.write(`\n${findings.length - failed.length} passed, ${failed.length} failed\n`);
+  process.exit(failed.length === 0 ? 0 : 1);
+}
+
+main();

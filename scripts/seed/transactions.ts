@@ -28,7 +28,7 @@ import { getFakeAmount } from "../../src/utils/transactionUtils";
 import { isPayment, paymentsPerUser, requestsPerUser } from "./config";
 import { getOtherRandomUser } from "./users";
 
-const requestScenarios: TransactionScenario[] = [
+const requestScenarios = [
   {
     status: TransactionStatus.pending,
     requestStatus: "pending",
@@ -41,9 +41,9 @@ const requestScenarios: TransactionScenario[] = [
     status: TransactionStatus.complete,
     requestStatus: "rejected",
   },
-];
+] satisfies TransactionScenario[];
 
-const paymentScenarios: TransactionScenario[] = [
+const paymentScenarios = [
   {
     status: TransactionStatus.pending,
     requestStatus: "",
@@ -52,7 +52,7 @@ const paymentScenarios: TransactionScenario[] = [
     status: TransactionStatus.complete,
     requestStatus: "",
   },
-];
+] satisfies TransactionScenario[];
 
 export const getRandomTransactions = (baseCount: number, baseTransactions: Transaction[]) =>
   compact(
@@ -61,6 +61,18 @@ export const getRandomTransactions = (baseCount: number, baseTransactions: Trans
       times(() => sample(baseTransactions), baseCount * 3)
     )
   ).slice(0, baseCount);
+
+const resolveRequestStatus = (
+  type: "payment" | "request",
+  status: TransactionStatus
+): TransactionRequestStatus | "" => {
+  if (type !== "request") return "";
+  if (status !== TransactionStatus.complete) return TransactionRequestStatus.pending;
+  return faker.helpers.arrayElement([
+    TransactionRequestStatus.accepted,
+    TransactionRequestStatus.rejected,
+  ]);
+};
 
 export const createTransaction = (
   type: "payment" | "request",
@@ -77,18 +89,7 @@ export const createTransaction = (
     TransactionStatus.complete,
   ]);
 
-  let requestStatus: TransactionRequestStatus | "" = "";
-
-  if (type === "request") {
-    requestStatus = TransactionRequestStatus.pending;
-
-    if (status === TransactionStatus.complete) {
-      requestStatus = faker.helpers.arrayElement([
-        TransactionRequestStatus.accepted,
-        TransactionRequestStatus.rejected,
-      ]);
-    }
-  }
+  const requestStatus = resolveRequestStatus(type, status);
 
   const requestResolvedAt =
     requestStatus === TransactionRequestStatus.pending

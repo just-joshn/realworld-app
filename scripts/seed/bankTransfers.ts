@@ -37,7 +37,7 @@ export const createSeedBankTransfers = (
   flattenDepth(
     2,
     map((user: User): BankTransfer[] => {
-      const userTransactions: Transaction[] = getTransactionsByUserId(seedTransactions, user.id);
+      const userTransactions = getTransactionsByUserId(seedTransactions, user.id);
       const bankAccounts = getBankAccountsByUserId(seedBankAccounts, user.id);
 
       const randomTransactions = getRandomTransactions(bankTransfersPerUser, userTransactions);

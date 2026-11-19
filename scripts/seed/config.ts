@@ -52,3 +52,5 @@ export const totalBankTransfers = userbaseSize * bankTransfersPerUser * 2;
 
 export const isPayment = (type: string) => type === "payment";
 export const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+
+export const avatarBaseUrl = "https://api.dicebear.com/9.x/pixel-art/svg?seed=";
