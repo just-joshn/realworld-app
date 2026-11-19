@@ -62,15 +62,19 @@ for (const [route, endpoint, header] of [
 }
 
 test("offers to create a transaction when there are none", async () => {
+  const requested = vi.fn();
   worker.use(
-    http.get(apiUrl("/transactions/public"), () =>
-      HttpResponse.json({
+    http.get(apiUrl("/transactions/public"), () => {
+      requested();
+      return HttpResponse.json({
         results: [],
         pageData: { page: 1, hasNextPages: false },
-      })
-    )
+      });
+    })
   );
   const screen = await renderWithRouter(<TransactionsContainer />);
+  // The empty state shows before the fetch starts; let the request finish before this test ends.
+  await expect.poll(() => requested.mock.calls.length).toBe(1);
   await expect.element(screen.getByRole("heading", { name: "No Transactions" })).toBeVisible();
   await screen.getByRole("link", { name: "Create A Transaction" }).click();
   await expect.poll(() => history.location.pathname).toBe("/transaction/new");

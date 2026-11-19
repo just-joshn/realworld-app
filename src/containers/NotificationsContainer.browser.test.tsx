@@ -27,7 +27,13 @@ function services() {
 
 test("explains when there are no notifications", async () => {
   worker.use(http.get(apiUrl("/notifications"), () => HttpResponse.json({ results: [] })));
-  const screen = await renderWithRouter(<NotificationsContainer {...services()} />);
+  const { authService, notificationsService } = services();
+  const screen = await renderWithRouter(
+    <NotificationsContainer authService={authService} notificationsService={notificationsService} />
+  );
+  // "No Notifications" also shows before the fetch starts. Wait for the fetch to finish so its
+  // request cannot outlive this test, where WebKit merges it with the next test's identical GET.
+  await expect.poll(() => notificationsService.getSnapshot().matches("success")).toBe(true);
   await expect.element(screen.getByText("No Notifications")).toBeVisible();
 });
 
