@@ -2,7 +2,7 @@
 
 This repository is Joshua's test automation portfolio built on a fork of the [Cypress Real World App](https://github.com/cypress-io/cypress-realworld-app). It demonstrates Vitest and Playwright testing methods, patterns, and workflows on a full-stack payment application built with React, XState, Express, TypeScript, and lowdb.
 
-This portfolio is a work in progress. Cypress was removed in PR #1, and PRs #3 to #14 added strict TypeScript, Bun, Oxlint, Vitest unit and browser suites, and Playwright E2E and API suites with page objects. In [`.github/workflows/main.yml`](./.github/workflows/main.yml), CI runs `bun run types`, `bun run lint`, `bun fmt --check`, `node scripts/check-playwright-practices.mjs`, `bun run build:ci`, and Playwright on pull requests and `develop`. Vitest jobs are not in the CI workflow yet.
+This portfolio is a work in progress. Cypress was removed in PR #1, and PRs #3 to #14 added strict TypeScript, Bun, Oxlint, Vitest unit and browser suites, and Playwright E2E and API suites with page objects. In [`.github/workflows/main.yml`](./.github/workflows/main.yml), CI runs `bun run types`, `bun run lint`, `bun run test:unit`, `bun fmt --check`, `node scripts/check-playwright-practices.mjs`, `bun run build:ci`, and Playwright on pull requests and `develop`. A separate `vitest` job runs `bun run test:component` and `bun run test:integration` on every push and pull request.
 
 ## Test layers
 
