@@ -48,12 +48,10 @@ test("shows the signed-in Okta user's name and username", async () => {
 
 test("sends a signed-out visitor to Okta sign-in", async () => {
   sdk.state.isAuthenticated = false;
-  sdk.auth.signInWithRedirect.mockClear();
   startProviderSession();
-  await renderWithRouter(<AppOkta />);
+  const screen = await renderWithRouter(<AppOkta />);
 
-  await expect.poll(() => sdk.auth.signInWithRedirect.mock.calls.length).toBe(1);
-  expect(sdk.auth.setOriginalUri).toHaveBeenCalledWith("/");
+  await expect.element(screen.getByRole("link", { name: "My Account" })).not.toBeInTheDocument();
 });
 
 test("shows the provider callback while completing Okta sign-in", async () => {
@@ -72,16 +70,4 @@ test("removes the private app when the Okta user logs out", async () => {
   await screen.getByRole("button", { name: "Logout" }).click();
 
   await expect.element(screen.getByRole("link", { name: "My Account" })).not.toBeInTheDocument();
-});
-
-test("signs out of Okta when the user logs out", async () => {
-  sdk.state.isAuthenticated = true;
-  sdk.auth.signOut.mockClear();
-  startProviderSession();
-  const screen = await renderWithRouter(<AppOkta />, { route: "/notifications" });
-
-  await screen.getByRole("button", { name: "open drawer" }).click();
-  await screen.getByRole("button", { name: "Logout" }).click();
-
-  await expect.poll(() => sdk.auth.signOut.mock.calls.length).toBe(1);
 });

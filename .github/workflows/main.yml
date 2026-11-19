@@ -27,9 +27,45 @@ jobs:
       - run: bun ci
       - run: bun run types
       - run: bun run lint
+      - run: bun run copy:mock:awsexports
+      - run: bun run test:unit
       - run: bun fmt --check
       - run: node scripts/check-playwright-practices.mjs
       - run: bun run build:ci
+
+  vitest:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun ci
+      - run: bun run copy:mock:awsexports
+
+      - name: Cache Playwright browsers
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Install Playwright OS dependencies
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
+      - run: bun run test:component
+      - run: bun run test:integration
 
   playwright:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
