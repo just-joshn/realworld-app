@@ -47,13 +47,12 @@ const UserSettingsContainer: React.FC<Props> = ({ authService }) => {
         container
         spacing={2}
         direction="row"
-        justifyContent="flex-start"
-        alignItems="flex-start"
+        sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
       >
-        <Grid item>
+        <Grid>
           <PersonalSettingsIllustration style={{ height: 200, width: 300 }} />
         </Grid>
-        <Grid item style={{ width: "50%" }}>
+        <Grid style={{ width: "50%" }}>
           {currentUser && <UserSettingsForm userProfile={currentUser} updateUser={updateUser} />}
         </Grid>
       </Grid>

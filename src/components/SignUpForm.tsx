@@ -198,7 +198,7 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
                 Sign Up
               </Button>
               <Grid container>
-                <Grid item>
+                <Grid>
                   <Link to="/signin">{"Have an account? Sign In"}</Link>
                 </Grid>
               </Grid>
@@ -206,7 +206,7 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
           )}
         </Formik>
       </div>
-      <Box mt={8}>
+      <Box sx={{ mt: 8 }}>
         <Footer />
       </Box>
     </StyledContainer>

@@ -44,16 +44,16 @@ const TransactionTitle: React.FC<{
       <Typography
         data-test={`transaction-sender-${transaction.id}`}
         className={classes.titleName}
-        display="inline"
         component="span"
+        sx={{ display: "inline" }}
       >
         {transaction.senderName}
       </Typography>
       <Typography
         data-test={`transaction-action-${transaction.id}`}
-        display="inline"
         className={classes.titleAction}
         component="span"
+        sx={{ display: "inline" }}
       >
         {isRequestTransaction(transaction)
           ? isAcceptedRequestTransaction(transaction)
@@ -64,8 +64,8 @@ const TransactionTitle: React.FC<{
       <Typography
         data-test={`transaction-receiver-${transaction.id}`}
         className={classes.titleName}
-        display="inline"
         component="span"
+        sx={{ display: "inline" }}
       >
         {transaction.receiverName}
       </Typography>

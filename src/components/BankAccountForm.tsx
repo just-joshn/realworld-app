@@ -135,10 +135,9 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
             container
             spacing={2}
             direction="row"
-            justifyContent="flex-start"
-            alignItems="flex-start"
+            sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
           >
-            <Grid item>
+            <Grid>
               <Button
                 type="submit"
                 fullWidth

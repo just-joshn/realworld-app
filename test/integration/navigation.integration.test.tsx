@@ -60,7 +60,7 @@ test("on a phone, a user signs out from the menu", async () => {
 test("the notification bell opens the notifications page", async () => {
   const screen = await renderSignedIn({ route: "/user/settings" });
 
-  await screen.getByRole("link", { name: "8" }).click();
+  await screen.getByRole("link", { name: "8 unread notifications" }).click();
 
   await expect.element(screen.getByRole("heading", { name: "Notifications" })).toBeVisible();
 });

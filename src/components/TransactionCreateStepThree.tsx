@@ -40,26 +40,30 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
   return (
     <StyledPaper className={classes.paper} elevation={0}>
       <Box
-        display="flex"
-        justifyContent="center"
-        width="95%"
-        min-height={200}
-        height={200}
         style={{ paddingTop: "5%" }}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          width: "95%",
+          minHeight: 200,
+          height: 200,
+        }}
       >
         <Grid
           container
           direction="row"
-          justifyContent="space-around"
-          alignItems="center"
           spacing={4}
+          sx={{ justifyContent: "space-around", alignItems: "center" }}
         >
-          <Grid item>
-            <Grid container direction="column" justifyContent="flex-start" alignItems="center">
-              <Grid item>
+          <Grid>
+            <Grid
+              container
+              sx={{ justifyContent: "flex-start", alignItems: "center", flexDirection: "column" }}
+            >
+              <Grid>
                 <Avatar src={receiver.avatar} />
               </Grid>
-              <Grid item>
+              <Grid>
                 <Typography component="h2" variant="h6" color="primary" gutterBottom>
                   {receiver.firstName} {receiver.lastName}
                 </Typography>
@@ -69,14 +73,11 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
         </Grid>
       </Box>
       <Box
-        display="flex"
-        justifyContent="center"
-        width="100%"
-        height="100"
         style={{ paddingBottom: "5%" }}
+        sx={{ display: "flex", justifyContent: "center", width: "100%", height: "100" }}
       >
-        <Grid container direction="row" justifyContent="center" alignItems="center">
-          <Grid item>
+        <Grid container direction="row" sx={{ justifyContent: "center", alignItems: "center" }}>
+          <Grid>
             <Typography component="h2" variant="h6" color="primary" gutterBottom>
               {transactionDetails.transactionType === "payment" ? "Paid " : "Requested "}
               {transactionDetails.amount &&
@@ -87,14 +88,15 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
         </Grid>
       </Box>
       <Box
-        display="flex"
-        justifyContent="center"
-        width="100%"
-        height="100"
         style={{ paddingBottom: "5%" }}
+        sx={{ display: "flex", justifyContent: "center", width: "100%", height: "100" }}
       >
-        <Grid container direction="row" justifyContent="space-around" alignItems="center">
-          <Grid item>
+        <Grid
+          container
+          direction="row"
+          sx={{ justifyContent: "space-around", alignItems: "center" }}
+        >
+          <Grid>
             <Button
               variant="contained"
               size="small"
@@ -105,7 +107,7 @@ const TransactionCreateStepThree: React.FC<TransactionCreateStepThreeProps> = ({
               Return To Transactions
             </Button>
           </Grid>
-          <Grid item>
+          <Grid>
             <Button
               variant="contained"
               size="small"

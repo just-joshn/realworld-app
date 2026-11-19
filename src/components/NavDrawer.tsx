@@ -223,11 +223,10 @@ const NavDrawer: React.FC<Props> = ({
       <Grid
         container
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
         className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+        sx={{ justifyContent: "space-between", alignItems: "center" }}
       >
-        <Grid item>
+        <Grid>
           {currentUser && (
             <Avatar
               className={classes.avatar}
@@ -236,7 +235,7 @@ const NavDrawer: React.FC<Props> = ({
             />
           )}
         </Grid>
-        <Grid item>
+        <Grid>
           {currentUser && (
             <>
               <Typography
@@ -257,16 +256,15 @@ const NavDrawer: React.FC<Props> = ({
             </>
           )}
         </Grid>
-        <Grid item style={{ width: "30%" }}></Grid>
+        <Grid style={{ width: "30%" }}></Grid>
       </Grid>
       <Grid
         container
         direction="row"
-        justifyContent="space-between"
-        alignItems="center"
         className={drawerOpen ? classes.userProfile : classes.userProfileHidden}
+        sx={{ justifyContent: "space-between", alignItems: "center" }}
       >
-        <Grid item>
+        <Grid>
           {currentUser && isAppUser(currentUser) && (
             <>
               <Typography
@@ -283,16 +281,16 @@ const NavDrawer: React.FC<Props> = ({
             </>
           )}
         </Grid>
-        <Grid item>
+        <Grid>
           <Divider />
         </Grid>
-        <Grid item>
+        <Grid>
           <List>{mainListItems(toggleDrawer, showTemporaryDrawer)}</List>
         </Grid>
-        <Grid item>
+        <Grid>
           <Divider />
         </Grid>
-        <Grid item>
+        <Grid>
           <List>{secondaryListItems(signOut)}</List>
         </Grid>
       </Grid>

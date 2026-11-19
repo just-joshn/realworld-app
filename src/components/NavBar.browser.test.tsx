@@ -23,7 +23,7 @@ test("opens notifications with the unread count", async () => {
   const screen = await renderWithRouter(
     <NavBar drawerOpen={false} toggleDrawer={vi.fn()} notificationsService={service} />
   );
-  await expect.element(screen.getByRole("link", { name: "1", exact: true })).toBeVisible();
-  await screen.getByRole("link", { name: "1", exact: true }).click();
+  await expect.element(screen.getByRole("link", { name: "1 unread notifications" })).toBeVisible();
+  await screen.getByRole("link", { name: "1 unread notifications" }).click();
   await expect.poll(() => history.location.pathname).toBe("/notifications");
 });

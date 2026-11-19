@@ -69,7 +69,7 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
         {userOnboardingState.matches("stepThree") && "Finished"}
       </DialogTitle>
       <DialogContent data-test="user-onboarding-dialog-content">
-        <Box display="flex" alignItems="center" justifyContent="center">
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
           {userOnboardingState.matches("stepOne") && (
             <>
               <NavigatorIllustration />
@@ -104,8 +104,8 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
         </Box>
       </DialogContent>
       <DialogActions>
-        <Grid container justifyContent="space-between">
-          <Grid item>
+        <Grid container sx={{ justifyContent: "space-between" }}>
+          <Grid>
             <Button
               style={{ paddingRight: "80%" }}
               onClick={() => {
@@ -117,7 +117,7 @@ const UserOnboardingContainer: React.FC<Props> = ({ authService, bankAccountsSer
               Logout
             </Button>
           </Grid>
-          <Grid item>
+          <Grid>
             {!userOnboardingState.matches("stepTwo") && (
               <Button
                 onClick={() => {

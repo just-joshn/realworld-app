@@ -28,25 +28,20 @@ const UserListItem: React.FC<UserListItemProps> = ({ user, setReceiver }) => {
               component={"span"}
               container
               direction="row"
-              justifyContent="flex-start"
-              alignItems="flex-start"
               spacing={1}
+              sx={{ justifyContent: "flex-start", alignItems: "flex-start" }}
             >
-              <Grid item component={"span"}>
+              <Grid component={"span"}>
                 <b>U: </b>
                 {user.username}
               </Grid>
-              <Grid item component={"span"}>
-                &bull;
-              </Grid>
-              <Grid item component={"span"}>
+              <Grid component={"span"}>&bull;</Grid>
+              <Grid component={"span"}>
                 <b>E: </b>
                 {user.email}
               </Grid>
-              <Grid item component={"span"}>
-                &bull;
-              </Grid>
-              <Grid item component={"span"}>
+              <Grid component={"span"}>&bull;</Grid>
+              <Grid component={"span"}>
                 <b>P: </b>
                 {user.phoneNumber}
               </Grid>

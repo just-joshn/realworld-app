@@ -93,12 +93,12 @@ for (const mobile of [false, true]) {
     await expect.element(screen.getByRole("heading", { name: "No Transactions" })).toBeVisible();
     await screen.getByRole("button", { name: "Amount: $0 - $1,000" }).click();
     const minAmount = screen.getByRole("slider").first();
-    // The visually hidden range input needs a forced click, which skips Playwright's stability
-    // check, so first wait for the filter to finish sliding on screen.
+    // The range input is visually hidden, so focus it for the keyboard instead of clicking it.
+    // First wait for the filter to finish sliding on screen.
     await expect
       .poll(() => minAmount.element().getBoundingClientRect().bottom <= window.innerHeight)
       .toBe(true);
-    await minAmount.click({ force: true });
+    minAmount.element().focus();
     await userEvent.keyboard("{ArrowRight}");
     await expect
       .poll(() => queries.mock.calls.some(([q]) => Number(q["amountMin"]) > 0))

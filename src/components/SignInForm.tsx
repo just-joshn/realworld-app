@@ -169,8 +169,8 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs></Grid>
-                <Grid item>
+                <Grid size={{ xs: "grow" }}></Grid>
+                <Grid>
                   <Link data-test="signup" to="/signup">
                     {"Don't have an account? Sign Up"}
                   </Link>
@@ -180,7 +180,7 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
           )}
         </Formik>
       </div>
-      <Box mt={8}>
+      <Box sx={{ mt: 8 }}>
         <Footer />
       </Box>
     </StyledContainer>

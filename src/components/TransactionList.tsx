@@ -67,16 +67,14 @@ const TransactionList: React.FC<TransactionListProps> = ({
         <EmptyList entity="Transactions">
           <Grid
             container
-            direction="column"
-            justifyContent="center"
-            alignItems="center"
             style={{ width: "100%" }}
             spacing={2}
+            sx={{ justifyContent: "center", alignItems: "center", flexDirection: "column" }}
           >
-            <Grid item>
+            <Grid>
               <TransferMoneyIllustration style={{ height: 200, width: 300, marginBottom: 30 }} />
             </Grid>
-            <Grid item>
+            <Grid>
               {showCreateButton && (
                 <Button
                   data-test="transaction-list-empty-create-transaction-button"
