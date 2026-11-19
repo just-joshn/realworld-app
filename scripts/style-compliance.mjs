@@ -256,7 +256,9 @@ function scanFile(path) {
       if (
         /^\s*(export\s+)?(async\s+)?function\s+/.test(line) ||
         /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s*)?\(/.test(line) ||
-        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line)
+        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*(async\s+)?function/.test(line) ||
+        // lodash/fp curry hides the real arrow; count it as a function start
+        /^\s*(export\s+)?const\s+[A-Za-z_$][\w$]*\s*=\s*curry\s*\(/.test(line)
       ) {
         fnStarts.push(i);
       }

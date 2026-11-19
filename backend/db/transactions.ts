@@ -8,11 +8,14 @@ import {
   curry,
   get,
   constant,
-  filter,
-  inRange,
 } from "lodash/fp";
-import { isWithinInterval } from "date-fns";
 import shortid from "shortid";
+import {
+  transactionsWithinAmountRange,
+  transactionsWithinDateRange,
+} from "./transaction-ranges";
+
+export { transactionsWithinAmountRange, transactionsWithinDateRange };
 import type {
   Transaction,
   User,
@@ -41,7 +44,14 @@ import {
   isRequestTransaction,
 } from "../../src/utils/transactionUtils";
 import { required } from "../required";
-import { TRANSACTION_TABLE, db, getBy, insertRow, persist, select } from "./store";
+import {
+  TRANSACTION_TABLE,
+  db,
+  getBy,
+  insertRow,
+  persist,
+  select,
+} from "./store";
 import { getFullNameForUser, getUserById, updateUserById } from "./users";
 import { getContactIdsForUser } from "./contacts";
 import { createBankTransfer } from "./banktransfers";
@@ -54,16 +64,21 @@ export const getTransactionBy = (key: string, value: unknown) =>
 
 export const getTransactionById = (id: string) => getTransactionBy("id", id);
 
-export const getTransactionsByObj = (query: object) => select(db.data.transactions, query);
+export const getTransactionsByObj = (query: object) =>
+  select(db.data.transactions, query);
 
 export const getTransactionByIdForApi = (id: string) =>
-  formatTransactionForApiResponse(required(getTransactionBy("id", id), "transaction"));
+  formatTransactionForApiResponse(
+    required(getTransactionBy("id", id), "transaction"),
+  );
 
 export const getTransactionsForUserForApi = (userId: string, query?: object) =>
-  formatTransactionsForApiResponse(getTransactionsForUserByObj(userId, query ?? {}));
+  formatTransactionsForApiResponse(
+    getTransactionsForUserByObj(userId, query ?? {}),
+  );
 
 export const formatTransactionForApiResponse = (
-  transaction: Transaction
+  transaction: Transaction,
 ): TransactionResponseItem => {
   const receiver = required(getUserById(transaction.receiverId), "receiver");
   const sender = required(getUserById(transaction.senderId), "sender");
@@ -85,105 +100,81 @@ export const formatTransactionForApiResponse = (
 };
 
 export const formatTransactionsForApiResponse = (
-  transactions: Transaction[]
+  transactions: Transaction[],
 ): TransactionResponseItem[] =>
   orderBy(
     [(transaction: Transaction) => new Date(transaction.modifiedAt)],
     ["desc"],
-    transactions.map((transaction) => formatTransactionForApiResponse(transaction))
+    transactions.map((transaction) =>
+      formatTransactionForApiResponse(transaction),
+    ),
   );
 
-export const getAllTransactionsForUserByObj = curry((userId: string, query: object | undefined) => {
-  const queryWithoutFilterFields = query && getQueryWithoutFilterFields(query);
+export const getAllTransactionsForUserByObj = curry(
+  (userId: string, query: object | undefined) => {
+    const queryWithoutFilterFields =
+      query && getQueryWithoutFilterFields(query);
 
-  const queryFields = queryWithoutFilterFields || query;
+    const queryFields = queryWithoutFilterFields || query;
 
-  const userTransactions = flatMap(getTransactionsByObj)([
-    {
-      receiverId: userId,
-      ...queryFields,
-    },
-    {
-      senderId: userId,
-      ...queryFields,
-    },
-  ]);
+    const userTransactions = flatMap(getTransactionsByObj)([
+      {
+        receiverId: userId,
+        ...queryFields,
+      },
+      {
+        senderId: userId,
+        ...queryFields,
+      },
+    ]);
 
-  if (query && (hasDateQueryFields(query) || hasAmountQueryFields(query))) {
-    const { dateRangeStart, dateRangeEnd } = getDateQueryFields(query);
-    const { amountMin, amountMax } = getAmountQueryFields(query);
+    if (query && (hasDateQueryFields(query) || hasAmountQueryFields(query))) {
+      const { dateRangeStart, dateRangeEnd } = getDateQueryFields(query);
+      const { amountMin, amountMax } = getAmountQueryFields(query);
 
-    return transactionsWithinAmountRange(
-      amountMin,
-      amountMax,
-      transactionsWithinDateRange(dateRangeStart, dateRangeEnd, userTransactions)
-    );
-  }
-  return userTransactions;
-});
-
-export const transactionsWithinAmountRange = curry(
-  (
-    amountMin: number | string | undefined,
-    amountMax: number | string | undefined,
-    transactions: Transaction[]
-  ) => {
-    if (amountMin === undefined || amountMax === undefined) {
-      return transactions;
+      return transactionsWithinAmountRange(
+        amountMin,
+        amountMax,
+        transactionsWithinDateRange(
+          dateRangeStart,
+          dateRangeEnd,
+          userTransactions,
+        ),
+      );
     }
-
-    return filter(
-      (transaction: Transaction) =>
-        inRange(Number(amountMin), Number(amountMax), transaction.amount),
-      transactions
-    );
-  }
+    return userTransactions;
+  },
 );
 
-export const transactionsWithinDateRange = curry(
-  (
-    dateRangeStart: string | undefined,
-    dateRangeEnd: string | undefined,
-    transactions: Transaction[]
-  ) => {
-    if (dateRangeStart === undefined || dateRangeEnd === undefined) {
-      return transactions;
-    }
-
-    return filter(
-      (transaction: Transaction) =>
-        isWithinInterval(new Date(transaction.createdAt), {
-          start: new Date(dateRangeStart),
-          end: new Date(dateRangeEnd),
-        }),
-      transactions
-    );
-  }
+export const getTransactionsForUserByObj = curry(
+  (userId: string, query: object): Transaction[] =>
+    uniqBy("id", getAllTransactionsForUserByObj(userId, query)),
 );
 
-export const getTransactionsForUserByObj = curry((userId: string, query: object): Transaction[] =>
-  uniqBy("id", getAllTransactionsForUserByObj(userId, query))
-);
-
-
-export const getTransactionsForUserContacts = (userId: string, query?: object) =>
+export const getTransactionsForUserContacts = (
+  userId: string,
+  query?: object,
+) =>
   uniqBy(
     "id",
     flatMap(
       (contactId: string) => getTransactionsForUserForApi(contactId, query),
-      getContactIdsForUser(userId)
-    )
+      getContactIdsForUser(userId),
+    ),
   );
 
-export const getTransactionIds = (transactions: Transaction[]) => map("id", transactions);
+export const getTransactionIds = (transactions: Transaction[]) =>
+  map("id", transactions);
 
-export const getContactsTransactionIds = (userId: string): Transaction["id"][] =>
+export const getContactsTransactionIds = (
+  userId: string,
+): Transaction["id"][] =>
   flow(getTransactionsForUserContacts, getTransactionIds)(userId);
 
 export const nonContactPublicTransactions = (userId: string): Transaction[] => {
   const contactsTransactionIds = getContactsTransactionIds(userId);
   return getAllPublicTransactions().filter(
-    (transaction) => !contactsTransactionIds.includes(transaction.id)
+    (transaction) => !contactsTransactionIds.includes(transaction.id),
   );
 };
 
@@ -195,7 +186,10 @@ export const getPublicTransactionsDefaultSort = (userId: string) => ({
   publicTransactions: getNonContactPublicTransactionsForApi(userId),
 });
 
-export const getPublicTransactionsByQuery = (userId: string, query: TransactionQueryPayload) => {
+export const getPublicTransactionsByQuery = (
+  userId: string,
+  query: TransactionQueryPayload,
+) => {
   if (hasDateQueryFields(query) || hasAmountQueryFields(query)) {
     const { dateRangeStart, dateRangeEnd } = getDateQueryFields(query);
     const { amountMin, amountMax } = getAmountQueryFields(query);
@@ -208,8 +202,8 @@ export const getPublicTransactionsByQuery = (userId: string, query: TransactionQ
         transactionsWithinDateRange(
           dateRangeStart,
           dateRangeEnd,
-          getNonContactPublicTransactionsForApi(userId)
-        )
+          getNonContactPublicTransactionsForApi(userId),
+        ),
       ),
     };
   } else {
@@ -230,7 +224,7 @@ export const debitPayAppBalance = (user: User, transaction: Transaction) => {
       getTransferAmount(user),
       createBankTransferWithdrawal(user, transaction),
       resetPayAppBalance,
-      savePayAppBalance(user)
+      savePayAppBalance(user),
     )(transaction);
   }
 };
@@ -247,21 +241,49 @@ export const createBankTransferWithdrawal = curry(
       amount: transferAmount,
       transactionId: transaction.id,
       type: BankTransferType.withdrawal,
-    })
+    }),
 );
 
 export const savePayAppBalance = curry((sender: User, balance: number) => {
   updateUserById(get("id", sender), { balance });
 });
 
+function applyCreateTransactionEffects(
+  transaction: Transaction,
+  sender: User,
+  receiver: User,
+): void {
+  if (isPayment(transaction)) {
+    debitPayAppBalance(sender, transaction);
+    creditPayAppBalance(receiver, transaction);
+    updateTransactionById(transaction.id, {
+      status: TransactionStatus.complete,
+    });
+    createPaymentNotification(
+      transaction.receiverId,
+      transaction.id,
+      PaymentNotificationStatus.received,
+    );
+    return;
+  }
+  createPaymentNotification(
+    transaction.receiverId,
+    transaction.id,
+    PaymentNotificationStatus.requested,
+  );
+}
+
 export const createTransaction = (
   userId: User["id"],
   transactionType: "payment" | "request",
   transactionDetails: Omit<TransactionPayload, "privacyLevel"> &
-    Partial<Pick<TransactionPayload, "privacyLevel">>
+    Partial<Pick<TransactionPayload, "privacyLevel">>,
 ): Transaction => {
   const sender = required(getUserById(userId), "sender");
-  const receiver = required(getUserById(transactionDetails.receiverId), "receiver");
+  const receiver = required(
+    getUserById(transactionDetails.receiverId),
+    "receiver",
+  );
   const transaction: Transaction = {
     id: shortid(),
     uuid: v4(),
@@ -272,37 +294,26 @@ export const createTransaction = (
     senderId: userId,
     privacyLevel: transactionDetails.privacyLevel ?? sender.defaultPrivacyLevel,
     status: TransactionStatus.pending,
-    ...(transactionType === "request" ? { requestStatus: TransactionRequestStatus.pending } : {}),
+    ...(transactionType === "request"
+      ? { requestStatus: TransactionRequestStatus.pending }
+      : {}),
     createdAt: new Date(),
     modifiedAt: new Date(),
   };
 
   insertRow(TRANSACTION_TABLE, transaction);
-
-  if (isPayment(transaction)) {
-    debitPayAppBalance(sender, transaction);
-    creditPayAppBalance(receiver, transaction);
-    updateTransactionById(transaction.id, {
-      status: TransactionStatus.complete,
-    });
-    createPaymentNotification(
-      transaction.receiverId,
-      transaction.id,
-      PaymentNotificationStatus.received
-    );
-  } else {
-    createPaymentNotification(
-      transaction.receiverId,
-      transaction.id,
-      PaymentNotificationStatus.requested
-    );
-  }
-
+  applyCreateTransactionEffects(transaction, sender, receiver);
   return transaction;
 };
 
-export const updateTransactionById = (transactionId: string, edits: Partial<Transaction>) => {
-  const transaction = required(getTransactionBy("id", transactionId), "transaction");
+export const updateTransactionById = (
+  transactionId: string,
+  edits: Partial<Transaction>,
+) => {
+  const transaction = required(
+    getTransactionBy("id", transactionId),
+    "transaction",
+  );
   const { senderId, receiverId } = transaction;
   const sender = required(getUserById(senderId), "sender");
   const receiver = required(getUserById(receiverId), "receiver");
@@ -322,14 +333,14 @@ export const updateTransactionById = (transactionId: string, edits: Partial<Tran
     createPaymentNotification(
       transaction.senderId,
       transaction.id,
-      PaymentNotificationStatus.received
+      PaymentNotificationStatus.received,
     );
   }
 
   db.data = {
     ...db.data,
     transactions: db.data.transactions.map((row) =>
-      row.id === transactionId ? { ...row, ...nextEdits } : row
+      row.id === transactionId ? { ...row, ...nextEdits } : row,
     ),
   };
   persist();
@@ -339,10 +350,11 @@ export const getAllTransactions = () => db.data.transactions;
 
 export const getAllPublicTransactions = () =>
   db.data.transactions.filter(
-    (transaction) => transaction.privacyLevel === DefaultPrivacyLevel.public
+    (transaction) => transaction.privacyLevel === DefaultPrivacyLevel.public,
   );
 
 export const getTransactionsBy = (key: string, value: string) =>
   select(db.data.transactions, { [key]: value });
 
-export const getTransactionsByUserId = (userId: string) => getTransactionsBy("receiverId", userId);
+export const getTransactionsByUserId = (userId: string) =>
+  getTransactionsBy("receiverId", userId);

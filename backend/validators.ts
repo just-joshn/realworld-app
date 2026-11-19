@@ -1,16 +1,9 @@
-import { body, check, oneOf, query } from "express-validator";
+import { body, check, query } from "express-validator";
 import { isValid } from "shortid";
-import {
-  TransactionStatus,
-  TransactionRequestStatus,
-  DefaultPrivacyLevel,
-  NotificationsType,
-} from "../src/models";
-import { includes } from "lodash/fp";
+import { NotificationsType } from "../src/models";
+export * from "./validators-transactions";
+export * from "./validators-users";
 
-const TransactionStatusValues = Object.values(TransactionStatus);
-const RequestStatusValues = Object.values(TransactionRequestStatus);
-const DefaultPrivacyLevelValues = Object.values(DefaultPrivacyLevel);
 const NotificationsTypeValues = Object.values(NotificationsType);
 
 const isShortId = (value: string) => isValid(value);
@@ -18,75 +11,6 @@ const isShortId = (value: string) => isValid(value);
 export const shortIdValidation = (key: string) => check(key).custom(isShortId);
 
 export const searchValidation = query("q").exists();
-
-export const userFieldsValidator = oneOf([
-  check("firstName").exists(),
-  check("lastName").exists(),
-  check("password").exists(),
-  check("balance").exists(),
-  check("avatar").exists(),
-  check("defaultPrivacyLevel").exists(),
-]);
-
-export const isBankAccountValidator = [
-  body("bankName").isString().trim(),
-  body("accountNumber").isString().trim(),
-  body("routingNumber").isString().trim(),
-];
-
-export const isUserValidator = [
-  check("firstName").optional({ checkFalsy: true }).isString().trim(),
-  check("lastName").optional({ checkFalsy: true }).isString().trim(),
-  check("username").optional({ checkFalsy: true }).isString().trim(),
-  check("password").optional({ checkFalsy: true }).isString().trim(),
-  check("email").optional({ checkFalsy: true }).isString().trim(),
-  check("phoneNumber").optional({ checkFalsy: true }).isString().trim(),
-  check("balance").optional({ checkFalsy: true }).isNumeric().trim(),
-  check("avatar").optional({ checkFalsy: true }).isURL().trim(),
-  check("defaultPrivacyLevel")
-    .optional({ checkFalsy: true })
-    .isIn(["public", "private", "contacts"]),
-];
-
-export const sanitizeTransactionStatus = query("status").customSanitizer((value: unknown) => {
-  if (includes(value, TransactionStatusValues)) {
-    return value;
-  }
-  return;
-});
-
-export const sanitizeRequestStatus = query("requestStatus").customSanitizer((value: unknown) => {
-  if (includes(value, RequestStatusValues)) {
-    return value;
-  }
-  return;
-});
-
-export const isTransactionQSValidator = [
-  query("status").isIn(TransactionStatusValues).optional().trim(),
-  query("requestStatus").optional({ checkFalsy: true }).isIn(RequestStatusValues).trim(),
-  query("receiverId").optional({ checkFalsy: true }).isString().trim(),
-  query("senderId").optional({ checkFalsy: true }).isString().trim(),
-  query("rangeStartTs").optional({ checkFalsy: true }).isString().trim(),
-  query("rangeEndTs").optional({ checkFalsy: true }).isString().trim(),
-  query("amountMax").optional({ checkFalsy: true }).isNumeric().trim(),
-  query("amountMin").optional({ checkFalsy: true }).isNumeric().trim(),
-];
-
-export const isTransactionPayloadValidator = [
-  body("transactionType").isIn(["payment", "request"]).trim(),
-  body("privacyLevel").optional().isIn(DefaultPrivacyLevelValues).trim(),
-  body("source").optional().isString().trim(),
-  body("receiverId").isString().trim(),
-  body("description").isString().trim(),
-  body("amount").isNumeric().trim().toFloat(),
-];
-
-export const isTransactionPatchValidator = [body("requestStatus").isIn(RequestStatusValues)];
-
-export const isTransactionPublicQSValidator = [
-  query("order").optional({ checkFalsy: true }).isIn(["default"]),
-];
 
 export const isCommentValidator = body("content").isString().trim();
 

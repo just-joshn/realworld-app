@@ -1,27 +1,12 @@
 {
-  "filesScanned": 273,
+  "filesScanned": 277,
   "violationCount": 0,
-  "noteCount": 20,
+  "noteCount": 17,
   "byRule": {},
   "overMaxFiles": [],
   "overWarnFiles": [],
   "violations": [],
   "notes": [
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/database-schema.ts",
-      "detail": "fn near L17 spans ~81 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/validators.ts",
-      "detail": "fn near L18 spans ~97 lines > 50"
-    },
-    {
-      "rule": "fn-size-warn",
-      "path": "backend/db/transactions.ts",
-      "detail": "fn near L87 spans ~82 lines > 50"
-    },
     {
       "rule": "fn-size-warn",
       "path": "src/components/SkeletonList.tsx",
