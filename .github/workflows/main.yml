@@ -37,7 +37,7 @@ jobs:
   vitest:
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    # Browsers and their OS deps are baked in. Keep the tag equal to @playwright/test.
+    # Browsers and their OS deps are baked in. check-playwright-practices keeps the tag equal to @playwright/test.
     container:
       image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --user 1001
@@ -58,12 +58,6 @@ jobs:
       - run: bun ci
       - run: bun run copy:mock:awsexports
 
-      - name: Check image matches @playwright/test
-        run: |
-          image=$(node -p "require('/ms-playwright-agent/node_modules/playwright-core/package.json').version")
-          repo=$(node -p "require('@playwright/test/package.json').version")
-          test "$image" = "$repo" || { echo "::error::Playwright image is v$image but @playwright/test is $repo"; exit 1; }
-
       - run: bun run test:component
       - run: bun run test:integration
 
@@ -71,7 +65,7 @@ jobs:
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    # Browsers and their OS deps are baked in. Keep the tag equal to @playwright/test.
+    # Browsers and their OS deps are baked in. check-playwright-practices keeps the tag equal to @playwright/test.
     container:
       image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --user 1001
@@ -90,12 +84,6 @@ jobs:
           echo "$HOME/.bun-npm/bin" >> "$GITHUB_PATH"
 
       - run: bun ci
-
-      - name: Check image matches @playwright/test
-        run: |
-          image=$(node -p "require('/ms-playwright-agent/node_modules/playwright-core/package.json').version")
-          repo=$(node -p "require('@playwright/test/package.json').version")
-          test "$image" = "$repo" || { echo "::error::Playwright image is v$image but @playwright/test is $repo"; exit 1; }
 
       - name: Run Playwright tests
         run: npx playwright test --grep-invert @flaky

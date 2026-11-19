@@ -79,8 +79,6 @@ function configFindings() {
 
 const ciNeeds = [
   ["playwright test", "runs playwright test"],
-  ["playwright install --with-deps", "installs browsers with --with-deps"],
-  ["~/.cache/ms-playwright", "caches Playwright browsers"],
   ["timeout-minutes:", "sets timeout-minutes"],
   ["cancel-in-progress: true", "cancels superseded runs"],
   ["!cancelled()", "uploads the report unless cancelled"],
@@ -100,6 +98,16 @@ function retentionFinding(ci) {
   );
 }
 
+/** Browser jobs run in the Playwright image; every tag must equal the installed @playwright/test. */
+function imageFinding(ci) {
+  const expected = JSON.parse(read("package.json")).devDependencies["@playwright/test"];
+  const tags = [...ci.matchAll(/mcr\.microsoft\.com\/playwright:v([\d.]+)-/g)].map((m) => m[1]);
+  return check(
+    tags.length > 0 && tags.every((tag) => tag === expected),
+    `ci runs browsers in the Playwright image matching @playwright/test ${expected} (found ${tags.join(", ") || "none"})`
+  );
+}
+
 function ciFindings() {
   const ci = read(".github/workflows/main.yml");
   const timeout = ci.match(/timeout-minutes:\s*(\d+)/);
@@ -107,6 +115,7 @@ function ciFindings() {
     ...ciNeeds.map(([needle, label]) => check(ci.includes(needle), `ci ${label}`)),
     check(!ci.includes("--grep @smoke"), "ci does not limit pull requests to @smoke"),
     retentionFinding(ci),
+    imageFinding(ci),
     check(
       Boolean(timeout) && Number(timeout[1]) >= 20 && Number(timeout[1]) <= 30,
       "ci timeout-minutes is 20 to 30"
