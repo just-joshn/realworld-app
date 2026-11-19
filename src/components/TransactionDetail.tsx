@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import { Button, Typography, Grid, Avatar, Paper, IconButton } from "@mui/material";
 import { AvatarGroup } from "@mui/material";
 import { ThumbUpAltOutlined as LikeIcon, CommentRounded as CommentIcon } from "@mui/icons-material";
@@ -28,7 +28,7 @@ const classes = {
   greenButton: `${PREFIX}-greenButton`,
 };
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
+const styledPaperStyles1 = (theme: Theme) => ({
   [`&.${classes.paper}`]: {
     padding: theme.spacing(2),
     display: "flex",
@@ -60,7 +60,9 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   [`& .${classes.avatarGroup}`]: {
     margin: 10,
   },
+});
 
+const styledPaperStyles2 = (theme: Theme) => ({
   [`& .${classes.redButton}`]: {
     backgrounColor: "red",
     color: "#ffffff",
@@ -90,6 +92,11 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
       boxShadow: "none",
     },
   },
+});
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  ...styledPaperStyles1(theme),
+  ...styledPaperStyles2(theme),
 }));
 
 type TransactionProps = {

@@ -74,7 +74,7 @@ type SignUpFieldConfig = {
   autoFocus?: boolean;
 };
 
-const SIGN_UP_FIELDS: SignUpFieldConfig[] = [
+const SIGN_UP_FIELDS: ReadonlyArray<SignUpFieldConfig> = [
   {
     name: "firstName",
     label: "First Name",

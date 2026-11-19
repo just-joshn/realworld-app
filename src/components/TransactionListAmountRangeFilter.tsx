@@ -140,64 +140,71 @@ const AmountRangePicker: React.FC<AmountRangePickerProps> = ({
   );
 };
 
+const INITIAL_AMOUNT_RANGE = [0, 100];
+
+function useAmountRangeFilter({
+  filterAmountRange,
+  resetAmountRange,
+}: Pick<TransactionListAmountRangeFilterProps, "filterAmountRange" | "resetAmountRange">) {
+  const [value, setValue] = React.useState<number[]>(INITIAL_AMOUNT_RANGE);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLDivElement | null>(null);
+
+  return {
+    value,
+    anchorEl,
+    open: (event: React.MouseEvent<HTMLDivElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+    close: () => {
+      setAnchorEl(null);
+    },
+    clear: () => {
+      setValue(INITIAL_AMOUNT_RANGE);
+      resetAmountRange();
+    },
+    change: (_event: Event, amountRange: number | number[]) => {
+      if (!Array.isArray(amountRange)) return;
+      const minimum = amountRange[0];
+      const maximum = amountRange.at(-1);
+      if (minimum === undefined || maximum === undefined) return;
+      filterAmountRange({
+        amountMin: padAmountWithZeros(minimum),
+        amountMax: padAmountWithZeros(maximum),
+      });
+      setValue(amountRange);
+    },
+  };
+}
+
 const TransactionListAmountRangeFilter: React.FC<TransactionListAmountRangeFilterProps> = ({
   filterAmountRange,
   resetAmountRange,
 }) => {
   const theme = useTheme();
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
-
-  const initialAmountRange = [0, 100];
-  const [amountRangeValue, setAmountRangeValue] = React.useState<number[]>(initialAmountRange);
-
-  const [amountRangeAnchorEl, setAmountRangeAnchorEl] = React.useState<HTMLDivElement | null>(null);
-
-  const handleAmountRangeClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    setAmountRangeAnchorEl(event.currentTarget);
-  };
-
-  const handleAmountRangeClose = () => {
-    setAmountRangeAnchorEl(null);
-  };
-
-  const handleAmountRangeChange = (_event: Event, amountRange: number | number[]) => {
-    if (!Array.isArray(amountRange)) return;
-    const minimum = amountRange[0];
-    const maximum = amountRange.at(-1);
-    if (minimum === undefined || maximum === undefined) return;
-    filterAmountRange({
-      amountMin: padAmountWithZeros(minimum),
-      amountMax: padAmountWithZeros(maximum),
-    });
-    setAmountRangeValue(amountRange);
-  };
-
-  const amountRangeOpen = Boolean(amountRangeAnchorEl);
-  const amountRangeId = amountRangeOpen ? "amount-range-popover" : undefined;
+  const range = useAmountRangeFilter({ filterAmountRange, resetAmountRange });
+  const amountRangeOpen = Boolean(range.anchorEl);
 
   return (
     <div>
       <Chip
         color="primary"
         variant="outlined"
-        onClick={handleAmountRangeClick}
+        onClick={range.open}
         data-test="transaction-list-filter-amount-range-button"
-        label={`Amount: ${formatAmountRangeValues(amountRangeValue)}`}
+        label={`Amount: ${formatAmountRangeValues(range.value)}`}
         deleteIcon={<ArrowDropDownIcon />}
-        onDelete={handleAmountRangeClick}
+        onDelete={range.open}
       />
       <AmountRangePicker
-        id={amountRangeId}
+        id={amountRangeOpen ? "amount-range-popover" : undefined}
         open={amountRangeOpen}
-        anchorEl={amountRangeAnchorEl}
+        anchorEl={range.anchorEl}
         xsBreakpoint={xsBreakpoint}
-        onClose={handleAmountRangeClose}
-        amountRangeValue={amountRangeValue}
-        onChange={handleAmountRangeChange}
-        onClear={() => {
-          setAmountRangeValue(initialAmountRange);
-          resetAmountRange();
-        }}
+        onClose={range.close}
+        amountRangeValue={range.value}
+        onChange={range.change}
+        onClear={range.clear}
       />
     </div>
   );

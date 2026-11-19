@@ -1,5 +1,5 @@
 import React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, type Theme } from "@mui/material/styles";
 import { useTheme, useMediaQuery, Divider } from "@mui/material";
 import type { RowRendererParams } from "react-virtualized";
 import { InfiniteLoader, List } from "react-virtualized";
@@ -30,6 +30,33 @@ export interface TransactionListProps {
   pagination: Pick<TransactionPagination, "page" | "hasNextPages"> & Partial<TransactionPagination>;
 }
 
+const removePx = (str: string) => +str.slice(0, str.length - 2);
+
+function listDimensions(theme: Theme, isXs: boolean) {
+  return {
+    height: removePx(theme.spacing(isXs ? 74 : 88)),
+    width: removePx(theme.spacing(isXs ? 38 : 90)),
+    rowHeight: removePx(theme.spacing(isXs ? 28 : 16)),
+  };
+}
+
+function TransactionRow({
+  transaction,
+  style,
+  isMobile,
+}: {
+  transaction: TransactionResponseItem;
+  style: React.CSSProperties;
+  isMobile: boolean;
+}) {
+  return (
+    <div style={style}>
+      <TransactionItem transaction={transaction} />
+      <Divider variant={isMobile ? "fullWidth" : "inset"} />
+    </div>
+  );
+}
+
 const TransactionInfiniteList: React.FC<TransactionListProps> = ({
   transactions,
   loadNextPage,
@@ -49,21 +76,12 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
   const isRowLoaded = (params: { index: number }) =>
     !pagination.hasNextPages || params.index < transactions.length;
 
-  function rowRenderer({ key, index, style }: RowRendererParams) {
+  const rowRenderer = ({ key, index, style }: RowRendererParams) => {
     const transaction = transactions[index];
-
-    if (transaction) {
-      return (
-        <div key={key} style={style}>
-          <TransactionItem transaction={transaction} />
-          <Divider variant={isMobile ? "fullWidth" : "inset"} />
-        </div>
-      );
-    }
-    return null;
-  }
-
-  const removePx = (str: string) => +str.slice(0, str.length - 2);
+    return transaction ? (
+      <TransactionRow key={key} transaction={transaction} style={style} isMobile={isMobile} />
+    ) : null;
+  };
 
   return (
     <StyledInfiniteLoader
@@ -78,9 +96,7 @@ const TransactionInfiniteList: React.FC<TransactionListProps> = ({
             rowCount={itemCount}
             ref={registerChild}
             onRowsRendered={onRowsRendered}
-            height={isXsBreakpoint ? removePx(theme.spacing(74)) : removePx(theme.spacing(88))}
-            width={isXsBreakpoint ? removePx(theme.spacing(38)) : removePx(theme.spacing(90))}
-            rowHeight={isXsBreakpoint ? removePx(theme.spacing(28)) : removePx(theme.spacing(16))}
+            {...listDimensions(theme, isXsBreakpoint)}
             rowRenderer={rowRenderer}
             role="grid"
           />

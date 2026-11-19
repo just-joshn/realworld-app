@@ -137,6 +137,40 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   );
 };
 
+function useDateRangeFilter({
+  filterDateRange,
+  resetDateRange,
+}: Pick<TransactionListDateRangeFilterProps, "filterDateRange" | "resetDateRange">) {
+  const [calendarValue, setCalendarValue] = useState<Value>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null);
+
+  return {
+    calendarValue,
+    anchorEl,
+    open: (event: React.MouseEvent<HTMLDivElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+    close: () => {
+      setAnchorEl(null);
+    },
+    clear: () => {
+      setCalendarValue(null);
+      resetDateRange();
+    },
+    select: (val: Value) => {
+      if (val && !(val instanceof Date)) {
+        const [rangeStart, rangeEnd] = val;
+        setCalendarValue(val);
+        filterDateRange({
+          dateRangeStart: localDateToUTCISOString(rangeStart),
+          dateRangeEnd: localDateToUTCISOString(rangeEnd),
+        });
+        setAnchorEl(null);
+      }
+    },
+  };
+}
+
 const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterProps> = ({
   filterDateRange,
   dateRangeFilters,
@@ -145,53 +179,25 @@ const TransactionListDateRangeFilter: React.FC<TransactionListDateRangeFilterPro
   const theme = useTheme();
   const xsBreakpoint = useMediaQuery(theme.breakpoints.only("xs"));
   const queryHasDateFields = hasDateQueryFields(dateRangeFilters);
-  const [calendarValue, setCalendarValue] = useState<Value>(null);
-
-  const [dateRangeAnchorEl, setDateRangeAnchorEl] = React.useState<HTMLDivElement | null>(null);
-
-  const onCalendarSelect = (val: Value) => {
-    if (val && !(val instanceof Date)) {
-      const [rangeStart, rangeEnd] = val;
-      const calValue = {
-        dateRangeStart: localDateToUTCISOString(rangeStart),
-        dateRangeEnd: localDateToUTCISOString(rangeEnd),
-      };
-      setCalendarValue(val);
-      filterDateRange(calValue);
-      setDateRangeAnchorEl(null);
-    }
-  };
-
-  const handleDateRangeClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    setDateRangeAnchorEl(event.currentTarget);
-  };
-
-  const handleDateRangeClose = () => {
-    setDateRangeAnchorEl(null);
-  };
-
-  const dateRangeOpen = Boolean(dateRangeAnchorEl);
-  const dateRangeId = dateRangeOpen ? "date-range-popover" : undefined;
+  const range = useDateRangeFilter({ filterDateRange, resetDateRange });
+  const dateRangeOpen = Boolean(range.anchorEl);
 
   return (
     <Root>
       <DateRangeChip
         queryHasDateFields={queryHasDateFields}
-        label={dateRangeLabel(calendarValue)}
-        onOpen={handleDateRangeClick}
-        onClear={() => {
-          setCalendarValue(null);
-          resetDateRange();
-        }}
+        label={dateRangeLabel(range.calendarValue)}
+        onOpen={range.open}
+        onClear={range.clear}
       />
       <DateRangePicker
-        id={dateRangeId}
+        id={dateRangeOpen ? "date-range-popover" : undefined}
         open={dateRangeOpen}
-        anchorEl={dateRangeAnchorEl}
+        anchorEl={range.anchorEl}
         xsBreakpoint={xsBreakpoint}
-        onClose={handleDateRangeClose}
-        onCalendarSelect={onCalendarSelect}
-        calendarValue={calendarValue}
+        onClose={range.close}
+        onCalendarSelect={range.select}
+        calendarValue={range.calendarValue}
       />
     </Root>
   );
