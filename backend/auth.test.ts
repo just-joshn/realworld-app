@@ -91,13 +91,15 @@ describe("POST /login", () => {
 });
 
 test("POST /logout ends the session and redirects home", async () => {
-  const destroy = vi.fn();
+  const destroy = vi.fn((done: () => void) => {
+    done();
+  });
 
   const result = await dispatch(router, {
     method: "POST",
     url: "/logout",
     request: {
-      logout: (done: () => void) => {
+      logout: (done: (error?: Error) => void) => {
         done();
       },
       session: { destroy },
