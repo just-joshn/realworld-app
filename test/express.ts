@@ -72,6 +72,10 @@ export function withQuery(url: string, query: Record<string, unknown>): string {
   return `${url}${url.includes("?") ? "&" : "?"}${search}`;
 }
 
+// The derived object inherits from `base`, so it is a Request by construction.
+const isDerivedFrom = (value: unknown, base: Request): value is Request =>
+  typeof value === "object" && value !== null && Object.getPrototypeOf(value) === base;
+
 export function buildRequest(overrides: Record<string, unknown> = {}): Request {
   const { query, ...rest } = overrides;
   const { req: base } = buildExchange();
@@ -84,10 +88,11 @@ export function buildRequest(overrides: Record<string, unknown> = {}): Request {
   };
   const givenUrl = typeof merged["url"] === "string" ? merged["url"] : base.url;
   const url = isQueryRecord(query) ? withQuery(givenUrl, query) : undefined;
-  const req = Object.create(
+  const derived: unknown = Object.create(
     base,
     describeProps(url === undefined ? merged : { ...merged, url })
-  ) as Request;
+  );
+  const req = required(isDerivedFrom(derived, base) ? derived : undefined, "Derived test request");
   writableQuery(req);
   return req;
 }
