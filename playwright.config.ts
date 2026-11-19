@@ -1,10 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 import type { AppOptions } from "./playwright/fixtures/base";
+import { defaultApiUrl, defaultWebUrl } from "./playwright/helpers/origins.config";
 
 const { BASE_URL, API_URL: API_URL_OVERRIDE, CI } = process.env;
 const isCI = Boolean(CI);
-const WEB_URL = BASE_URL ?? "http://localhost:3300";
-const API_URL = API_URL_OVERRIDE ?? "http://localhost:3301";
+const WEB_URL = BASE_URL ?? defaultWebUrl;
+const API_URL = API_URL_OVERRIDE ?? defaultApiUrl;
 
 const apiUse = {
   baseURL: API_URL,
