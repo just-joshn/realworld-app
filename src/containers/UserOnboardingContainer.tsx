@@ -95,41 +95,41 @@ interface ContentProps {
 
 function OnboardingContent({ step, currentUser, createBankAccount }: ContentProps) {
   return (
-      <DialogContent data-test="user-onboarding-dialog-content">
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {step.matches("stepOne") && (
-            <>
-              <NavigatorIllustration />
+    <DialogContent data-test="user-onboarding-dialog-content">
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {step.matches("stepOne") && (
+          <>
+            <NavigatorIllustration />
+            <br />
+            <DialogContentText style={{ paddingLeft: 20 }}>
+              Real World App requires a Bank Account to perform transactions.
               <br />
-              <DialogContentText style={{ paddingLeft: 20 }}>
-                Real World App requires a Bank Account to perform transactions.
-                <br />
-                <br />
-                Click <b>Next</b> to begin setup of your Bank Account.
-              </DialogContentText>
-            </>
-          )}
-          {step.matches("stepTwo") && currentUser && (
-            <BankAccountForm
-              userId={currentUser.id}
-              createBankAccount={createBankAccount}
-              onboarding
-            />
-          )}
-          {step.matches("stepThree") && (
-            <>
-              <PersonalFinance />
               <br />
-              <DialogContentText style={{ paddingLeft: 20 }}>
-                You're all set!
-                <br />
-                <br />
-                We're excited to have you aboard the Real World App!
-              </DialogContentText>
-            </>
-          )}
-        </Box>
-      </DialogContent>
+              Click <b>Next</b> to begin setup of your Bank Account.
+            </DialogContentText>
+          </>
+        )}
+        {step.matches("stepTwo") && currentUser && (
+          <BankAccountForm
+            userId={currentUser.id}
+            createBankAccount={createBankAccount}
+            onboarding
+          />
+        )}
+        {step.matches("stepThree") && (
+          <>
+            <PersonalFinance />
+            <br />
+            <DialogContentText style={{ paddingLeft: 20 }}>
+              You're all set!
+              <br />
+              <br />
+              We're excited to have you aboard the Real World App!
+            </DialogContentText>
+          </>
+        )}
+      </Box>
+    </DialogContent>
   );
 }
 
@@ -142,31 +142,27 @@ interface ActionsProps {
 
 function OnboardingActions({ isStepTwo, isStepThree, onLogout, onNext }: ActionsProps) {
   return (
-      <DialogActions>
-        <Grid container sx={{ justifyContent: "space-between" }}>
-          <Grid>
-            <Button
-              style={{ paddingRight: "80%" }}
-              onClick={onLogout}
-              color="secondary"
-              data-test="user-onboarding-logout"
-            >
-              Logout
-            </Button>
-          </Grid>
-          <Grid>
-            {!isStepTwo && (
-              <Button
-                onClick={onNext}
-                color="primary"
-                data-test="user-onboarding-next"
-              >
-                {isStepThree ? "Done" : "Next"}
-              </Button>
-            )}
-          </Grid>
+    <DialogActions>
+      <Grid container sx={{ justifyContent: "space-between" }}>
+        <Grid>
+          <Button
+            style={{ paddingRight: "80%" }}
+            onClick={onLogout}
+            color="secondary"
+            data-test="user-onboarding-logout"
+          >
+            Logout
+          </Button>
         </Grid>
-      </DialogActions>
+        <Grid>
+          {!isStepTwo && (
+            <Button onClick={onNext} color="primary" data-test="user-onboarding-next">
+              {isStepThree ? "Done" : "Next"}
+            </Button>
+          )}
+        </Grid>
+      </Grid>
+    </DialogActions>
   );
 }
 

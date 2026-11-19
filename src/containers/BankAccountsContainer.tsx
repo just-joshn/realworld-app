@@ -73,29 +73,25 @@ const BankAccountsContainer: React.FC<Props> = ({ authService, bankAccountsServi
 };
 function BankAccountsHeader() {
   return (
-      <Grid
-        container
-        direction="row"
-        sx={{ justifyContent: "space-between", alignItems: "center" }}
-      >
-        <Grid>
-          <Typography component="h2" variant="h6" color="primary" gutterBottom>
-            Bank Accounts
-          </Typography>
-        </Grid>
-        <Grid>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            component={RouterLink}
-            to="/bankaccounts/new"
-            data-test="bankaccount-new"
-          >
-            Create
-          </Button>
-        </Grid>
+    <Grid container direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+      <Grid>
+        <Typography component="h2" variant="h6" color="primary" gutterBottom>
+          Bank Accounts
+        </Typography>
       </Grid>
+      <Grid>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          component={RouterLink}
+          to="/bankaccounts/new"
+          data-test="bankaccount-new"
+        >
+          Create
+        </Button>
+      </Grid>
+    </Grid>
   );
 }
 

@@ -199,7 +199,9 @@ const SignUpForm: React.FC<Props> = ({ authService }) => {
   return (
     <SignUpView
       initialValues={initialValues}
-      onSubmit={(values) => sendAuth({ type: "SIGNUP", ...values })}
+      onSubmit={(values) => {
+        sendAuth({ type: "SIGNUP", ...values });
+      }}
     />
   );
 };

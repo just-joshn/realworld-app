@@ -1,14 +1,10 @@
 import shortid from "shortid";
 import { faker } from "@faker-js/faker";
 import { map, flattenDeep, times, sample, uniqBy, flow, curry } from "lodash/fp";
-import type { BankAccount, User, Contact } from "../../src/models";
+import type { BankAccount, User } from "../../src/models";
 import { DefaultPrivacyLevel } from "../../src/models";
 import { required } from "../../backend/required";
-import {
-  userbaseSize,
-  contactsPerUser,
-  passwordHash,
-} from "./config";
+import { userbaseSize, contactsPerUser, passwordHash } from "./config";
 
 export const getUserAvatar = (identifier: string) => {
   return `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(identifier)}`;

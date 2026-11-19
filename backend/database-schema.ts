@@ -11,7 +11,7 @@ export const parseDatabase = (input: unknown): DbSchema => {
         ...(balanceAtCompletion === undefined ? {} : { balanceAtCompletion }),
         ...(requestStatus === undefined ? {} : { requestStatus }),
         ...(requestResolvedAt === undefined ? {} : { requestResolvedAt }),
-      }),
+      })
     ),
   };
 };

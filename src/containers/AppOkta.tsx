@@ -47,8 +47,7 @@ function useOktaSync() {
 
 const AppOkta: React.FC = () => {
   const [authState] = useSharedActor(authService);
-  const { notificationsService, snackbarService, bankAccountsService } =
-    useAppServices();
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
   useOktaSync();
 

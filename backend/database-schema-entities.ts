@@ -46,10 +46,7 @@ const transaction = yup.object({
   privacyLevel: privacy,
   receiverId: text,
   senderId: text,
-  status: yup
-    .mixed<TransactionStatus>()
-    .oneOf(Object.values(TransactionStatus))
-    .defined(),
+  status: yup.mixed<TransactionStatus>().oneOf(Object.values(TransactionStatus)).defined(),
   balanceAtCompletion: yup.number(),
   requestStatus: yup.string(),
   requestResolvedAt: yup
@@ -57,10 +54,7 @@ const transaction = yup.object({
     .test(
       "resolved-date",
       "Invalid request resolution date",
-      (value: unknown) =>
-        value === undefined ||
-        typeof value === "string" ||
-        value instanceof Date,
+      (value: unknown) => value === undefined || typeof value === "string" || value instanceof Date
     ),
 });
 const like = yup.object({ ...base, userId: text, transactionId: text });
@@ -90,10 +84,7 @@ const transfer = yup.object({
   source: text,
   amount: yup.number().defined(),
   transactionId: text,
-  type: yup
-    .mixed<BankTransferType>()
-    .oneOf(Object.values(BankTransferType))
-    .defined(),
+  type: yup.mixed<BankTransferType>().oneOf(Object.values(BankTransferType)).defined(),
 });
 export const databaseSchema = yup.object({
   users: yup.array(user).defined(),

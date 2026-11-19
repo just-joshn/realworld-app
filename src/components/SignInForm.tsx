@@ -205,7 +205,9 @@ const SignInForm: React.FC<Props> = ({ authService }) => {
     <SignInView
       message={authState.context.message}
       initialValues={initialValues}
-      onSubmit={(values) => sendAuth({ type: "LOGIN", ...values })}
+      onSubmit={(values) => {
+        sendAuth({ type: "LOGIN", ...values });
+      }}
     />
   );
 };

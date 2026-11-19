@@ -6,7 +6,7 @@ export const transactionsWithinAmountRange = curry(
   (
     amountMin: number | string | undefined,
     amountMax: number | string | undefined,
-    transactions: Transaction[],
+    transactions: Transaction[]
   ) => {
     if (amountMin === undefined || amountMax === undefined) {
       return transactions;
@@ -15,16 +15,16 @@ export const transactionsWithinAmountRange = curry(
     return filter(
       (transaction: Transaction) =>
         inRange(Number(amountMin), Number(amountMax), transaction.amount),
-      transactions,
+      transactions
     );
-  },
+  }
 );
 
 export const transactionsWithinDateRange = curry(
   (
     dateRangeStart: string | undefined,
     dateRangeEnd: string | undefined,
-    transactions: Transaction[],
+    transactions: Transaction[]
   ) => {
     if (dateRangeStart === undefined || dateRangeEnd === undefined) {
       return transactions;
@@ -36,7 +36,7 @@ export const transactionsWithinDateRange = curry(
           start: new Date(dateRangeStart),
           end: new Date(dateRangeEnd),
         }),
-      transactions,
+      transactions
     );
-  },
+  }
 );

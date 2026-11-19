@@ -55,8 +55,7 @@ function useGoogleSync() {
 
 const AppGoogle: React.FC = () => {
   const [authState] = useSharedActor(authService);
-  const { notificationsService, snackbarService, bankAccountsService } =
-    useAppServices();
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
   const clientId = useGoogleSync();
 

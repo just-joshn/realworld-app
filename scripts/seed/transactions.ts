@@ -22,11 +22,7 @@ import type {
   TransactionScenario,
   FakeTransaction,
 } from "../../src/models";
-import {
-  DefaultPrivacyLevel,
-  TransactionStatus,
-  TransactionRequestStatus,
-} from "../../src/models";
+import { DefaultPrivacyLevel, TransactionStatus, TransactionRequestStatus } from "../../src/models";
 import { required } from "../../backend/required";
 import { getFakeAmount } from "../../src/utils/transactionUtils";
 import { isPayment, paymentsPerUser, requestsPerUser } from "./config";

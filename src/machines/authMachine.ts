@@ -202,10 +202,13 @@ type ActorName =
 
 const loggableOut = { LOGOUT: "logout" } as const;
 
-const invokeState = <Src extends ActorName, Target extends "authorized" | "unauthorized" | "refreshing">(
+const invokeState = <
+  Src extends ActorName,
+  Target extends "authorized" | "unauthorized" | "refreshing",
+>(
   src: Src,
   target: Target,
-  onDoneActions: typeof setUser | typeof onSuccess
+  onDoneActions: typeof setUser
 ) => ({
   invoke: {
     src,

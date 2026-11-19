@@ -44,8 +44,7 @@ function useAuth0Sync() {
 
 const AppAuth0: React.FC = () => {
   const [authState] = useSharedActor(authService);
-  const { notificationsService, snackbarService, bankAccountsService } =
-    useAppServices();
+  const { notificationsService, snackbarService, bankAccountsService } = useAppServices();
 
   useAuth0Sync();
 

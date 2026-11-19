@@ -292,7 +292,9 @@ const NavDrawer: React.FC<Props> = ({
         currentUser={authState.context.user}
         toggleDrawer={toggleDrawer}
         showTemporaryDrawer={showTemporaryDrawer}
-        onSignOut={() => sendAuth({ type: "LOGOUT" })}
+        onSignOut={() => {
+          sendAuth({ type: "LOGOUT" });
+        }}
       />
     </StyledDrawer>
   );

@@ -48,9 +48,7 @@ const CONSOLE_LOG_ALLOW = new Set([
  * Persistence APIs that append rows to lowdb collections.
  * App and domain code must not mutate arrays/objects in place.
  */
-const ARRAY_MUTATOR_ALLOW = [
-  { file: "backend/db/store.ts", re: /\btable\.push\(/ },
-];
+const ARRAY_MUTATOR_ALLOW = [{ file: "backend/db/store.ts", re: /\btable\.push\(/ }];
 
 /** Collector scripts build arrays as their output. */
 const ARRAY_MUTATOR_FILE_ALLOW = new Set([
@@ -171,9 +169,7 @@ function scanFile(path) {
       if (/\bhistory\.push\s*\(/.test(line)) return;
       if (/\brouter\.push\s*\(/.test(line)) return;
       if (/\bnavigate\s*\(/.test(line)) return;
-      const allowed = ARRAY_MUTATOR_ALLOW.some(
-        (a) => a.file === pathRel && a.re.test(line)
-      );
+      const allowed = ARRAY_MUTATOR_ALLOW.some((a) => a.file === pathRel && a.re.test(line));
       if (allowed) return;
       violations.push({
         rule: "no-array-mutation",
@@ -345,7 +341,9 @@ function main() {
     violationCount: violations.length,
     noteCount: notes.length,
     byRule,
-    overMaxFiles: reports.filter((r) => r.lines > MAX_FILE_LINES).map((r) => ({ path: r.path, lines: r.lines })),
+    overMaxFiles: reports
+      .filter((r) => r.lines > MAX_FILE_LINES)
+      .map((r) => ({ path: r.path, lines: r.lines })),
     overWarnFiles: reports
       .filter((r) => r.lines > WARN_FILE_LINES && r.lines <= MAX_FILE_LINES)
       .map((r) => ({ path: r.path, lines: r.lines })),
@@ -363,7 +361,9 @@ function main() {
   if (asJson) {
     process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
   } else {
-    console.log(`files=${summary.filesScanned} violations=${summary.violationCount} notes=${summary.noteCount}`);
+    console.log(
+      `files=${summary.filesScanned} violations=${summary.violationCount} notes=${summary.noteCount}`
+    );
     console.log("byRule", JSON.stringify(byRule));
     for (const v of violations) {
       console.log(`[FAIL] ${v.rule} ${v.path} ${v.detail}`);

@@ -14,10 +14,7 @@ import type {
 import { PaymentNotificationStatus } from "../../src/models";
 import { required } from "../../backend/required";
 import { likesPerUser, commentsPerUser, notificationsPerUser } from "./config";
-import {
-  getRandomTransactions,
-  getPublicTransactionsForOtherUsers,
-} from "./transactions";
+import { getRandomTransactions, getPublicTransactionsForOtherUsers } from "./transactions";
 
 export const createFakeLike = (userId: string, transactionId: string): Like => ({
   id: shortid(),

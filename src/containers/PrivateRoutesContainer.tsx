@@ -35,29 +35,21 @@ function guard(path: string, isLoggedIn: boolean, element: React.ReactNode) {
 }
 
 function accountRoutes(p: Props) {
-  const { isLoggedIn, authService, notificationsService, bankAccountsService } =
-    p;
+  const { isLoggedIn, authService, notificationsService, bankAccountsService } = p;
   return [
-    guard(
-      "/user/settings",
-      isLoggedIn,
-      <UserSettingsContainer authService={authService} />,
-    ),
+    guard("/user/settings", isLoggedIn, <UserSettingsContainer authService={authService} />),
     guard(
       "/notifications",
       isLoggedIn,
       <NotificationsContainer
         authService={authService}
         notificationsService={notificationsService}
-      />,
+      />
     ),
     guard(
       "/bankaccounts/*",
       isLoggedIn,
-      <BankAccountsContainer
-        authService={authService}
-        bankAccountsService={bankAccountsService}
-      />,
+      <BankAccountsContainer authService={authService} bankAccountsService={bankAccountsService} />
     ),
   ];
 }
@@ -68,15 +60,12 @@ function transactionRoutes(p: Props) {
     guard(
       "/transaction/new",
       isLoggedIn,
-      <TransactionCreateContainer
-        authService={authService}
-        snackbarService={snackbarService}
-      />,
+      <TransactionCreateContainer authService={authService} snackbarService={snackbarService} />
     ),
     guard(
       "/transaction/:transactionId",
       isLoggedIn,
-      <TransactionDetailContainer authService={authService} />,
+      <TransactionDetailContainer authService={authService} />
     ),
     guard("/*", isLoggedIn, <TransactionsContainer />),
   ];
@@ -105,10 +94,7 @@ const PrivateRoutesContainer: React.FC<Props> = ({
   }, [sendNotifications]);
 
   return (
-    <MainLayout
-      notificationsService={notificationsService}
-      authService={authService}
-    >
+    <MainLayout notificationsService={notificationsService} authService={authService}>
       <UserOnboardingContainer
         authService={authService}
         bankAccountsService={bankAccountsService}

@@ -4,28 +4,28 @@ Goal: keep Yup (no Zod), document where validation lives, fix only clear gaps.
 
 ## Layers (as designed)
 
-| Layer | Location | Role |
-|-------|----------|------|
-| Domain / API response shapes | `src/models/schemas.ts` | Shared Yup models for entities and auth responses |
-| DB seed / replace parse | `backend/database-schema.ts` | Yup parse of persisted JSON at store boundary |
-| Request body shapes | `backend/request-data.ts` | Yup objects used after express-validator |
-| HTTP field checks | `backend/validators.ts` + `validateMiddleware` | express-validator chains on routes |
-| Form UX | Formik `validationSchema` in components | Client-side only |
-| Playwright API asserts | `playwright/helpers/schemas.ts` | Test contracts, not product path |
+| Layer                        | Location                                       | Role                                              |
+| ---------------------------- | ---------------------------------------------- | ------------------------------------------------- |
+| Domain / API response shapes | `src/models/schemas.ts`                        | Shared Yup models for entities and auth responses |
+| DB seed / replace parse      | `backend/database-schema.ts`                   | Yup parse of persisted JSON at store boundary     |
+| Request body shapes          | `backend/request-data.ts`                      | Yup objects used after express-validator          |
+| HTTP field checks            | `backend/validators.ts` + `validateMiddleware` | express-validator chains on routes                |
+| Form UX                      | Formik `validationSchema` in components        | Client-side only                                  |
+| Playwright API asserts       | `playwright/helpers/schemas.ts`                | Test contracts, not product path                  |
 
 Zod imports in first-party code: **none**.
 
 ## Product forms
 
-| Surface | Yup? | Notes |
-|---------|------|-------|
-| SignInForm | yes | username/password |
-| SignUpForm | yes | + confirm password |
-| UserSettingsForm | yes | profile fields + privacy |
-| BankAccountForm | yes | bank/account/routing |
-| CommentForm | yes | content |
-| TransactionCreateStepTwo | yes | amount/description/etc |
-| UserListSearchForm | **no** | free-text search; server has `searchValidation` (`q` exists). Gap is low risk; empty `q` is a product choice, not missing schema debt |
+| Surface                  | Yup?   | Notes                                                                                                                                 |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| SignInForm               | yes    | username/password                                                                                                                     |
+| SignUpForm               | yes    | + confirm password                                                                                                                    |
+| UserSettingsForm         | yes    | profile fields + privacy                                                                                                              |
+| BankAccountForm          | yes    | bank/account/routing                                                                                                                  |
+| CommentForm              | yes    | content                                                                                                                               |
+| TransactionCreateStepTwo | yes    | amount/description/etc                                                                                                                |
+| UserListSearchForm       | **no** | free-text search; server has `searchValidation` (`q` exists). Gap is low risk; empty `q` is a product choice, not missing schema debt |
 
 ## Backend routes
 

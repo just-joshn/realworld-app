@@ -9,7 +9,8 @@ import type {
   NotificationPayloadType,
   NotificationResponseItem,
 } from "../../src/models";
-import { PaymentNotificationStatus, NotificationsType } from "../../src/models";
+import type { PaymentNotificationStatus } from "../../src/models";
+import { NotificationsType } from "../../src/models";
 import {
   isRequestTransaction,
   isLikeNotification,
