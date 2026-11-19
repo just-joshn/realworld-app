@@ -1,15 +1,15 @@
 {
-  "name": "cypress-realworld-app",
+  "name": "realworld-app",
   "version": "1.0.0",
-  "description": "A payment application with **real-world** features, patterns, and workflows.",
+  "description": "A payment application to demonstrate real-world usage of Vitest + Playwright testing methods, patterns, and workflows.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cypress-io/cypress-realworld-app.git"
+    "url": "https://github.com/just-joshn/realworld-app.git"
   },
-  "author": "Cypress-io",
+  "author": "just-joshn",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/cypress-io/cypress-realworld-app/issues"
+    "url": "https://github.com/just-joshn/realworld-app/issues"
   },
   "dependencies": {
     "@auth0/auth0-react": "2.30.0",
