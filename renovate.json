@@ -37,15 +37,15 @@
     },
     {
       "groupName": "Typescript",
-      "matchPackageNames": ["typescript", "ts-node"]
+      "matchPackageNames": ["typescript"]
     },
     {
       "groupName": "React",
-      "matchPackageNames": ["react", "react-dom", "react-scripts"]
+      "matchPackageNames": ["react", "react-dom"]
     },
     {
       "groupName": "React Router",
-      "matchPackageNames": ["react-router", "react-router-dom", "history"]
+      "matchPackageNames": ["react-router"]
     },
     {
       "groupName": "Okta",
