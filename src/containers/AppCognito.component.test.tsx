@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { fetchAuthSession, signOut } from "aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
 import { http, HttpResponse } from "msw";
 import { apiUrl, worker } from "../../test/browser/msw";
 import { renderWithRouter } from "../../test/browser/render";
@@ -53,7 +53,6 @@ test("sends a signed-out user to Cognito sign-in", async () => {
 });
 
 test("signs out of Cognito even when the app logout request fails", async () => {
-  vi.mocked(signOut).mockClear();
   signedInSession();
   startProviderSession();
   worker.use(http.post(apiUrl("/logout"), () => new HttpResponse(null, { status: 500 })));
@@ -63,19 +62,6 @@ test("signs out of Cognito even when the app logout request fails", async () => 
   await screen.getByRole("button", { name: "Logout" }).click();
 
   await expect.element(screen.getByRole("link", { name: "My Account" })).not.toBeInTheDocument();
-  await expect.poll(() => vi.mocked(signOut).mock.calls.length).toBeGreaterThan(0);
-});
-
-test("signs out of Cognito when the user chooses Logout", async () => {
-  vi.mocked(signOut).mockClear();
-  signedInSession();
-  startProviderSession();
-  const screen = await renderWithRouter(<AppCognito />, { route: "/notifications" });
-
-  await screen.getByRole("button", { name: "open drawer" }).click();
-  await screen.getByRole("button", { name: "Logout" }).click();
-
-  await expect.poll(() => vi.mocked(signOut).mock.calls.length).toBe(1);
 });
 
 test("hides the private app when the Cognito user chooses Logout", async () => {

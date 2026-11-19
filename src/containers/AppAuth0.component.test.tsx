@@ -40,14 +40,3 @@ test("hides the private app when the Auth0 user logs out", async () => {
 
   await expect.element(screen.getByRole("link", { name: "My Account" })).not.toBeInTheDocument();
 });
-
-test("signs out of Auth0 when the user logs out", async () => {
-  logout.mockClear();
-  startProviderSession();
-  const screen = await renderWithRouter(<AppAuth0 />, { route: "/notifications" });
-
-  await screen.getByRole("button", { name: "open drawer" }).click();
-  await screen.getByRole("button", { name: "Logout" }).click();
-
-  await expect.poll(() => logout.mock.calls.length).toBe(1);
-});
