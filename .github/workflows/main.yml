@@ -29,6 +29,7 @@ jobs:
       - run: bun run lint
       - run: bun run copy:mock:awsexports
       - run: bun run test:unit
+      - run: bun run style:check
       - run: bun fmt --check
       - run: node scripts/check-playwright-practices.mjs
       - run: bun run build:ci
