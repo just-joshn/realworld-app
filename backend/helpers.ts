@@ -17,7 +17,7 @@ import {
   googleIssuer,
   googleJwksUri,
   oktaIssuer,
-} from "./config/auth-providers";
+} from "./config/auth-providers.config";
 
 dotenv.config();
 
