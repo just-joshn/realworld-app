@@ -60,7 +60,8 @@ export const verifyOktaToken = (req: Request, res: Response, next: NextFunction)
         next();
       })
       .catch((err: unknown) => {
-        console.log("error", err);
+        console.error("Okta access token verification failed:", err);
+        res.status(401).send({ error: "Unauthorized" });
       });
   } else {
     res.status(401).send({

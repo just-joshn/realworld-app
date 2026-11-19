@@ -48,7 +48,6 @@ const AppGoogle: React.FC = () => {
   useGoogleLogin({
     clientId,
     onSuccess: (res) => {
-      console.log("onSuccess", res);
       if (!("profileObj" in res)) {
         throw new Error("Missing Google profile in login response");
       }
