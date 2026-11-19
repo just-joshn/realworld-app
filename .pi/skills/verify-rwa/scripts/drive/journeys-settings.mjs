@@ -1,6 +1,6 @@
-const { SEED } = require("./config.cjs");
-const { step } = require("./recorder.cjs");
-const { page, db, tid, pathnameIs, signIn } = require("./helpers.cjs");
+import { SEED } from "./config.mjs";
+import { step } from "./recorder.mjs";
+import { page, db, tid, pathnameIs, signIn } from "./helpers.mjs";
 
 const NEW_EMAIL = "ted@example.com";
 
@@ -61,4 +61,4 @@ async function settings() {
   await step("reload shows persisted value", (check) => reloadShowsPersisted(check, newFirst));
 }
 
-module.exports = { settings };
+export const journeys = { settings };

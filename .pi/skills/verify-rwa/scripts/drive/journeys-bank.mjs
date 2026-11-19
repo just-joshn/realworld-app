@@ -1,6 +1,6 @@
-const { SEED } = require("./config.cjs");
-const { step, bestEffort } = require("./recorder.cjs");
-const { page, db, tid, input, user, pathnameIs, poll, signInAs } = require("./helpers.cjs");
+import { SEED } from "./config.mjs";
+import { step, bestEffort } from "./recorder.mjs";
+import { page, db, tid, input, user, pathnameIs, poll, signInAs } from "./helpers.mjs";
 
 const ITEM_PREFIX = "bankaccount-list-item-";
 const itemOf = (acct) => page.locator(tid(`${ITEM_PREFIX}${acct.id}`));
@@ -80,4 +80,4 @@ async function bankAccounts() {
   await step("delete account", (check) => deleteAccount(check, { acct, name }));
 }
 
-module.exports = { "bank-accounts": bankAccounts };
+export const journeys = { "bank-accounts": bankAccounts };

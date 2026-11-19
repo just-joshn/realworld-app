@@ -1,7 +1,7 @@
-const { FRONTEND, SEED, PAYEE, LOW_BALANCE } = require("./config.cjs");
-const { step } = require("./recorder.cjs");
-const { page, db, tid, user, usd, signInAs } = require("./helpers.cjs");
-const { createViaWizard, balanceCheck, payerAndPayee } = require("./wizard.cjs");
+import { FRONTEND, SEED, PAYEE, LOW_BALANCE } from "./config.mjs";
+import { step } from "./recorder.mjs";
+import { page, db, tid, user, usd, signInAs } from "./helpers.mjs";
+import { createViaWizard, balanceCheck, payerAndPayee } from "./wizard.mjs";
 
 const PAY_CENTS = 1200;
 const SHORTFALL_PAYMENT_CENTS = 60000;
@@ -150,4 +150,4 @@ async function payCents() {
   await step("pay $12.34", (check) => payCentsStep(check, { note, before }));
 }
 
-module.exports = { pay, "pay-insufficient": payInsufficient, "pay-cents": payCents };
+export const journeys = { pay, "pay-insufficient": payInsufficient, "pay-cents": payCents };

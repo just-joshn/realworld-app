@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
-const { outDir } = require("./config.cjs");
-const session = require("./session.cjs");
+import fs from "node:fs";
+import path from "node:path";
+import { outDir } from "./config.mjs";
+import * as session from "./session.mjs";
 
 let steps = [];
 let stepNo = 0;
@@ -63,4 +63,4 @@ async function step(label, fn) {
 const hasFailed = () => failed;
 const getSteps = () => steps;
 
-module.exports = { step, out, warn, bestEffort, hasFailed, getSteps };
+export { step, out, warn, bestEffort, hasFailed, getSteps };

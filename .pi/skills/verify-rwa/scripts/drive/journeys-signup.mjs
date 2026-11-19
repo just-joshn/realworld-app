@@ -1,6 +1,6 @@
-const { FRONTEND } = require("./config.cjs");
-const { step, out } = require("./recorder.cjs");
-const { page, db, tid, input, pathnameIs, checkAuth, signIn, poll } = require("./helpers.cjs");
+import { FRONTEND } from "./config.mjs";
+import { step, out } from "./recorder.mjs";
+import { page, db, tid, input, pathnameIs, checkAuth, signIn, poll } from "./helpers.mjs";
 
 const NEW_USER_PASSWORD = "s3cret-verify";
 const BANK_NAME = "Verify Bank";
@@ -119,4 +119,4 @@ async function signupLink() {
   });
 }
 
-module.exports = { "signup-onboarding": signupOnboarding, "signup-link": signupLink };
+export const journeys = { "signup-onboarding": signupOnboarding, "signup-link": signupLink };

@@ -1,6 +1,6 @@
-const { FRONTEND, SEED, PAYEE } = require("./config.cjs");
-const { step, bestEffort } = require("./recorder.cjs");
-const {
+import { FRONTEND, SEED, PAYEE } from "./config.mjs";
+import { step, bestEffort } from "./recorder.mjs";
+import {
   page,
   db,
   tid,
@@ -10,8 +10,8 @@ const {
   signInAs,
   poll,
   sidenavBalanceIs,
-} = require("./helpers.cjs");
-const { createViaWizard, openTransactionFromPersonalFeed } = require("./wizard.cjs");
+} from "./helpers.mjs";
+import { createViaWizard, openTransactionFromPersonalFeed } from "./wizard.mjs";
 
 const REQUEST_CENTS = 700;
 const acceptButton = (tx) => tid(`transaction-accept-request-${tx.id}`);
@@ -131,7 +131,7 @@ async function requestThenRespond(decision) {
   await step("payee balance in sidenav after reload", balanceAfterReload);
 }
 
-module.exports = {
+export const journeys = {
   "request-accept": () => requestThenRespond("accept"),
   "request-reject": () => requestThenRespond("reject"),
 };

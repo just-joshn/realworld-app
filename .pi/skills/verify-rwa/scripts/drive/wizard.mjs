@@ -1,5 +1,5 @@
-const { SEED, PAYEE } = require("./config.cjs");
-const {
+import { SEED, PAYEE } from "./config.mjs";
+import {
   page,
   db,
   tid,
@@ -9,7 +9,7 @@ const {
   poll,
   sidenavBalanceIs,
   sidenavBalanceText,
-} = require("./helpers.cjs");
+} from "./helpers.mjs";
 
 const paidVerb = (type) => (type === "payment" ? "Paid" : "Requested");
 
@@ -67,9 +67,4 @@ const balanceCheck = async (check, desc, cents) =>
 
 const payerAndPayee = () => ({ payer: user(SEED.username).balance, payee: user(PAYEE).balance });
 
-module.exports = {
-  createViaWizard,
-  openTransactionFromPersonalFeed,
-  balanceCheck,
-  payerAndPayee,
-};
+export { createViaWizard, openTransactionFromPersonalFeed, balanceCheck, payerAndPayee };

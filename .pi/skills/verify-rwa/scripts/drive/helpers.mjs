@@ -1,7 +1,7 @@
-const fs = require("fs");
-const { FRONTEND, BACKEND, DB_FILE, SEED } = require("./config.cjs");
-const session = require("./session.cjs");
-const { bestEffort } = require("./recorder.cjs");
+import fs from "node:fs";
+import { FRONTEND, BACKEND, DB_FILE, SEED } from "./config.mjs";
+import * as session from "./session.mjs";
+import { bestEffort } from "./recorder.mjs";
 
 const { page } = session;
 
@@ -79,7 +79,7 @@ const sidenavBalanceIs = (cents) =>
 
 const sidenavBalanceText = () => page.textContent(tid("sidenav-user-balance"));
 
-module.exports = {
+export {
   page,
   db,
   tid,

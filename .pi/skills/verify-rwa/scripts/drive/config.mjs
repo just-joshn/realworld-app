@@ -1,8 +1,8 @@
-const path = require("path");
+import path from "node:path";
 
 const FRONTEND = "http://localhost:3000";
 const BACKEND = "http://localhost:3001";
-const REPO = path.resolve(__dirname, "../../../../..");
+const REPO = path.resolve(import.meta.dirname, "../../../../..");
 const DB_FILE = path.join(REPO, "data/database.json");
 const SEED = { username: "Heath93", password: "s3cret" };
 const PAYEE = "Arvilla_Hegmann"; // seed user, password s3cret
@@ -18,7 +18,7 @@ const outDir = path.join(
   journeyName || "none"
 );
 
-module.exports = {
+export {
   FRONTEND,
   BACKEND,
   DB_FILE,

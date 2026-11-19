@@ -1,9 +1,12 @@
-const { chromium } = require("playwright");
-const { VIEWPORT } = require("./config.cjs");
+import { createRequire } from "node:module";
+import { VIEWPORT } from "./config.mjs";
+
+// NODE_PATH (set by drive.sh) locates playwright for CommonJS resolution only.
+const { chromium } = createRequire(import.meta.url)("playwright");
 
 let browser;
 let ctx;
-let page;
+let livePage;
 let consoleErrors = [];
 
 const firstLine = (text) => text.split("\n")[0];
@@ -24,31 +27,23 @@ const closeBrowser = () => browser.close();
 async function newSession() {
   if (ctx) await ctx.close();
   ctx = await browser.newContext({ viewport: VIEWPORT });
-  page = await ctx.newPage();
-  watchConsole(page);
+  livePage = await ctx.newPage();
+  watchConsole(livePage);
   return ctx;
 }
 
-const currentPage = () => page;
+const currentPage = () => livePage;
 const getConsoleErrors = () => consoleErrors;
 
 // Journeys keep their `page.click(...)` shape; the proxy always forwards to the newest session's page.
-const pageProxy = new Proxy(
+const page = new Proxy(
   {},
   {
     get: (_target, key) => {
-      const value = page[key];
-      return typeof value === "function" ? value.bind(page) : value;
+      const value = livePage[key];
+      return typeof value === "function" ? value.bind(livePage) : value;
     },
   }
 );
 
-module.exports = {
-  launch,
-  closeBrowser,
-  newSession,
-  currentPage,
-  getConsoleErrors,
-  page: pageProxy,
-  firstLine,
-};
+export { launch, closeBrowser, newSession, currentPage, getConsoleErrors, page, firstLine };

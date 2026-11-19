@@ -1,6 +1,6 @@
-const { FRONTEND, BACKEND, SEED } = require("./config.cjs");
-const { step } = require("./recorder.cjs");
-const { page, db, tid, input, pathnameIs, checkAuth, signIn } = require("./helpers.cjs");
+import { FRONTEND, BACKEND, SEED } from "./config.mjs";
+import { step } from "./recorder.mjs";
+import { page, db, tid, input, pathnameIs, checkAuth, signIn } from "./helpers.mjs";
 
 const SESSION_COOKIE = "connect.sid";
 const SECONDS_PER_DAY = 86400;
@@ -140,7 +140,7 @@ async function guard() {
   }
 }
 
-module.exports = {
+export const journeys = {
   signin,
   "signin-invalid": signinInvalid,
   "remember-me": rememberMe,
